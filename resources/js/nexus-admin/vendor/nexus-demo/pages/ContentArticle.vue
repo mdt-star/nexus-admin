@@ -10,7 +10,7 @@
       </div>
     </div>
 
-    <el-card class="nexus-search-card">
+    <el-card class="nexus-search-card nexus-sticky-search">
       <el-form :inline="true" :model="searchForm">
         <el-form-item :label="t('common.search')">
           <el-input v-model="searchForm.keyword" :placeholder="t('common.search')" clearable />
@@ -23,7 +23,7 @@
     </el-card>
 
     <el-card class="nexus-table-card">
-      <el-table :data="articles" border stripe v-loading="loading" style="width: 100%">
+      <el-table :data="articles" border stripe v-loading="loading" style="width: 100%" max-height="calc(100vh - 320px)">
         <el-table-column prop="id" :label="t('common.id')" width="60" />
         <el-table-column prop="title" :label="t('article.title')" min-width="200" show-overflow-tooltip />
         <el-table-column prop="category" :label="t('article.category')" width="120" />
@@ -203,7 +203,6 @@ function handlePageChange() {
   justify-content: space-between;
   margin-bottom: 16px;
 }
-
 
 .nexus-search-card {
   margin-bottom: 16px;

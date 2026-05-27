@@ -10,7 +10,7 @@
       </div>
     </div>
 
-    <el-card class="nexus-search-card">
+    <el-card class="nexus-search-card nexus-sticky-search">
       <el-form :inline="true" :model="searchForm">
         <el-form-item :label="t('user.username')">
           <el-input v-model="searchForm.keyword" :placeholder="t('user.username')" clearable />
@@ -30,7 +30,7 @@
     </el-card>
 
     <el-card class="nexus-table-card">
-      <el-table :data="users" border stripe v-loading="loading" style="width: 100%">
+      <el-table :data="users" border stripe v-loading="loading" style="width: 100%" max-height="calc(100vh - 320px)">
         <el-table-column prop="id" :label="t('common.id')" width="60" />
         <el-table-column prop="username" :label="t('user.username')" width="120" />
         <el-table-column prop="email" :label="t('user.email')" min-width="200" />
