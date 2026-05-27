@@ -29,7 +29,8 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button  @click="handleSearch">{{ t('common.search') }}</el-button>
+          <el-button @click="handleSearch">{{ t('common.search') }}</el-button>
+
           <el-button @click="handleReset">{{ t('common.reset') }}</el-button>
         </el-form-item>
       </el-form>
