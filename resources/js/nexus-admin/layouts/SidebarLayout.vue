@@ -115,7 +115,8 @@
         </div>
       </header>
 
-      <div class="nexus-tabs" v-if="windowStore.items.length > 0">
+      <div class="nexus-tabs" v-if="configStore.get('tabMode', true) && windowStore.items.length > 0">
+
         <div class="nexus-tabs-wrapper" ref="tabsWrapperRef">
           <div v-for="tab in windowStore.items" :key="tab.id" class="nexus-tab" :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)">
             <span class="nexus-tab-label">{{ tab.title }}</span>
