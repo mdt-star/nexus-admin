@@ -328,7 +328,7 @@ function handleUserCommand(command) {
 :deep(.el-menu-item.is-active) { color: var(--el-menu-active-color) !important; }
 :deep(.el-menu-item.is-active .el-icon) { color: var(--el-menu-active-color) !important; }
 
-/* 侧边栏收起时，el-menu-item 的 li 默认 padding 导致图标不居中 */
+/* 侧边栏收起时，el-menu-item 的 li 及内部 div 默认 padding 导致图标不居中 */
 .nexus-sidebar-collapsed .nexus-sidebar-menu :deep(.el-menu-item),
 .nexus-sidebar-collapsed .nexus-sidebar-menu :deep(.el-sub-menu__title) {
   padding: 0 !important;
@@ -336,6 +336,14 @@ function handleUserCommand(command) {
   align-items: center;
   justify-content: center;
 }
+.nexus-sidebar-collapsed .nexus-sidebar-menu :deep(.el-menu-item > div),
+.nexus-sidebar-collapsed .nexus-sidebar-menu :deep(.el-sub-menu__title > div) {
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 
 .nexus-main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
