@@ -123,8 +123,7 @@
     </el-dialog>
 
     <!-- 列设置弹窗 -->
-    <el-dialog v-model="columnSettingsVisible" title="列设置" width="auto">
-
+    <el-dialog v-model="columnSettingsVisible" title="列设置" width="400px">
       <el-checkbox-group v-model="selectedColumnKeys">
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <div v-for="col in columnDefs" :key="col.key">
