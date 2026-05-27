@@ -124,10 +124,11 @@
           </div>
         </div>
         <div class="nexus-tabs-actions">
-          <el-button class="nexus-tab-btn" :icon="ArrowLeft" circle @click="scrollTabs(-1)" />
-          <el-button class="nexus-tab-btn" :icon="ArrowRight" circle @click="scrollTabs(1)" />
-          <el-button class="nexus-tab-btn" :icon="Refresh" circle @click="refreshCurrentTab" />
+          <el-button class="nexus-tab-btn" :icon="ArrowLeft" circle @click="scrollTabs(-1)" :disabled="!canScrollLeft" />
+          <el-button class="nexus-tab-btn" :icon="ArrowRight" circle @click="scrollTabs(1)" :disabled="!canScrollRight" />
+          <!--<el-button class="nexus-tab-btn" :icon="Refresh" circle @click="refreshCurrentTab" />-->
         </div>
+
       </div>
 
       <main class="nexus-content">
@@ -152,7 +153,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+
 import { useAppStore } from '../stores/app'
 import { useMenuStore } from '../stores/menu'
 import { useWindowStore } from '../stores/windows'
@@ -218,12 +220,41 @@ const refreshKey = ref(0)
 
 // Tab 滚动
 const tabsWrapperRef = ref(null)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(false)
+
+function updateScrollState() {
+  const el = tabsWrapperRef.value
+  if (el) {
+    canScrollLeft.value = el.scrollLeft > 0
+    canScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth
+  }
+}
 
 function scrollTabs(dir) {
   if (tabsWrapperRef.value) {
     tabsWrapperRef.value.scrollBy({ left: dir * 200, behavior: 'smooth' })
   }
 }
+
+onMounted(() => {
+  const el = tabsWrapperRef.value
+  if (el) {
+    el.addEventListener('scroll', updateScrollState)
+    // 使用 MutationObserver 监听 tabs 内容变化
+    const observer = new MutationObserver(updateScrollState)
+    observer.observe(el, { childList: true, subtree: true })
+    updateScrollState()
+  }
+})
+
+onUnmounted(() => {
+  const el = tabsWrapperRef.value
+  if (el) {
+    el.removeEventListener('scroll', updateScrollState)
+  }
+})
+
 
 function refreshCurrentTab() {
   refreshKey.value++
@@ -355,6 +386,18 @@ function handleUserCommand(command) {
   background-color: var(--nexus-bg-color-light);
   color: var(--nexus-primary-color);
 }
+
+.nexus-tabs-actions .nexus-tab-btn:disabled {
+  color: var(--nexus-border-color) !important;
+  cursor: default;
+  opacity: 0.5;
+}
+
+.nexus-tabs-actions .nexus-tab-btn:disabled:hover {
+  background-color: transparent;
+  color: var(--nexus-border-color) !important;
+}
+
 
 .nexus-content { flex: 1; overflow: auto; padding: 16px; background-color: var(--nexus-bg-color); }
 .nexus-content-pages { position: relative; height: 100%; }
