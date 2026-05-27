@@ -10,11 +10,12 @@
     <el-card class="nexus-table-card">
       <el-table :data="roles" border stripe style="width: 100%">
         <el-table-column prop="id" :label="t('common.id')" width="60" />
-        <el-table-column prop="name" :label="t('role.name')" width="150" />
-        <el-table-column prop="code" :label="t('role.slug')" width="150" />
+        <el-table-column prop="name" :label="t('role.name')" min-width="120" />
+        <el-table-column prop="code" :label="t('role.slug')" min-width="120" />
         <el-table-column prop="description" :label="t('role.description')" min-width="200" />
-        <el-table-column prop="userCount" :label="t('role.memberCount')" width="80" />
-        <el-table-column prop="status" :label="t('common.status')" width="100">
+        <el-table-column prop="userCount" :label="t('role.memberCount')" min-width="60" />
+        <el-table-column prop="status" :label="t('common.status')" min-width="80">
+
           <template #default="{ row }">
             <el-tag :type="row.status === 'active' ? 'success' : 'danger'">{{ row.status === 'active' ? '启用' : '禁用' }}</el-tag>
           </template>

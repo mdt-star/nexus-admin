@@ -35,7 +35,8 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" :label="t('common.createdAt')" width="180" />
+        <el-table-column prop="createdAt" :label="t('common.createdAt')" min-width="140" />
+
         <el-table-column :label="t('common.operation')" width="200" fixed="right">
           <template #default="{ row }">
             <el-link :icon="Edit" @click="handleEdit(row)">{{ t('common.edit') }}</el-link>

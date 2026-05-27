@@ -14,10 +14,11 @@
       <el-table :data="categories" border stripe style="width: 100%">
         <el-table-column prop="id" :label="t('common.id')" width="60" />
         <el-table-column prop="name" :label="t('category.name')" min-width="150" />
-        <el-table-column prop="slug" :label="t('category.slug')" width="150" />
-        <el-table-column prop="sort" :label="t('category.sort')" width="80" />
-        <el-table-column prop="articleCount" :label="t('category.articleCount')" width="80" />
-        <el-table-column prop="createdAt" :label="t('common.createdAt')" width="180" />
+        <el-table-column prop="slug" :label="t('category.slug')" min-width="120" />
+        <el-table-column prop="sort" :label="t('category.sort')" min-width="60" />
+        <el-table-column prop="articleCount" :label="t('category.articleCount')" min-width="60" />
+        <el-table-column prop="createdAt" :label="t('common.createdAt')" min-width="140" />
+
         <el-table-column :label="t('common.operation')" width="200" fixed="right">
           <template #default="{ row }">
             <el-link :icon="Edit" @click="handleEdit(row)">{{ t('common.edit') }}</el-link>
