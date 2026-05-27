@@ -95,7 +95,7 @@
           </el-dropdown>
 
           <el-dropdown @command="handleUserCommand" v-if="userStore.isLoggedIn">
-            <el-button class="nexus-user-btn">
+            <el-button class="nexus-user-btn" style="padding-right: 0 !important;">
               <el-avatar :size="22" :src="userStore.user?.avatar || ''" class="nexus-user-avatar">{{ userInitial }}</el-avatar>
               <span style="margin-left: 4px;">{{ userStore.user?.nickname }}</span>
             </el-button>
