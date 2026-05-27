@@ -124,6 +124,13 @@ a {
   margin-bottom: 12px !important;
 }
 
+/* 粘性搜索卡片 — 滚动时吸顶 */
+.nexus-sticky-search {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
 /* ===== Element Plus 视觉覆盖 ===== */
 
 /* 卡片 — 大圆角 + 悬浮阴影 */
