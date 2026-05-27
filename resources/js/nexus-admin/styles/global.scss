@@ -36,13 +36,14 @@ a {
   }
 }
 
-/* 滚动条 */
+/* 滚动条 — 全局半透明效果 */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background-color: var(--nexus-border-color);
+  background-color: rgba(128, 128, 128, 0.25);
   border-radius: 3px;
-  &:hover { background-color: var(--nexus-text-color-secondary); }
+  transition: background-color 0.2s ease;
+  &:hover { background-color: rgba(128, 128, 128, 0.45); }
 }
 
 /* ===== UI Size 字体缩放 ===== */
