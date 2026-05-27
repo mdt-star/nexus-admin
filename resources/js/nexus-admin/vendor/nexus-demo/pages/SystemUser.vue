@@ -8,12 +8,9 @@
             {{ t('common.create') }}
           </el-button>
         <el-button-group style="margin-left: 10px;">
-          <el-button :icon="Refresh" ></el-button>
-          <el-button @click="$refs.preferencesPanel.open()">
-            <el-icon><Setting /></el-icon>
-          </el-button>
-           
+          <el-button :icon="Refresh" @click="handleRefresh"></el-button>
         </el-button-group>
+
       </div>
     </div>
 
@@ -38,18 +35,19 @@
 
     <el-card class="nexus-table-card">
        <el-button-group style="margin-bottom: 10px;">
-          <el-button @click="handleCreate">
+          <el-button @click="handleBatchDelete">
             批量删除
           </el-button>
-          <el-button @click="$refs.preferencesPanel.open()">
-            修改修改
+          <el-button @click="handleBatchEdit">
+            修改
           </el-button>
-          <el-button @click="$refs.preferencesPanel.open()">
-            
+          <el-button @click="handleExport">
             导出数据
           </el-button>
         </el-button-group>
-      <el-table :data="users" border stripe v-loading="loading" style="width: 100%" max-height="calc(100vh - 320px)">
+
+      <el-table :data="users" border stripe v-loading="loading" style="width: 100%" max-height="calc(100vh - 320px)" @selection-change="handleSelectionChange">
+
          <el-table-column
       type="selection"
       width="55">
@@ -136,17 +134,16 @@ const { t } = useI18nStore()
 const route = useRoute()
 const windowStore = useWindowStore()
 
-
+const props = defineProps({ searchParams: Object })
 
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEditing = ref(false)
+const selectedIds = ref([])
 
-const {searchParams} = defineProps({ searchParams: Object })
-const searchForm = reactive({ keyword: searchParams?.keyword, status: searchParams?.status })
+const searchForm = reactive({ keyword: '', status: '' })
 const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
 const form = reactive({ id: null, username: '', email: '', role: '', status: 'active' })
-
 
 const users = ref([
   { id: 1, username: 'admin', email: 'admin@example.com', role: '超级管理员', status: 'active', lastLoginAt: '2026-03-15 10:00:00', createdAt: '2025-01-01 00:00:00' },
@@ -158,7 +155,6 @@ pagination.total = users.value.length
 
 // 从 URL query 恢复搜索条件
 onMounted(() => {
-  console.log('Restoring search params from URL:', searchParams)
   if (route.query.keyword) searchForm.keyword = route.query.keyword
   if (route.query.status) searchForm.status = route.query.status
 })
@@ -168,12 +164,48 @@ function handleSearch() {
   windowStore.updateSearchParams('system-user', { ...searchForm })
   setTimeout(() => { loading.value = false }, 300)
 }
+
 function handleReset() {
   searchForm.keyword = ''
   searchForm.status = ''
   windowStore.updateSearchParams('system-user', {})
 }
 
+function handleRefresh() {
+  loading.value = true
+  setTimeout(() => { loading.value = false; ElMessage.success(t('common.save')) }, 300)
+}
+
+function handleBatchDelete() {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先选择要删除的用户')
+    return
+  }
+  ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 个用户？`, t('common.confirm'), { type: 'warning' })
+    .then(() => {
+      users.value = users.value.filter(u => !selectedIds.value.includes(u.id))
+      pagination.total = users.value.length
+      selectedIds.value = []
+      ElMessage.success(t('common.save'))
+    }).catch(() => {})
+}
+
+function handleBatchEdit() {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先选择要修改的用户')
+    return
+  }
+  const row = users.value.find(u => u.id === selectedIds.value[0])
+  if (row) handleEdit(row)
+}
+
+function handleSelectionChange(selection) {
+  selectedIds.value = selection.map(row => row.id)
+}
+
+function handleExport() {
+  ElMessage.success('导出任务已提交，请稍后下载')
+}
 
 
 function handleCreate() { isEditing.value = false; form.id = null; form.username = ''; form.email = ''; form.role = ''; form.status = 'active'; dialogVisible.value = true }
@@ -189,6 +221,7 @@ function handleSave() {
 }
 function handlePageChange() { loading.value = true; setTimeout(() => { loading.value = false }, 300) }
 </script>
+
 
 <style scoped>
 .nexus-page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
