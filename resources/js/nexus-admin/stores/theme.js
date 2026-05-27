@@ -109,12 +109,12 @@ export const useThemeStore = defineStore('nexus-theme', () => {
    * 初始化主题
    */
   function init() {
-    // 从 config 默认值读取主色（确保响应 config.js defaults 的修改）
-    // 注意：Pinia 会自动解包 ref，所以 configStore.defaults 直接是对象
-    primaryColor.value = configStore.defaults.primaryColor || '#14b8a6'
+    // 从合并后的配置读取主色（后端 > 用户 > 默认）
+    primaryColor.value = configStore.get('primaryColor', '#14b8a6')
     applyTheme()
     applyPrimaryColor()
   }
+
 
   return {
     theme,

@@ -84,8 +84,10 @@ export const useConfigStore = defineStore('nexus-config', () => {
   async function setUserConfig(key, value) {
     user.value[key] = value
     saveUserConfigToStorage()
+    await saveUserConfig()
     await hookManager.emit('config:changed', key, value, merged.value)
   }
+
 
   /**
    * 批量更新用户配置
