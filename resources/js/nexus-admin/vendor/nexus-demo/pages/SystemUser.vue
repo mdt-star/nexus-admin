@@ -4,9 +4,16 @@
       <h2><el-icon><User /></el-icon> {{ t('menu.system-user') }}</h2>
       <div class="nexus-page-actions">
         <el-button type="primary" @click="handleCreate">
-          <el-icon><Plus /></el-icon>
-          {{ t('common.create') }}
-        </el-button>
+            <el-icon><Plus /></el-icon>
+            {{ t('common.create') }}
+          </el-button>
+        <el-button-group style="margin-left: 10px;">
+          <el-button :icon="Refresh" ></el-button>
+          <el-button @click="$refs.preferencesPanel.open()">
+            <el-icon><Setting /></el-icon>
+          </el-button>
+           
+        </el-button-group>
       </div>
     </div>
 
@@ -23,15 +30,31 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">{{ t('common.search') }}</el-button>
+          <el-button  @click="handleSearch">{{ t('common.search') }}</el-button>
           <el-button @click="handleReset">{{ t('common.reset') }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
     <el-card class="nexus-table-card">
+       <el-button-group style="margin-bottom: 10px;">
+          <el-button @click="handleCreate">
+            批量删除
+          </el-button>
+          <el-button @click="$refs.preferencesPanel.open()">
+            修改修改
+          </el-button>
+          <el-button @click="$refs.preferencesPanel.open()">
+            
+            导出数据
+          </el-button>
+        </el-button-group>
       <el-table :data="users" border stripe v-loading="loading" style="width: 100%" max-height="calc(100vh - 320px)">
-        <el-table-column prop="id" :label="t('common.id')" width="60" />
+         <el-table-column
+      type="selection"
+      width="55">
+    </el-table-column>
+        <el-table-column prop="id" label="#ID" width="60" />
         <el-table-column prop="username" :label="t('user.username')" width="120" />
         <el-table-column prop="email" :label="t('user.email')" min-width="200" />
         <el-table-column prop="role" :label="t('user.role')" width="120" />
@@ -107,6 +130,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Delete } from "@element-plus/icons-vue"
 import { useI18nStore } from '../../../stores/i18n'
 import { useWindowStore } from '../../../stores/windows'
+import { Refresh } from '@element-plus/icons-vue'
 
 const { t } = useI18nStore()
 const route = useRoute()

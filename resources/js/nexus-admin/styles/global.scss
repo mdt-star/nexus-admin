@@ -152,6 +152,9 @@ a {
 
 /* 按钮 — 大圆角 + 交互反馈 */
 .el-button { border-radius: var(--nexus-border-radius) !important; }
+.el-button-group--horizontal .el-button { border-radius: 0!important; }
+.el-button-group--horizontal .el-button:first-child { border-radius: var(--nexus-border-radius) 0 0 var(--nexus-border-radius) !important; }
+.el-button-group--horizontal .el-button:last-child { border-radius: 0 var(--nexus-border-radius) var(--nexus-border-radius) 0 !important; }
 .el-button:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -248,7 +251,7 @@ a {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--nexus-font-size-lg);
+  font-size: calc(var(--nexus-font-size-lg) + 0px);
   font-weight: 600;
   margin: 0;
 }

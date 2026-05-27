@@ -312,18 +312,23 @@ function handleUserCommand(command) {
 .nexus-header-left :deep(.el-button:hover) { background-color: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
 [data-theme="dark"] .nexus-header-right :deep(.el-button:hover), [data-theme="dark"] .nexus-header-left :deep(.el-button:hover) { background-color: rgba(255, 255, 255, 0.08); }
 
-.nexus-tabs { height: var(--nexus-tab-height); background-color: var(--nexus-bg-color); border-bottom: 1px solid var(--nexus-border-color); display: flex; align-items: stretch; overflow: hidden; }
+.nexus-tabs {  height: var(--nexus-tab-height); background-color: var(--nexus-bg-color); border-bottom: 1px solid var(--nexus-border-color); display: flex; align-items: stretch; overflow: hidden; padding-left: 0px; }
+
+
 .nexus-tabs-wrapper { display: flex; align-items: stretch; overflow-x: auto; flex: 1; }
-.nexus-tab { display: flex; align-items: center; gap: 6px; padding: 0 14px; font-size: var(--nexus-font-size-sm); cursor: pointer; white-space: nowrap; user-select: none; position: relative; color: var(--nexus-text-color-secondary); transition: all 0.2s ease; border-right: 1px solid var(--nexus-border-color); }
-.nexus-tab:last-child { border-right: none; }
+.nexus-tab { margin-top: 0px;; display: flex; align-items: center; gap: 6px; padding: 0 14px 0 28px; font-size: var(--nexus-font-size-sm); cursor: pointer; white-space: nowrap; user-select: none; position: relative; color: var(--nexus-text-color-secondary); transition: all 0.2s ease; border-right: 1px solid var(--nexus-border-color);border-top: 0; }
+.nexus-tab:last-child { border-right-width: 0px; }
 .nexus-tab:hover { background-color: var(--nexus-bg-color-light); color: var(--nexus-text-color); }
 .nexus-tab:hover .nexus-tab-close { opacity: 1; }
-.nexus-tab-active { background-color: var(--nexus-bg-color-light); color: var(--nexus-primary-color) !important; }
+.nexus-tab-active { background-color: var(--nexus-bg-color-light); color: var(--nexus-primary-color) !important; border-top: 0px solid var(--nexus-border-color);}
 .nexus-tab-active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background-color: var(--nexus-primary-color); border-radius: 1px 1px 0 0; }
 .nexus-tab-close { opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 2px; padding: 1px; }
 .nexus-tab-close:hover { background-color: var(--nexus-bg-color-dark); }
 .nexus-tab-active .nexus-tab-close { opacity: 0.5; }
 .nexus-tab-active:hover .nexus-tab-close { opacity: 1; }
+
+.nexus-header[style*="background"] + .nexus-tabs{background-color: var(--nexus-bg-color-light) !important;}
+.nexus-header[style*="background"] + .nexus-tabs .nexus-tab:last-child { border-right-width: 1px; }
 
 .nexus-tabs-actions {
   display: flex;
