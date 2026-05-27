@@ -9,8 +9,12 @@
         <!-- 桌面图标区域 -->
       </div>
       <div class="nexus-header-right">
+        <!-- 通知铃铛 -->
+        <NotificationBell />
+
         <!-- 主题切换 + 布局切换（零间距分组） -->
         <div style="display: flex; align-items: center; gap: 0;">
+
           <el-tooltip :content="t('theme.toggle')" placement="bottom">
             <el-button :icon="themeStore.theme === 'dark' ? 'Sunny' : 'Moon'" circle @click="themeStore.toggleTheme()" />
           </el-tooltip>
@@ -164,7 +168,9 @@ import { useConfigStore } from '../stores/config'
 import hookManager from '../utils/hook-manager'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import GlobeIcon from '../components/GlobeIcon.vue'
+import NotificationBell from '../components/common/NotificationBell.vue'
 import { useWindowDrag } from '../composables/useWindowDrag'
+
 import { useUserStore } from '../stores/user'
 import { useUiSizeStore } from '../stores/size'
 import FolderView from '../components/desktop/FolderView.vue'

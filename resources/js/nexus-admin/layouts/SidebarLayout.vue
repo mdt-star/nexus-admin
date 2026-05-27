@@ -56,6 +56,9 @@
           />
         </div>
         <div class="nexus-header-right">
+          <!-- 通知铃铛 -->
+          <NotificationBell />
+
           <!-- 主题切换 + 布局切换（零间距分组） -->
           <div style="display: flex; align-items: center; gap: 0;">
             <el-tooltip :content="t('theme.toggle')" placement="bottom">
@@ -65,6 +68,7 @@
               <el-button icon="Grid" circle @click="appStore.toggleLayout()" />
             </el-tooltip>
           </div>
+
 
           <el-dropdown @command="(val) => uiSizeStore.setSize(val)">
             <el-button>
@@ -153,7 +157,9 @@ import hookManager from '../utils/hook-manager'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { ArrowLeft, ArrowRight, Refresh } from '@element-plus/icons-vue'
 import GlobeIcon from '../components/GlobeIcon.vue'
+import NotificationBell from '../components/common/NotificationBell.vue'
 import { ElMessage } from 'element-plus'
+
 
 const appStore = useAppStore()
 const menuStore = useMenuStore()

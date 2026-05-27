@@ -106,3 +106,128 @@ export async function getCurrentUser() {
     permissions: ['*']
   })
 }
+
+// ==================== 通知相关 API ====================
+
+// Mock 通知数据
+const mockNotifications = [
+  {
+    id: 1,
+    type: 'App\\Notifications\\ArticleReviewed',
+    notifiable_type: 'App\\Models\\User',
+    notifiable_id: 1,
+    data: {
+      title: '文章审核通过',
+      body: '您提交的文章 "Nexus Admin 使用指南" 已审核通过，现已发布。',
+      action: {
+        type: 'openPage',
+        component: 'content-article',
+        route: '/content/article',
+        params: {}
+      }
+    },
+    read_at: null,
+    created_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 5).toISOString()
+  },
+  {
+    id: 2,
+    type: 'App\\Notifications\\NewUserRegistered',
+    notifiable_type: 'App\\Models\\User',
+    notifiable_id: 1,
+    data: {
+      title: '新用户注册',
+      body: '新用户 "张三" 已注册，请尽快审核。',
+      action: {
+        type: 'openPage',
+        component: 'system-user',
+        route: '/system/user',
+        params: {}
+      }
+    },
+    read_at: null,
+    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 30).toISOString()
+  },
+  {
+    id: 3,
+    type: 'App\\Notifications\\SystemUpdate',
+    notifiable_type: 'App\\Models\\User',
+    notifiable_id: 1,
+    data: {
+      title: '系统更新通知',
+      body: '系统将于今晚 02:00-04:00 进行维护升级，请提前保存工作。',
+      action: {
+        type: 'openPage',
+        component: 'system-config',
+        route: '/system/config',
+        params: {}
+      }
+    },
+    read_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()
+  },
+  {
+    id: 4,
+    type: 'App\\Notifications\\TaskCompleted',
+    notifiable_type: 'App\\Models\\User',
+    notifiable_id: 1,
+    data: {
+      title: '导出任务完成',
+      body: '您请求的用户数据导出任务已完成，请下载。',
+      action: {
+        type: 'openUrl',
+        route: '/download/export-20260527.csv',
+        params: {}
+      }
+    },
+    read_at: null,
+    created_at: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 2).toISOString()
+  }
+]
+
+/**
+ * 获取通知列表
+ */
+export async function getNotifications() {
+  await delay(200)
+  return mockResponse([...mockNotifications])
+}
+
+/**
+ * 获取未读通知数量
+ */
+export async function getUnreadCount() {
+  await delay(100)
+  const count = mockNotifications.filter(n => !n.read_at).length
+  return mockResponse({ count })
+}
+
+/**
+ * 标记单条通知为已读
+ * @param {number|string} id
+ */
+export async function markAsRead(id) {
+  await delay(100)
+  const notification = mockNotifications.find(n => n.id === id)
+  if (notification) {
+    notification.read_at = new Date().toISOString()
+  }
+  return mockResponse({ success: true })
+}
+
+/**
+ * 全部标记已读
+ */
+export async function markAllAsRead() {
+  await delay(200)
+  mockNotifications.forEach(n => {
+    if (!n.read_at) {
+      n.read_at = new Date().toISOString()
+    }
+  })
+  return mockResponse({ success: true })
+}
+
