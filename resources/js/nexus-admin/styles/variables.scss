@@ -1,0 +1,91 @@
+/**
+ * CSS 变量定义
+ * 所有主题色通过 CSS 变量统一管理
+ * 修改变量值即可全局生效，无需逐一修改样式文件
+ */
+
+:root {
+  /* ===== 主题色（主色调：Teal 青绿） ===== */
+  --nexus-primary-color: #14b8a6;
+  --nexus-primary-color-light: #5eead4;
+  --nexus-primary-color-dark: #0d9488;
+
+  /* ===== 覆盖 Element Plus 默认色 ===== */
+  --el-color-primary: #14b8a6;
+  --el-color-primary-dark-2: #0d9488;
+  --el-color-primary-light-3: #5eead4;
+  --el-color-primary-light-5: #99f6e4;
+  --el-color-primary-light-7: #ccfbf1;
+  --el-color-primary-light-8: #e6fffa;
+  --el-color-primary-light-9: #f0fdfa;
+
+  /* ===== 背景色 ===== */
+  --nexus-bg-color: #f8fafc;
+  --nexus-bg-color-light: #ffffff;
+  --nexus-bg-color-dark: #f1f5f9;
+
+  /* ===== 文本色 ===== */
+  --nexus-text-color: #1e293b;
+  --nexus-text-color-secondary: #64748b;
+  --nexus-text-color-placeholder: #94a3b8;
+
+  /* ===== 边框色 ===== */
+  --nexus-border-color: #e2e8f0;
+  --nexus-border-color-light: #f1f5f9;
+
+  /* ===== 布局尺寸 ===== */
+  --nexus-header-height: 56px;
+  --nexus-sidebar-width: 220px;
+  --nexus-sidebar-collapsed-width: 64px;
+  --nexus-tab-height: 42px;
+  --nexus-footer-height: 40px;
+
+  /* ===== 圆角 ===== */
+  --nexus-border-radius: 8px;
+  --nexus-border-radius-sm: 6px;
+  --nexus-border-radius-lg: 12px;
+  --nexus-border-radius-xl: 16px;
+  --nexus-border-radius-2xl: 20px;
+
+  /* ===== 字体尺寸（默认 medium） ===== */
+  --nexus-font-size-base: 14px;
+  --nexus-font-size-sm: 12px;
+  --nexus-font-size-lg: 15px;
+
+  /* ===== 阴影 ===== */
+  --nexus-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --nexus-box-shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08);
+  --nexus-box-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --nexus-box-shadow-glow: 0 0 20px rgba(20, 184, 166, 0.25);
+}
+
+/* ===== 暗色主题（!important 确保覆盖 EP dark/css-vars.css） ===== */
+html.dark {
+  --nexus-primary-color: #14b8a6 !important;
+  --nexus-primary-color-light: #5eead4 !important;
+  --nexus-primary-color-dark: #0d9488 !important;
+
+  --el-color-primary: #14b8a6 !important;
+  --el-color-primary-dark-2: #0d9488 !important;
+  --el-color-primary-light-3: #5eead4 !important;
+  --el-color-primary-light-5: #99f6e4 !important;
+  --el-color-primary-light-7: #ccfbf1 !important;
+  --el-color-primary-light-8: #e6fffa !important;
+  --el-color-primary-light-9: #f0fdfa !important;
+
+  --nexus-bg-color: #0f172a !important;
+  --nexus-bg-color-light: #1e293b !important;
+  --nexus-bg-color-dark: #334155 !important;
+
+  --nexus-text-color: #f1f5f9 !important;
+  --nexus-text-color-secondary: #94a3b8 !important;
+  --nexus-text-color-placeholder: #64748b !important;
+
+  --nexus-border-color: #334155 !important;
+  --nexus-border-color-light: #1e293b !important;
+
+  --nexus-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  --nexus-box-shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+  --nexus-box-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  --nexus-box-shadow-glow: 0 0 20px rgba(20, 184, 166, 0.4) !important;
+}

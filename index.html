@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexus Admin</title>
+  <style>
+ 
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    // 开发环境：注入扩展包注册信息
+    import demoRegistry from '/resources/js/nexus-admin/vendor/nexus-demo/registry.js'
+    window.__NEXUS_ADMIN_REGISTRY__ = demoRegistry
+
+    // 初始化应用
+    import('/resources/js/nexus-admin/app.js')
+  </script>
+</body>
+</html>

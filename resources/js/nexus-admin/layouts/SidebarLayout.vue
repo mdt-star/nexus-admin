@@ -1,0 +1,308 @@
+<template>
+  <div class="nexus-sidebar-layout">
+    <aside
+      class="nexus-sidebar"
+      :class="{ 'nexus-sidebar-collapsed': appStore.sidebarCollapsed }"
+    >
+      <div class="nexus-sidebar-logo">
+        <div class="nexus-sidebar-logo-inner" :class="{ 'nexus-sidebar-logo-collapsed': appStore.sidebarCollapsed }">
+          <el-icon class="nexus-sidebar-logo-icon" :size="logoIconSize">
+            <TrendCharts />
+          </el-icon>
+          <span v-show="!appStore.sidebarCollapsed" class="nexus-sidebar-logo-text">{{ appName }}</span>
+        </div>
+      </div>
+
+      <el-menu
+        :default-active="windowStore.activeId"
+        :collapse="appStore.sidebarCollapsed"
+        :collapse-transition="false"
+        class="nexus-sidebar-menu"
+        @select="handleMenuSelect"
+      >
+        <template v-for="item in menuStore.sidebarMenus" :key="item.id">
+          <el-sub-menu v-if="item.children && item.children.length > 0" :index="item.id">
+            <template #title>
+              <el-icon v-if="item.icon">
+                <component :is="getIconComponent(item.icon)" />
+              </el-icon>
+              <span>{{ t('menu.' + item.id, item.title) }}</span>
+            </template>
+            <el-menu-item v-for="child in item.children" :key="child.id" :index="child.id">
+              <el-icon v-if="child.icon">
+                <component :is="getIconComponent(child.icon)" />
+              </el-icon>
+              <template #title>{{ t('menu.' + child.id, child.title) }}</template>
+            </el-menu-item>
+          </el-sub-menu>
+
+          <el-menu-item v-else :index="item.id">
+            <el-icon v-if="item.icon">
+              <component :is="getIconComponent(item.icon)" />
+            </el-icon>
+            <template #title>{{ t('menu.' + item.id) }}</template>
+          </el-menu-item>
+        </template>
+      </el-menu>
+    </aside>
+
+    <div class="nexus-main-area">
+      <header class="nexus-header">
+        <div class="nexus-header-left">
+          <el-button
+            :icon="appStore.sidebarCollapsed ? 'Expand' : 'Fold'"
+            circle
+            @click="appStore.toggleSidebar()"
+          />
+        </div>
+        <div class="nexus-header-right">
+          <!-- 主题切换 + 布局切换（零间距分组） -->
+          <div style="display: flex; align-items: center; gap: 0;">
+            <el-tooltip :content="t('theme.toggle')" placement="bottom">
+              <el-button :icon="themeStore.theme === 'dark' ? 'Sunny' : 'Moon'" circle @click="themeStore.toggleTheme()" />
+            </el-tooltip>
+            <el-tooltip :content="t('layout.toggle')" placement="bottom">
+              <el-button icon="Grid" circle @click="appStore.toggleLayout()" />
+            </el-tooltip>
+          </div>
+
+          <el-dropdown @command="(val) => uiSizeStore.setSize(val)">
+            <el-button>
+              <span style="font-size:13px;font-weight:600">{{ uiSizeStore.size.charAt(0).toUpperCase() }}</span>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="small" :class="{ 'is-active': uiSizeStore.size === 'small' }">S - Small</el-dropdown-item>
+                <el-dropdown-item command="medium" :class="{ 'is-active': uiSizeStore.size === 'medium' }">M - Medium</el-dropdown-item>
+                <el-dropdown-item command="large" :class="{ 'is-active': uiSizeStore.size === 'large' }">L - Large</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+
+          <el-dropdown @command="handleLocaleChange">
+            <el-button>
+              <globe-icon style="vertical-align: middle;" /> {{ localeDisplay }}
+              <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="zh-CN">中文</el-dropdown-item>
+                <el-dropdown-item command="en">English</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+
+          <el-dropdown @command="handleUserCommand" v-if="userStore.isLoggedIn">
+            <el-button class="nexus-user-btn">
+              <el-avatar :size="22" :src="userStore.user?.avatar || ''" class="nexus-user-avatar">{{ userInitial }}</el-avatar>
+              <span style="margin-left: 4px;">{{ userStore.user?.nickname }}</span>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile"><el-icon><InfoFilled /></el-icon> {{ t('login.profile') }}</el-dropdown-item>
+                <el-dropdown-item divided command="logout"><el-icon><SwitchButton /></el-icon> {{ t('login.logout') }}</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </header>
+
+      <div class="nexus-tabs" v-if="windowStore.items.length > 0">
+        <div class="nexus-tabs-wrapper" ref="tabsWrapperRef">
+          <div v-for="tab in windowStore.items" :key="tab.id" class="nexus-tab" :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)">
+            <span class="nexus-tab-label">{{ tab.title }}</span>
+            <el-icon class="nexus-tab-close" size="12" @click.stop="windowStore.close(tab.id)"><Close /></el-icon>
+          </div>
+        </div>
+        <div class="nexus-tabs-actions">
+          <el-button class="nexus-tab-btn" :icon="ArrowLeft" circle @click="scrollTabs(-1)" />
+          <el-button class="nexus-tab-btn" :icon="ArrowRight" circle @click="scrollTabs(1)" />
+          <el-button class="nexus-tab-btn" :icon="Refresh" circle @click="refreshCurrentTab" />
+        </div>
+      </div>
+
+      <main class="nexus-content">
+        <div v-if="windowStore.active" class="nexus-content-page">
+          <component :is="getPageComponent(windowStore.active.component)" :key="refreshKey" />
+        </div>
+        <div v-else class="nexus-content-empty">
+          <el-empty :description="t('common.noData')" />
+        </div>
+      </main>
+
+      <footer class="nexus-footer">
+        <span>{{ footerText }}</span>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { computed, ref } from 'vue'
+import { useAppStore } from '../stores/app'
+import { useMenuStore } from '../stores/menu'
+import { useWindowStore } from '../stores/windows'
+import { useThemeStore } from '../stores/theme'
+import { useI18nStore } from '../stores/i18n'
+import { useConfigStore } from '../stores/config'
+import { useUserStore } from '../stores/user'
+import { useUiSizeStore } from '../stores/size'
+import hookManager from '../utils/hook-manager'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import { ArrowLeft, ArrowRight, Refresh } from '@element-plus/icons-vue'
+import GlobeIcon from '../components/GlobeIcon.vue'
+import { ElMessage } from 'element-plus'
+
+const appStore = useAppStore()
+const menuStore = useMenuStore()
+const windowStore = useWindowStore()
+const themeStore = useThemeStore()
+const i18nStore = useI18nStore()
+const configStore = useConfigStore()
+const userStore = useUserStore()
+const uiSizeStore = useUiSizeStore()
+
+const { t } = i18nStore
+
+const appName = computed(() => configStore.get('appName', 'Nexus Admin'))
+const footerText = computed(() => configStore.get('footer', ''))
+const currentLocale = computed(() => i18nStore.locale)
+
+const localeDisplay = computed(() => {
+  const map = { 'zh-CN': '中文', 'en': 'English' }
+  return map[currentLocale.value] || currentLocale.value
+})
+
+const userInitial = computed(() => {
+  if (!userStore.user?.nickname) return 'U'
+  return userStore.user.nickname.charAt(0)
+})
+
+const logoIconSize = computed(() => {
+  const collapsed = appStore.sidebarCollapsed
+  const baseSizes = { small: collapsed ? 22 : 20, medium: collapsed ? 26 : 22, large: collapsed ? 30 : 26 }
+  return baseSizes[uiSizeStore.size] || baseSizes.medium
+})
+
+// Tab 刷新计数器（递增使组件重新渲染）
+const refreshKey = ref(0)
+
+// Tab 滚动
+const tabsWrapperRef = ref(null)
+
+function scrollTabs(dir) {
+  if (tabsWrapperRef.value) {
+    tabsWrapperRef.value.scrollBy({ left: dir * 200, behavior: 'smooth' })
+  }
+}
+
+function refreshCurrentTab() {
+  refreshKey.value++
+  ElMessage.success('已刷新')
+}
+
+const pageCache = {}
+
+function getIconComponent(iconName) {
+  if (!iconName) return null
+  return ElementPlusIconsVue[iconName] || null
+}
+
+function getPageComponent(componentName) {
+  if (!componentName) return null
+  if (pageCache[componentName]) return pageCache[componentName]
+  const pages = window.__NEXUS_ADMIN_PAGES__ || {}
+  const component = pages[componentName]
+  if (component) {
+    pageCache[componentName] = component
+    return component
+  }
+  return null
+}
+
+async function handleMenuSelect(index) {
+  const item = menuStore.findMenuByComponent(index) || menuStore.findMenuByRoute(index)
+  if (item) {
+    await hookManager.emit('menu:item-click', item)
+    windowStore.open(item)
+  }
+}
+
+function handleLocaleChange(locale) {
+  i18nStore.setLocale(locale)
+}
+
+function handleUserCommand(command) {
+  if (command === 'logout') {
+    userStore.logout()
+  }
+}
+</script>
+
+<style scoped>
+.nexus-sidebar-layout { display: flex; height: 100vh; overflow: hidden; }
+.nexus-sidebar { width: var(--nexus-sidebar-width); background-color: var(--nexus-bg-color-light); border-right: 1px solid var(--nexus-border-color); display: flex; flex-direction: column; transition: width 0.3s; overflow: hidden; }
+.nexus-sidebar-collapsed { width: var(--nexus-sidebar-collapsed-width); }
+.nexus-sidebar-logo { height: var(--nexus-header-height); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--nexus-border-color); }
+.nexus-sidebar-logo-inner { display: flex; align-items: center; gap: 6px; }
+.nexus-sidebar-logo-icon { color: var(--nexus-text-color) !important; transition: font-size 0.3s ease; }
+.nexus-sidebar-logo-text { font-size: calc(var(--nexus-font-size-lg) + 6px); font-weight: 700; color: var(--nexus-text-color); white-space: nowrap; }
+.nexus-sidebar-menu { flex: 1; overflow-y: auto; border-right: none; padding-top: 10px; }
+
+:deep(.el-menu-item), :deep(.el-sub-menu__title) { font-size: var(--nexus-font-size-base) !important; }
+:deep(.el-menu-item .el-icon), :deep(.el-sub-menu__title .el-icon) { font-size: calc(var(--nexus-font-size-base) + 2px) !important; width: calc(var(--nexus-font-size-base) + 2px) !important; }
+:deep(.el-menu-item.is-active) { color: var(--el-menu-active-color) !important; }
+:deep(.el-menu-item.is-active .el-icon) { color: var(--el-menu-active-color) !important; }
+
+.nexus-main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.nexus-header { display: flex; align-items: center; justify-content: space-between; height: var(--nexus-header-height); padding: 0 16px 0 5px; background-color: var(--nexus-bg-color-light); border-bottom: 1px solid var(--nexus-border-color); z-index: 100; }
+.nexus-header-right { display: flex; align-items: center; gap: 4px; }
+.nexus-header-right :deep(.el-button) { border: none; background-color: transparent; color: var(--nexus-text-color-secondary); transition: all 0.25s ease; margin-left: 0 !important; padding-left: 8px !important; padding-right: 8px !important; }
+.nexus-header-right :deep(.el-button:hover) { background-color: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
+.nexus-header-left :deep(.el-button) { border: none; background-color: transparent; color: var(--nexus-text-color-secondary); transition: all 0.25s ease; margin-left: 0 !important; }
+.nexus-header-left :deep(.el-button:hover) { background-color: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
+[data-theme="dark"] .nexus-header-right :deep(.el-button:hover), [data-theme="dark"] .nexus-header-left :deep(.el-button:hover) { background-color: rgba(255, 255, 255, 0.08); }
+
+.nexus-tabs { height: var(--nexus-tab-height); background-color: var(--nexus-bg-color); border-bottom: 1px solid var(--nexus-border-color); display: flex; align-items: stretch; overflow: hidden; }
+.nexus-tabs-wrapper { display: flex; align-items: stretch; overflow-x: auto; flex: 1; }
+.nexus-tab { display: flex; align-items: center; gap: 6px; padding: 0 14px; font-size: var(--nexus-font-size-sm); cursor: pointer; white-space: nowrap; user-select: none; position: relative; color: var(--nexus-text-color-secondary); transition: all 0.2s ease; border-right: 1px solid var(--nexus-border-color); }
+.nexus-tab:last-child { border-right: none; }
+.nexus-tab:hover { background-color: var(--nexus-bg-color-light); color: var(--nexus-text-color); }
+.nexus-tab:hover .nexus-tab-close { opacity: 1; }
+.nexus-tab-active { background-color: var(--nexus-bg-color-light); color: var(--nexus-primary-color) !important; }
+.nexus-tab-active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background-color: var(--nexus-primary-color); border-radius: 1px 1px 0 0; }
+.nexus-tab-close { opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 2px; padding: 1px; }
+.nexus-tab-close:hover { background-color: var(--nexus-bg-color-dark); }
+.nexus-tab-active .nexus-tab-close { opacity: 0.5; }
+.nexus-tab-active:hover .nexus-tab-close { opacity: 1; }
+
+.nexus-tabs-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-left: 1px solid var(--nexus-border-color);
+  padding-right: 16px;
+}
+
+.nexus-tabs-actions .nexus-tab-btn {
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: transparent;
+  color: var(--nexus-text-color-secondary);
+  height: auto;
+  width: 28px;
+  padding: 0;
+  margin-left: 0 !important;
+  border-right: 1px solid var(--nexus-border-color) !important;
+}
+
+.nexus-tabs-actions .nexus-tab-btn:hover {
+  background-color: var(--nexus-bg-color-light);
+  color: var(--nexus-primary-color);
+}
+
+.nexus-content { flex: 1; overflow: auto; padding: 16px; background-color: var(--nexus-bg-color); }
+.nexus-content-page { height: 100%; }
+.nexus-content-empty { display: flex; align-items: center; justify-content: center; height: 100%; }
+.nexus-footer { display: flex; align-items: center; justify-content: center; height: var(--nexus-footer-height); font-size: var(--nexus-font-size-sm); color: var(--nexus-text-color-secondary); background-color: var(--nexus-bg-color-light); border-top: 1px solid var(--nexus-border-color); }
+</style>

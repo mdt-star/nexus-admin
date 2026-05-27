@@ -1,0 +1,29 @@
+{
+  "name": "mdt-star/nexus-admin",
+  "version": "1.0.0",
+  "description": "基于 Vite + Vue 3 + Element Plus 的现代化后台管理界面基座",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.0",
+    "axios": "^1.7.0",
+    "element-plus": "^2.9.0",
+    "pinia": "^2.3.0",
+    "vue": "^3.4.0",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.0",
+    "@vue/test-utils": "^2.4.10",
+    "happy-dom": "^20.9.0",
+    "sass": "^1.86.0",
+    "vite": "^6.3.0",
+    "vitest": "^4.1.7"
+  }
+}

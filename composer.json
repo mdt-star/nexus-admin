@@ -1,0 +1,27 @@
+{
+  "name": "mdt-star/nexus-admin",
+  "description": "基于 Vite + Vue 3 + Element Plus 的现代化后台管理界面基座",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "MdtStar\\NexusAdmin\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "MdtStar\\NexusAdmin\\NexusAdminServiceProvider"
+      ]
+    },
+    "nexus": {
+      "nexus-admin": {
+        "resources": "resources/js/nexus-admin"
+      }
+    }
+  },
+  "require": {
+    "php": "^8.1",
+    "laravel/framework": "^10.0|^11.0"
+  }
+}
