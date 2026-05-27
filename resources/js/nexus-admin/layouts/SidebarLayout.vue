@@ -308,6 +308,9 @@ function handleUserCommand(command) {
 .nexus-sidebar-collapsed { width: var(--nexus-sidebar-collapsed-width); }
 .nexus-sidebar-logo { height: var(--nexus-header-height); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--nexus-border-color); transition: background 0.3s ease; }
 .nexus-sidebar-logo-inner { display: flex; align-items: center; gap: 6px; }
+.nexus-sidebar-logo-collapsed { justify-content: center; margin-left: 0; gap: 0; }
+
+
 .nexus-sidebar-logo-icon { color: var(--nexus-text-color) !important; transition: font-size 0.3s ease, color 0.3s ease; }
 .nexus-sidebar-logo-text { font-size: calc(var(--nexus-font-size-lg) + 6px); font-weight: 700; color: var(--nexus-text-color); white-space: nowrap; transition: color 0.3s ease; }
 
@@ -366,8 +369,8 @@ function handleUserCommand(command) {
   display: flex;
   align-items: stretch;
   gap: 0;
-  border-left: 1px solid var(--nexus-border-color);
-  padding-right: 16px;
+  /* border-left: 1px solid var(--nexus-border-color); */
+  /* padding-right: 16px;*/
 }
 
 .nexus-tabs-actions .nexus-tab-btn {
@@ -380,6 +383,10 @@ function handleUserCommand(command) {
   padding: 0;
   margin-left: 0 !important;
   border-right: 1px solid var(--nexus-border-color) !important;
+}
+
+.nexus-tabs-actions .nexus-tab-btn:last-child {
+  border-right: none !important;
 }
 
 .nexus-tabs-actions .nexus-tab-btn:hover {
