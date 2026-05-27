@@ -3,15 +3,44 @@
  * 桌面模式使用窗口，侧边栏模式使用 Tab，统一状态管理
  */
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import hookManager from '../utils/hook-manager'
 
+const STORAGE_KEY = 'nexus-admin-windows'
+
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      return {
+        items: parsed.items || [],
+        activeId: parsed.activeId || null
+      }
+    }
+  } catch (e) { /* ignore */ }
+  return { items: [], activeId: null }
+}
+
+function saveToStorage(items, activeId) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ items, activeId }))
+  } catch (e) { /* ignore */ }
+}
+
 export const useWindowStore = defineStore('nexus-windows', () => {
+  const saved = loadFromStorage()
+
   // 已打开的窗口/Tab 列表
-  const items = ref([])
+  const items = ref(saved.items)
 
   // 当前激活的窗口/Tab ID
-  const activeId = ref(null)
+  const activeId = ref(saved.activeId)
+
+  // 自动持久化
+  watch([items, activeId], ([newItems, newActiveId]) => {
+    saveToStorage(newItems, newActiveId)
+  }, { deep: true })
 
   // 窗口/Tab 历史（用于前进/后退）
   const history = ref([])
