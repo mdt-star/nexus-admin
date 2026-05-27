@@ -9,7 +9,9 @@
           </el-button>
         <el-button-group style="margin-left: 10px;">
           <el-button :icon="Refresh" @click="handleRefresh"></el-button>
+          <el-button :icon="Setting" @click="columnSettingsVisible = true"></el-button>
         </el-button-group>
+
 
       </div>
     </div>
@@ -35,12 +37,12 @@
 
     <el-card class="nexus-table-card">
        <el-button-group style="margin-bottom: 10px;" v-if="selectedIds.length > 0">
-          <el-button type="danger" plain @click="handleBatchDelete">
+          <el-button type="danger" @click="handleBatchDelete">
             批量删除 ({{ selectedIds.length }})
           </el-button>
 
           <el-button @click="handleBatchEdit">
-            修改
+            批量修改
           </el-button>
           <el-button @click="handleExport">
             导出数据
@@ -50,30 +52,29 @@
 
       <el-table :data="users" border stripe v-loading="loading" style="width: 100%" max-height="calc(100vh - 320px)" @selection-change="handleSelectionChange">
 
-         <el-table-column
-      type="selection"
-      width="55">
-    </el-table-column>
-        <el-table-column prop="id" label="#ID" width="60" />
-        <el-table-column prop="username" :label="t('user.username')" width="120" />
-        <el-table-column prop="email" :label="t('user.email')" min-width="200" />
-        <el-table-column prop="role" :label="t('user.role')" width="120" />
-        <el-table-column prop="status" :label="t('common.status')" width="100">
+        <el-table-column type="selection" width="55" />
+
+        <el-table-column v-if="columnVisibility.id" prop="id" label="#ID" width="60" />
+        <el-table-column v-if="columnVisibility.username" prop="username" :label="t('user.username')" width="120" />
+        <el-table-column v-if="columnVisibility.email" prop="email" :label="t('user.email')" min-width="200" />
+        <el-table-column v-if="columnVisibility.role" prop="role" :label="t('user.role')" width="120" />
+        <el-table-column v-if="columnVisibility.status" prop="status" :label="t('common.status')" width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === 'active' ? 'success' : 'danger'">
               {{ row.status === 'active' ? '启用' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="lastLoginAt" label="最后登录" width="180" />
-        <el-table-column prop="createdAt" :label="t('common.createdAt')" width="180" />
-        <el-table-column :label="t('common.operation')" width="200" fixed="right">
+        <el-table-column v-if="columnVisibility.lastLoginAt" prop="lastLoginAt" label="最后登录" width="180" />
+        <el-table-column v-if="columnVisibility.createdAt" prop="createdAt" :label="t('common.createdAt')" width="180" />
+        <el-table-column v-if="columnVisibility.operation" :label="t('common.operation')" width="200" fixed="right">
           <template #default="{ row }">
             <el-link :icon="Edit" @click="handleEdit(row)">{{ t('common.edit') }}</el-link>
             <el-link :icon="Delete" @click="handleDelete(row)">{{ t('common.delete') }}</el-link>
           </template>
         </el-table-column>
       </el-table>
+
 
       <div class="nexus-pagination">
         <el-pagination
@@ -120,14 +121,30 @@
         <el-button type="primary" @click="handleSave">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
+
+    <!-- 列设置弹窗 -->
+    <el-dialog v-model="columnSettingsVisible" title="列设置" width="400px">
+      <el-checkbox-group v-model="selectedColumnKeys">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div v-for="col in columnDefs" :key="col.key">
+            <el-checkbox :label="col.key" :value="col.key">{{ col.label }}</el-checkbox>
+          </div>
+        </div>
+      </el-checkbox-group>
+      <template #footer>
+        <el-button @click="columnSettingsVisible = false">取消</el-button>
+        <el-button type="primary" @click="applyColumnSettings">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
+
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Edit, Delete } from "@element-plus/icons-vue"
+import { Edit, Delete, Setting } from "@element-plus/icons-vue"
 import { useI18nStore } from '../../../stores/i18n'
 import { useWindowStore } from '../../../stores/windows'
 import { Refresh } from '@element-plus/icons-vue'
@@ -142,10 +159,35 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const isEditing = ref(false)
 const selectedIds = ref([])
+const columnSettingsVisible = ref(false)
 
 const searchForm = reactive({ keyword: '', status: '' })
 const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
 const form = reactive({ id: null, username: '', email: '', role: '', status: 'active' })
+
+// 列可见性配置
+const columnDefs = [
+  { key: 'id', label: '#ID' },
+  { key: 'username', label: '用户名' },
+  { key: 'email', label: '邮箱' },
+  { key: 'role', label: '角色' },
+  { key: 'status', label: '状态' },
+  { key: 'lastLoginAt', label: '最后登录' },
+  { key: 'createdAt', label: '创建时间' },
+  { key: 'operation', label: '操作' },
+]
+const columnVisibility = ref(Object.fromEntries(columnDefs.map(c => [c.key, true])))
+const visibleColumns = computed(() => columnDefs.filter(c => columnVisibility.value[c.key]))
+const selectedColumnKeys = ref(columnDefs.map(c => c.key))
+
+function applyColumnSettings() {
+  const newVis = {}
+  columnDefs.forEach(c => { newVis[c.key] = selectedColumnKeys.value.includes(c.key) })
+  columnVisibility.value = newVis
+  columnSettingsVisible.value = false
+}
+
+
 
 const users = ref([
   { id: 1, username: 'admin', email: 'admin@example.com', role: '超级管理员', status: 'active', lastLoginAt: '2026-03-15 10:00:00', createdAt: '2025-01-01 00:00:00' },
