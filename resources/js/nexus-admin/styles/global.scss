@@ -155,6 +155,8 @@ a {
 .el-button-group--horizontal .el-button { border-radius: 0!important; }
 .el-button-group--horizontal .el-button:first-child { border-radius: var(--nexus-border-radius) 0 0 var(--nexus-border-radius) !important; }
 .el-button-group--horizontal .el-button:last-child { border-radius: 0 var(--nexus-border-radius) var(--nexus-border-radius) 0 !important; }
+.el-button-group--horizontal > .el-button:first-child { border-right-color: var(--el-button-border-color) !important; }
+
 .el-button:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
