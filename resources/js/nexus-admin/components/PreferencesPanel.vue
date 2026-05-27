@@ -41,10 +41,12 @@
 import { ref, computed } from 'vue'
 import { Check } from '@element-plus/icons-vue'
 import { useConfigStore } from '../stores/config'
+import { useThemeStore } from '../stores/theme'
 import { useI18nStore } from '../stores/i18n'
 
 const { t } = useI18nStore()
 const configStore = useConfigStore()
+const themeStore = useThemeStore()
 
 const visible = ref(false)
 
@@ -52,15 +54,15 @@ const tabMode = computed(() => configStore.get('tabMode', true))
 const headerColor = computed(() => configStore.get('headerColor', ''))
 
 const headerColors = [
-  { value: '', label: '默认' },
-  { value: 'linear-gradient(135deg, #14b8a6, #0d9488)', label: '青绿' },
-  { value: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', label: '深蓝' },
-  { value: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', label: '紫色' },
-  { value: 'linear-gradient(135deg, #f59e0b, #d97706)', label: '橙色' },
-  { value: 'linear-gradient(135deg, #ef4444, #dc2626)', label: '红色' },
-  { value: 'linear-gradient(135deg, #10b981, #059669)', label: '绿色' },
-  { value: 'linear-gradient(135deg, #64748b, #475569)', label: '灰色' },
-  { value: 'linear-gradient(135deg, #1e293b, #0f172a)', label: '深色' },
+  { value: '', label: '默认', primary: '#14b8a6' },
+  { value: 'linear-gradient(135deg, #14b8a6, #0d9488)', label: '青绿', primary: '#14b8a6' },
+  { value: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', label: '深蓝', primary: '#3b82f6' },
+  { value: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', label: '紫色', primary: '#8b5cf6' },
+  { value: 'linear-gradient(135deg, #f59e0b, #d97706)', label: '橙色', primary: '#f59e0b' },
+  { value: 'linear-gradient(135deg, #ef4444, #dc2626)', label: '红色', primary: '#ef4444' },
+  { value: 'linear-gradient(135deg, #10b981, #059669)', label: '绿色', primary: '#10b981' },
+  { value: 'linear-gradient(135deg, #64748b, #475569)', label: '灰色', primary: '#64748b' },
+  { value: 'linear-gradient(135deg, #1e293b, #0f172a)', label: '深色', primary: '#1e293b' },
 ]
 
 function open() {
@@ -73,10 +75,16 @@ function handleTabModeChange(val) {
 
 function handleHeaderColorChange(val) {
   configStore.setUserConfig('headerColor', val)
+  // 同步设置主色调
+  const match = headerColors.find(c => c.value === val)
+  if (match) {
+    themeStore.setPrimaryColor(match.primary)
+  }
 }
 
 defineExpose({ open })
 </script>
+
 
 <style scoped>
 .preferences-body {
