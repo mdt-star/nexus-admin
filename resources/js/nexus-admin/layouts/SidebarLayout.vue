@@ -328,6 +328,16 @@ function handleUserCommand(command) {
 :deep(.el-menu-item.is-active) { color: var(--el-menu-active-color) !important; }
 :deep(.el-menu-item.is-active .el-icon) { color: var(--el-menu-active-color) !important; }
 
+/* 侧边栏收起时，el-menu-item 的 li 默认 padding 导致图标不居中 */
+.nexus-sidebar-collapsed .nexus-sidebar-menu :deep(.el-menu-item),
+.nexus-sidebar-collapsed .nexus-sidebar-menu :deep(.el-sub-menu__title) {
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 .nexus-main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .nexus-header { display: flex; align-items: center; justify-content: space-between; height: var(--nexus-header-height); padding: 0 16px 0 5px; background-color: var(--nexus-bg-color-light); border-bottom: 1px solid var(--nexus-border-color); z-index: 100; transition: background 0.3s ease; }
 
