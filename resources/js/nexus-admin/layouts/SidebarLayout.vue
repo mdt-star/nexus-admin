@@ -388,15 +388,16 @@ function handleUserCommand(command) {
 }
 
 .nexus-tabs-actions .nexus-tab-btn:disabled {
-  color: var(--nexus-border-color) !important;
+  color: var(--nexus-text-color-disabled, #bbb) !important;
   cursor: default;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .nexus-tabs-actions .nexus-tab-btn:disabled:hover {
   background-color: transparent;
-  color: var(--nexus-border-color) !important;
+  color: var(--nexus-text-color-disabled, #bbb) !important;
 }
+
 
 
 .nexus-content { flex: 1; overflow: auto; padding: 16px; background-color: var(--nexus-bg-color); }

@@ -28,6 +28,8 @@
   --nexus-text-color: #1e293b;
   --nexus-text-color-secondary: #64748b;
   --nexus-text-color-placeholder: #94a3b8;
+  --nexus-text-color-disabled: #cbd5e1;
+
 
   /* ===== 边框色 ===== */
   --nexus-border-color: #e2e8f0;
@@ -95,6 +97,8 @@ html.dark {
   --nexus-text-color: #f1f5f9 !important;
   --nexus-text-color-secondary: #94a3b8 !important;
   --nexus-text-color-placeholder: #64748b !important;
+  --nexus-text-color-disabled: #475569 !important;
+
 
   --nexus-border-color: #334155 !important;
   --nexus-border-color-light: #1e293b !important;
