@@ -35,9 +35,10 @@
 
     <el-card class="nexus-table-card">
        <el-button-group style="margin-bottom: 10px;" v-if="selectedIds.length > 0">
-          <el-button @click="handleBatchDelete">
+          <el-button type="danger" plain @click="handleBatchDelete">
             批量删除 ({{ selectedIds.length }})
           </el-button>
+
           <el-button @click="handleBatchEdit">
             修改
           </el-button>
