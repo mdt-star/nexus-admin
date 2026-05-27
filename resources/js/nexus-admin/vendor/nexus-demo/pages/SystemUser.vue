@@ -54,20 +54,22 @@
 
         <el-table-column type="selection" width="55" />
 
-        <el-table-column v-if="columnVisibility.id" prop="id" label="#ID" width="60" />
-        <el-table-column v-if="columnVisibility.username" prop="username" :label="t('user.username')" width="120" />
-        <el-table-column v-if="columnVisibility.email" prop="email" :label="t('user.email')" min-width="200" />
-        <el-table-column v-if="columnVisibility.role" prop="role" :label="t('user.role')" width="120" />
-        <el-table-column v-if="columnVisibility.status" prop="status" :label="t('common.status')" width="100">
+        <el-table-column v-if="columnVisibility.id" prop="id" label="#ID" min-width="60" />
+        <el-table-column v-if="columnVisibility.username" prop="username" :label="t('user.username')" min-width="100" />
+        <el-table-column v-if="columnVisibility.email" prop="email" :label="t('user.email')" min-width="160" />
+        <el-table-column v-if="columnVisibility.role" prop="role" :label="t('user.role')" min-width="100" />
+        <el-table-column v-if="columnVisibility.status" prop="status" :label="t('common.status')" min-width="80">
+
           <template #default="{ row }">
             <el-tag :type="row.status === 'active' ? 'success' : 'danger'">
               {{ row.status === 'active' ? '启用' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column v-if="columnVisibility.lastLoginAt" prop="lastLoginAt" label="最后登录" width="180" />
-        <el-table-column v-if="columnVisibility.createdAt" prop="createdAt" :label="t('common.createdAt')" width="180" />
-        <el-table-column v-if="columnVisibility.operation" :label="t('common.operation')" width="200" fixed="right">
+        <el-table-column v-if="columnVisibility.lastLoginAt" prop="lastLoginAt" label="最后登录" min-width="140" />
+        <el-table-column v-if="columnVisibility.createdAt" prop="createdAt" :label="t('common.createdAt')" min-width="140" />
+        <el-table-column v-if="columnVisibility.operation" :label="t('common.operation')" min-width="160" fixed="right">
+
           <template #default="{ row }">
             <el-link :icon="Edit" @click="handleEdit(row)">{{ t('common.edit') }}</el-link>
             <el-link :icon="Delete" @click="handleDelete(row)">{{ t('common.delete') }}</el-link>
