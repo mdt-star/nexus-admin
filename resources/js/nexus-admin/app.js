@@ -2,14 +2,16 @@
  * nexus-admin 入口文件
  * 基于 Vite + Vue 3 + Element Plus 的现代化后台管理界面基座
  */
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
+
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import AppRoot from './AppRoot.vue'
+import router from './router'
 import permissionDirective from './directives/permission'
 import PermissionTag from './components/common/PermissionTag.vue'
 import hookManager from './utils/hook-manager'
@@ -162,6 +164,9 @@ async function initNexusAdmin(mountSelector = '#app') {
   // 注册 Pinia
   app.use(pinia)
 
+  // 注册 Vue Router
+  app.use(router)
+
   // 注册 Element Plus（默认 large 尺寸）
   app.use(ElementPlus, { size: 'large' })
 
@@ -258,8 +263,18 @@ async function initNexusAdmin(mountSelector = '#app') {
   const appStore = useAppStore()
   appStore.initResponsive()
 
+  // 监听窗口变化同步 URL
+  const { useWindowStore } = await import('./stores/windows')
+  const windowStore = useWindowStore()
+  watch(() => windowStore.active, (active) => {
+    if (active && active.route) {
+      router.push(active.route).catch(() => {})
+    }
+  }, { immediate: true })
+
   // 挂载应用
   app.mount(mountSelector)
+
 
   // 触发 app:mounted 钩子
   await hookManager.emit('app:mounted', document.querySelector(mountSelector))
