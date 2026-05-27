@@ -192,17 +192,25 @@ const cn = {
     expand: '展开菜单'
   },
   login: {
-    subtitle: 'Nexus Admin 管理后台',
+    subtitle: 'Nexus Admin 控制台',
     username: '用户名',
     password: '密码',
-    submit: '登 录',
+    submit: '登录',
     hint: '演示账号: admin / admin',
     success: '登录成功',
     failed: '登录失败',
     logout: '退出登录',
     profile: '个人信息'
+  },
+  preferences: {
+    title: '偏好设置',
+    tabMode: 'Tab 栏模式',
+    showTabs: '显示 Tab 栏',
+    hideTabs: '隐藏 Tab 栏（单页模式）',
+    headerColor: '顶部背景色'
   }
 }
+
 
 const en = {
   common: {
@@ -314,8 +322,16 @@ const en = {
     failed: 'Invalid credentials',
     logout: 'Logout',
     profile: 'Profile'
+  },
+  preferences: {
+    title: 'Preferences',
+    tabMode: 'Tab Mode',
+    showTabs: 'Show Tabs',
+    hideTabs: 'Hide Tabs (Single Page)',
+    headerColor: 'Header Background'
   }
 }
+
 
 const mockI18nMessages = {
   'zh-CN': cn,

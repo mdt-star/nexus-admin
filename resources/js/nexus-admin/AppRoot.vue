@@ -23,6 +23,6 @@ const elementLocale = computed(() => {
 })
 </script>
 
-<style>
-
+<style scoped>
 </style>
+

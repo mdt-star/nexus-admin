@@ -20,7 +20,10 @@ export const useConfigStore = defineStore('nexus-config', () => {
     sidebarCollapsed: false,  // 侧边栏是否折叠
     locale: 'zh-CN',          // 语言
     windowMaximized: false,   // 窗口是否最大化
-    tabs: []                  // 已打开的 Tab 列表
+    tabs: [],                 // 已打开的 Tab 列表
+    tabMode: true,            // 是否显示 Tab 栏（false=单页模式）
+    headerColor: ''           // 顶部背景色（空=默认）
+
   })
 
   // 全局配置（管理员设置）

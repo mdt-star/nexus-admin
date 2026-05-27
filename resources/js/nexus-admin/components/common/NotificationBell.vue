@@ -1,11 +1,10 @@
 <template>
   <el-popover
+    v-if="notificationStore.list.length > 0"
     placement="bottom-end"
     :width="360"
     trigger="click"
-    :visible="popoverVisible"
     @show="handleShow"
-    @hide="popoverVisible = false"
   >
     <template #reference>
       <el-badge :value="notificationStore.unreadCount" :hidden="!notificationStore.hasUnread" :max="99" class="nexus-notification-badge">
@@ -13,10 +12,11 @@
           :icon="notificationStore.hasUnread ? 'BellFilled' : 'Bell'"
           circle
           class="nexus-notification-btn"
-          @click="popoverVisible = !popoverVisible"
         />
       </el-badge>
     </template>
+
+
 
     <div class="nexus-notification-panel">
       <div class="nexus-notification-header">
@@ -56,14 +56,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useNotificationStore } from '../../stores/notification'
 import { useWindowStore } from '../../stores/windows'
 
 const notificationStore = useNotificationStore()
 const windowStore = useWindowStore()
-
-const popoverVisible = ref(false)
 
 onMounted(() => {
   notificationStore.init()
@@ -78,11 +76,11 @@ function handleShow() {
 }
 
 function handleItemClick(item) {
-  popoverVisible.value = false
   notificationStore.handleNotificationClick(item, (menuItem) => {
     windowStore.open(menuItem)
   })
 }
+
 
 function handleMarkAllRead() {
   notificationStore.markAllAsReadNotification()
@@ -154,10 +152,14 @@ function formatTime(isoString) {
 .nexus-notification-list {
   flex: 1;
   overflow-y: auto;
-  margin: 0 -12px;
-  padding: 0 12px;
+  padding-right: 5px;
   max-height: 340px;
 }
+
+
+
+
+
 
 .nexus-notification-item {
   display: flex;
@@ -175,11 +177,12 @@ function formatTime(isoString) {
 
 .nexus-notification-item:hover {
   background-color: var(--nexus-bg-color-light);
-  margin: 0 -12px;
-  padding-left: 12px;
-  padding-right: 12px;
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
   border-radius: 6px;
 }
+
 
 .nexus-notification-unread {
   background-color: rgba(64, 158, 255, 0.03);

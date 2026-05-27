@@ -263,14 +263,18 @@ async function initNexusAdmin(mountSelector = '#app') {
   const appStore = useAppStore()
   appStore.initResponsive()
 
-  // 监听窗口变化同步 URL
+  // 监听窗口变化同步 URL（自动带上该 Tab 保存的搜索参数）
   const { useWindowStore } = await import('./stores/windows')
   const windowStore = useWindowStore()
   watch(() => windowStore.active, (active) => {
     if (active && active.route) {
-      router.push(active.route).catch(() => {})
+      router.push({ path: active.route, query: active.searchParams }).catch(() => {})
     }
   }, { immediate: true })
+
+
+
+
 
   // 挂载应用
   app.mount(mountSelector)

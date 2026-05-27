@@ -92,12 +92,18 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Delete } from "@element-plus/icons-vue"
 import { useI18nStore } from '../../../stores/i18n'
+import { useWindowStore } from '../../../stores/windows'
 
 const { t } = useI18nStore()
+const route = useRoute()
+const windowStore = useWindowStore()
+
+
 
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -132,7 +138,13 @@ const articles = ref([
 
 pagination.total = articles.value.length
 
+// 从 URL query 恢复搜索条件
+onMounted(() => {
+  if (route.query.keyword) searchForm.keyword = route.query.keyword
+})
+
 function handleSearch() {
+  windowStore.updateSearchParams('content-article', { ...searchForm })
   loading.value = true
   setTimeout(() => {
     loading.value = false
@@ -141,7 +153,10 @@ function handleSearch() {
 
 function handleReset() {
   searchForm.keyword = ''
+  windowStore.updateSearchParams('content-article', {})
 }
+
+
 
 function handleCreate() {
   isEditing.value = false

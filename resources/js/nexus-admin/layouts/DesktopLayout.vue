@@ -53,7 +53,7 @@
 
         <!-- 用户菜单 -->
         <el-dropdown @command="handleUserCommand" v-if="userStore.isLoggedIn">
-          <el-button class="nexus-user-btn">
+          <el-button class="nexus-user-btn" style=" padding-right: 0 !important;">
             <el-avatar
               :size="22"
               :src="userStore.user?.avatar || ''"
@@ -134,7 +134,7 @@
           <div class="nexus-window-body">
             <component
               :is="getPageComponent(win.component)"
-              v-bind="win.params || {}"
+              v-bind="win || {}"
               @open="(child) => windowStore.open(child)"
             />
           </div>

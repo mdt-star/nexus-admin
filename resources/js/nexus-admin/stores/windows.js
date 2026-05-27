@@ -4,7 +4,11 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import hookManager from '../utils/hook-manager'
+
+
+
 
 const STORAGE_KEY = 'nexus-admin-windows'
 
@@ -29,7 +33,9 @@ function saveToStorage(items, activeId) {
 }
 
 export const useWindowStore = defineStore('nexus-windows', () => {
+  const router = useRouter()
   const saved = loadFromStorage()
+
 
   // 已打开的窗口/Tab 列表
   const items = ref(saved.items)
@@ -40,6 +46,9 @@ export const useWindowStore = defineStore('nexus-windows', () => {
   // 自动持久化
   watch([items, activeId], ([newItems, newActiveId]) => {
     saveToStorage(newItems, newActiveId)
+    if(newItems.length === 0) {
+      router.replace({ path: '/' }).catch(() => {})
+    }
   }, { deep: true })
 
   // 窗口/Tab 历史（用于前进/后退）
@@ -71,9 +80,11 @@ export const useWindowStore = defineStore('nexus-windows', () => {
         tags: menuItem.tags || [],
         meta: menuItem.meta || {},
         openedAt: Date.now()
+
       }
       items.value.push(newItem)
       activeId.value = newItem.id
+
 
       // 触发窗口打开钩子
       await hookManager.emit('window:open', newItem)
@@ -135,12 +146,13 @@ export const useWindowStore = defineStore('nexus-windows', () => {
     activeId.value = id
     history.value.push(id)
 
-    // 触发窗口激活钩子
     const item = items.value.find(item => item.id === id)
     if (item) {
       await hookManager.emit('window:activate', item)
     }
+
   }
+
 
   /**
    * 更新窗口/Tab 状态
@@ -154,6 +166,35 @@ export const useWindowStore = defineStore('nexus-windows', () => {
     }
   }
 
+  /**
+   * 更新指定 Tab 的搜索参数，并同步到浏览器 URL
+   * @param {string} id
+   * @param {object} params
+   */
+  function updateSearchParams(id, params) {
+    const item = items.value.find(item => item.id === id)
+    if (item) {
+      item.searchParams = { ...params }
+    }
+    // 如果更新的是当前激活的 Tab，同步到 URL
+    if (id === activeId.value && item?.route) {
+      router.replace({ path: item.route, query: { ...params } }).catch(() => {})
+    } 
+
+  }
+
+
+
+  /**
+   * 获取指定 Tab 的搜索参数
+   * @param {string} id
+   * @returns {object}
+   */
+  function getSearchParams(id) {
+    const item = items.value.find(item => item.id === id)
+    return item?.searchParams || {}
+  }
+
   return {
     items,
     activeId,
@@ -164,6 +205,10 @@ export const useWindowStore = defineStore('nexus-windows', () => {
     closeOthers,
     closeAll,
     activate,
-    update
+    update,
+    updateSearchParams,
+    getSearchParams
   }
+
+
 })

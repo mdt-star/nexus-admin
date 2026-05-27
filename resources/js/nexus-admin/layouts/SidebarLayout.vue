@@ -2,9 +2,10 @@
   <div class="nexus-sidebar-layout">
     <aside
       class="nexus-sidebar"
-      :class="{ 'nexus-sidebar-collapsed': appStore.sidebarCollapsed }"
+      :class="{ 'nexus-sidebar-collapsed': appStore.sidebarCollapsed, 'nexus-sidebar-themed': hasHeaderColor }"
     >
-      <div class="nexus-sidebar-logo">
+      <div class="nexus-sidebar-logo" :class="{ 'nexus-sidebar-logo-themed': hasHeaderColor }" :style="hasHeaderColor ? headerStyle : {}">
+
         <div class="nexus-sidebar-logo-inner" :class="{ 'nexus-sidebar-logo-collapsed': appStore.sidebarCollapsed }">
           <el-icon class="nexus-sidebar-logo-icon" :size="logoIconSize">
             <TrendCharts />
@@ -47,7 +48,8 @@
     </aside>
 
     <div class="nexus-main-area">
-      <header class="nexus-header">
+      <header class="nexus-header" :style="headerStyle">
+
         <div class="nexus-header-left">
           <el-button
             :icon="appStore.sidebarCollapsed ? 'Expand' : 'Fold'"
@@ -56,9 +58,6 @@
           />
         </div>
         <div class="nexus-header-right">
-          <!-- 通知铃铛 -->
-          <NotificationBell />
-
           <!-- 主题切换 + 布局切换（零间距分组） -->
           <div style="display: flex; align-items: center; gap: 0;">
             <el-tooltip :content="t('theme.toggle')" placement="bottom">
@@ -68,7 +67,6 @@
               <el-button icon="Grid" circle @click="appStore.toggleLayout()" />
             </el-tooltip>
           </div>
-
 
           <el-dropdown @command="(val) => uiSizeStore.setSize(val)">
             <el-button>
@@ -103,10 +101,12 @@
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
+                <el-dropdown-item command="preferences"><el-icon><Setting /></el-icon> {{ t('preferences.title') }}</el-dropdown-item>
                 <el-dropdown-item command="profile"><el-icon><InfoFilled /></el-icon> {{ t('login.profile') }}</el-dropdown-item>
                 <el-dropdown-item divided command="logout"><el-icon><SwitchButton /></el-icon> {{ t('login.logout') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
+
           </el-dropdown>
         </div>
       </header>
@@ -140,7 +140,10 @@
         <span>{{ footerText }}</span>
       </footer>
     </div>
+    <!-- 偏好设置面板 -->
+    <PreferencesPanel ref="preferencesRef" />
   </div>
+
 </template>
 
 <script setup>
@@ -157,7 +160,7 @@ import hookManager from '../utils/hook-manager'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { ArrowLeft, ArrowRight, Refresh } from '@element-plus/icons-vue'
 import GlobeIcon from '../components/GlobeIcon.vue'
-import NotificationBell from '../components/common/NotificationBell.vue'
+import PreferencesPanel from '../components/PreferencesPanel.vue'
 import { ElMessage } from 'element-plus'
 
 
@@ -176,7 +179,18 @@ const appName = computed(() => configStore.get('appName', 'Nexus Admin'))
 const footerText = computed(() => configStore.get('footer', ''))
 const currentLocale = computed(() => i18nStore.locale)
 
+// 偏好设置面板
+const preferencesRef = ref(null)
+
+// 顶部背景色
+const hasHeaderColor = computed(() => !!configStore.get('headerColor', ''))
+const headerStyle = computed(() => {
+  const color = configStore.get('headerColor', '')
+  return color ? { background: color, borderBottom: 'none' } : {}
+})
+
 const localeDisplay = computed(() => {
+
   const map = { 'zh-CN': '中文', 'en': 'English' }
   return map[currentLocale.value] || currentLocale.value
 })
@@ -241,20 +255,31 @@ function handleLocaleChange(locale) {
 }
 
 function handleUserCommand(command) {
-  if (command === 'logout') {
+  if (command === 'preferences') {
+    preferencesRef.value?.open()
+  } else if (command === 'logout') {
     userStore.logout()
   }
 }
+
 </script>
 
 <style scoped>
 .nexus-sidebar-layout { display: flex; height: 100vh; overflow: hidden; }
 .nexus-sidebar { width: var(--nexus-sidebar-width); background-color: var(--nexus-bg-color-light); border-right: 1px solid var(--nexus-border-color); display: flex; flex-direction: column; transition: width 0.3s; overflow: hidden; }
 .nexus-sidebar-collapsed { width: var(--nexus-sidebar-collapsed-width); }
-.nexus-sidebar-logo { height: var(--nexus-header-height); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--nexus-border-color); }
+.nexus-sidebar-logo { height: var(--nexus-header-height); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--nexus-border-color); transition: background 0.3s ease; }
 .nexus-sidebar-logo-inner { display: flex; align-items: center; gap: 6px; }
-.nexus-sidebar-logo-icon { color: var(--nexus-text-color) !important; transition: font-size 0.3s ease; }
-.nexus-sidebar-logo-text { font-size: calc(var(--nexus-font-size-lg) + 6px); font-weight: 700; color: var(--nexus-text-color); white-space: nowrap; }
+.nexus-sidebar-logo-icon { color: var(--nexus-text-color) !important; transition: font-size 0.3s ease, color 0.3s ease; }
+.nexus-sidebar-logo-text { font-size: calc(var(--nexus-font-size-lg) + 6px); font-weight: 700; color: var(--nexus-text-color); white-space: nowrap; transition: color 0.3s ease; }
+
+/* 自定义顶部背景色时，logo 区域文字/图标变白，边框隐藏 */
+.nexus-sidebar-themed { border-right: 0 !important; }
+.nexus-sidebar-themed .nexus-sidebar-menu { border-right: 1px solid var(--nexus-border-color) !important; }
+.nexus-sidebar-logo-themed { border-bottom-color: transparent !important; }
+.nexus-sidebar-logo-themed .nexus-sidebar-logo-icon,
+.nexus-sidebar-logo-themed .nexus-sidebar-logo-text { color: #fff !important; }
+
 .nexus-sidebar-menu { flex: 1; overflow-y: auto; border-right: none; padding-top: 10px; }
 
 :deep(.el-menu-item), :deep(.el-sub-menu__title) { font-size: var(--nexus-font-size-base) !important; }
@@ -263,8 +288,18 @@ function handleUserCommand(command) {
 :deep(.el-menu-item.is-active .el-icon) { color: var(--el-menu-active-color) !important; }
 
 .nexus-main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.nexus-header { display: flex; align-items: center; justify-content: space-between; height: var(--nexus-header-height); padding: 0 16px 0 5px; background-color: var(--nexus-bg-color-light); border-bottom: 1px solid var(--nexus-border-color); z-index: 100; }
+.nexus-header { display: flex; align-items: center; justify-content: space-between; height: var(--nexus-header-height); padding: 0 16px 0 5px; background-color: var(--nexus-bg-color-light); border-bottom: 1px solid var(--nexus-border-color); z-index: 100; transition: background 0.3s ease; }
+
+/* 自定义顶部背景色时，header 内所有按钮/文字变白 */
+.nexus-header[style*="background"] .nexus-header-right :deep(.el-button),
+.nexus-header[style*="background"] .nexus-header-left :deep(.el-button) { color: rgba(255,255,255,0.9) !important; }
+.nexus-header[style*="background"] .nexus-header-right :deep(.el-button:hover),
+.nexus-header[style*="background"] .nexus-header-left :deep(.el-button:hover) { background-color: rgba(255,255,255,0.15) !important; color: #fff !important; }
+.nexus-header[style*="background"] .nexus-user-btn span { color: rgba(255,255,255,0.9) !important; }
+.nexus-user-btn { padding-right: 0 !important; }
+
 .nexus-header-right { display: flex; align-items: center; gap: 4px; }
+
 .nexus-header-right :deep(.el-button) { border: none; background-color: transparent; color: var(--nexus-text-color-secondary); transition: all 0.25s ease; margin-left: 0 !important; padding-left: 8px !important; padding-right: 8px !important; }
 .nexus-header-right :deep(.el-button:hover) { background-color: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
 .nexus-header-left :deep(.el-button) { border: none; background-color: transparent; color: var(--nexus-text-color-secondary); transition: all 0.25s ease; margin-left: 0 !important; }

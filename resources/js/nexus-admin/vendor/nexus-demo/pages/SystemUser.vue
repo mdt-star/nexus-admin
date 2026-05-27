@@ -101,20 +101,28 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Delete } from "@element-plus/icons-vue"
 import { useI18nStore } from '../../../stores/i18n'
+import { useWindowStore } from '../../../stores/windows'
 
 const { t } = useI18nStore()
+const route = useRoute()
+const windowStore = useWindowStore()
+
+
 
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEditing = ref(false)
 
-const searchForm = reactive({ keyword: '', status: '' })
+const {searchParams} = defineProps({ searchParams: Object })
+const searchForm = reactive({ keyword: searchParams?.keyword, status: searchParams?.status })
 const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
 const form = reactive({ id: null, username: '', email: '', role: '', status: 'active' })
+
 
 const users = ref([
   { id: 1, username: 'admin', email: 'admin@example.com', role: '超级管理员', status: 'active', lastLoginAt: '2026-03-15 10:00:00', createdAt: '2025-01-01 00:00:00' },
@@ -124,8 +132,26 @@ const users = ref([
 ])
 pagination.total = users.value.length
 
-function handleSearch() { loading.value = true; setTimeout(() => { loading.value = false }, 300) }
-function handleReset() { searchForm.keyword = ''; searchForm.status = '' }
+// 从 URL query 恢复搜索条件
+onMounted(() => {
+  console.log('Restoring search params from URL:', searchParams)
+  if (route.query.keyword) searchForm.keyword = route.query.keyword
+  if (route.query.status) searchForm.status = route.query.status
+})
+
+function handleSearch() {
+  loading.value = true
+  windowStore.updateSearchParams('system-user', { ...searchForm })
+  setTimeout(() => { loading.value = false }, 300)
+}
+function handleReset() {
+  searchForm.keyword = ''
+  searchForm.status = ''
+  windowStore.updateSearchParams('system-user', {})
+}
+
+
+
 function handleCreate() { isEditing.value = false; form.id = null; form.username = ''; form.email = ''; form.role = ''; form.status = 'active'; dialogVisible.value = true }
 function handleEdit(row) { isEditing.value = true; Object.assign(form, row); dialogVisible.value = true }
 function handleDelete(row) {
