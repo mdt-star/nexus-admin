@@ -273,13 +273,4 @@ function handlePageChange() { loading.value = true; setTimeout(() => { loading.v
 .nexus-search-card { margin-bottom: 16px; }
 .nexus-table-card { margin-bottom: 16px; }
 .nexus-pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
-
-/* 表格列自适应 flex 填充 */
-:deep(.el-table__body-wrapper) { overflow-x: auto; }
-:deep(.el-table__header-wrapper) { overflow: hidden; }
-:deep(.el-table__header) { table-layout: auto !important; width: 100% !important; }
-:deep(.el-table__body) { table-layout: auto !important; width: 100% !important; }
-:deep(.el-table__header colgroup col), :deep(.el-table__body colgroup col) { width: auto !important; min-width: 0 !important; }
-:deep(.el-table__header th), :deep(.el-table__body td) { white-space: nowrap; }
 </style>
-
