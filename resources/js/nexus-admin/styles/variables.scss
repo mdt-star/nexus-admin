@@ -73,7 +73,22 @@ html.dark {
   --el-color-primary-light-8: #e6fffa !important;
   --el-color-primary-light-9: #f0fdfa !important;
 
-  --nexus-bg-color: #0f172a !important;
+  --nexus-bg-color:#0f172a !important;
+  --el-bg-color:rgb(30 41 59 / var(--tw-bg-opacity, 1)) !important;
+  --el-bg-color-overlay: rgb(30 41 59 / var(--tw-bg-opacity, 1)) !important;
+
+  
+  --el-input-bg-color: rgb(30 41 59 / var(--tw-bg-opacity, 1)) !important;
+  --el-fill-color-blank: rgb(30 41 59 / var(--tw-bg-opacity, 1)) !important;
+  --el-bg-color-overlay: var(--el-fill-color-blank) !important;
+
+  --el-border-color: rgb(71 85 105 / var(--tw-border-opacity, 1)) !important;
+
+  --el-table-border-color:rgb(4, 92, 218) !important;
+  --el-border-color-lighter: rgb(71 85 105 / var(--tw-border-opacity, 1)) !important;
+
+  
+  --el-fill-color-lighter: rgb(30 41 59 / var(--tw-bg-opacity, 1)) !important;
   --nexus-bg-color-light: #1e293b !important;
   --nexus-bg-color-dark: #334155 !important;
 

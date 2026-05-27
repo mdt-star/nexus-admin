@@ -122,8 +122,10 @@
       </div>
 
       <main class="nexus-content">
-        <div v-if="windowStore.active" class="nexus-content-page">
-          <component :is="getPageComponent(windowStore.active.component)" :key="refreshKey" />
+        <div v-if="windowStore.items.length > 0" class="nexus-content-pages">
+          <div v-for="tab in windowStore.items" :key="tab.id" class="nexus-content-page" v-show="tab.id === windowStore.activeId">
+            <component :is="getPageComponent(tab.component)" :key="tab.id + (refreshKey > 0 && tab.id === windowStore.activeId ? '-' + refreshKey : '')" />
+          </div>
         </div>
         <div v-else class="nexus-content-empty">
           <el-empty :description="t('common.noData')" />
@@ -302,7 +304,8 @@ function handleUserCommand(command) {
 }
 
 .nexus-content { flex: 1; overflow: auto; padding: 16px; background-color: var(--nexus-bg-color); }
-.nexus-content-page { height: 100%; }
+.nexus-content-pages { position: relative; height: 100%; }
+.nexus-content-page { position: absolute; inset: 0; height: 100%; overflow: auto; }
 .nexus-content-empty { display: flex; align-items: center; justify-content: center; height: 100%; }
 .nexus-footer { display: flex; align-items: center; justify-content: center; height: var(--nexus-footer-height); font-size: var(--nexus-font-size-sm); color: var(--nexus-text-color-secondary); background-color: var(--nexus-bg-color-light); border-top: 1px solid var(--nexus-border-color); }
 </style>

@@ -190,9 +190,15 @@ a {
   border-radius: var(--nexus-border-radius) !important;
   margin: 2px 8px !important;
   width: auto !important;
+  display: flex !important;
+  align-items: center !important;
 }
 .el-sub-menu__title:hover { background-color: var(--nexus-bg-color-dark) !important; }
+.el-sub-menu__title .el-icon {
+  align-self: center !important;
+}
 .el-sub-menu .el-menu { background-color: transparent !important; }
+.el-sub-menu .el-sub-menu__icon-arrow { margin-top: -7px !important; }
 
 /* 下拉菜单 */
 .el-dropdown-menu {
