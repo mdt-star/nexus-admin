@@ -2,8 +2,8 @@
   <Teleport to="body">
     <transition name="nexus-editor">
       <div v-if="visible" class="nexus-editor-overlay" @click.self="close">
-        <div class="nexus-editor-panel" :style="panelStyle">
-          <div class="nexus-editor-header">
+        <div class="nexus-editor-panel" :style="panelStyle" @mousedown="onPanelMouseDown">
+          <div class="nexus-editor-header" @mousedown.prevent="onHeaderMouseDown">
             <span class="nexus-editor-title">{{ isNew ? '添加项' : '编辑项' }}</span>
             <el-button text :icon="Close" @click="close" />
           </div>
@@ -47,7 +47,7 @@
 
               <!-- 类型 -->
               <el-form-item label="类型">
-                <el-select v-model="form.type" style="width: 100%">
+                <el-select v-model="form.type" style="width: 100%" teleported="false">
                   <el-option label="菜单项" value="menu" />
                   <el-option label="文件夹" value="folder" />
                   <el-option label="分隔线" value="divider" />
@@ -121,12 +121,48 @@ const popularIcons = [
   'Edit', 'Search', 'Share', 'Star'
 ]
 
+const pos = reactive({ x: props.position.x, y: props.position.y })
+let dragging = false
+let dragOffset = { x: 0, y: 0 }
+
+watch(() => props.position, (p) => {
+  pos.x = p.x
+  pos.y = p.y
+}, { deep: true })
+
 const panelStyle = computed(() => ({
-  left: `${props.position.x}px`,
-  top: `${props.position.y}px`
+  left: `${pos.x}px`,
+  top: `${pos.y}px`
 }))
 
+function onHeaderMouseDown(e) {
+  dragging = true
+  dragOffset = { x: e.clientX - pos.x, y: e.clientY - pos.y }
+  document.addEventListener('mousemove', onDragMove)
+  document.addEventListener('mouseup', onDragEnd)
+}
+
+function onPanelMouseDown(e) {
+  // 防止点击面板内部非 header 区域触发拖拽
+}
+
+function onDragMove(e) {
+  if (!dragging) return
+  pos.x = e.clientX - dragOffset.x
+  pos.y = e.clientY - dragOffset.y
+}
+
+function onDragEnd() {
+  dragging = false
+  document.removeEventListener('mousemove', onDragMove)
+  document.removeEventListener('mouseup', onDragEnd)
+}
+
 watch(() => props.visible, (val) => {
+  if (val) {
+    pos.x = props.position.x
+    pos.y = props.position.y
+  }
   if (val && props.item) {
     form.title = props.item.title || ''
     form.icon = props.item.icon || ''
