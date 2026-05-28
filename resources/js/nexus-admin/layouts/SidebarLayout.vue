@@ -135,7 +135,7 @@
         <div class="nexus-tabs-wrapper" ref="tabsWrapperRef">
           <div v-for="tab in windowStore.items" :key="tab.id" class="nexus-tab"
             :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)"
-            @contextmenu.stop="openTabContextMenu($event, tab)">
+            @contextmenu.prevent="openTabContextMenu($event, tab)">
             <span class="nexus-tab-label">{{ tab.title }}</span>
             <el-icon class="nexus-tab-close" size="12" @click.stop="windowStore.close(tab.id)">
               <Close />
