@@ -165,6 +165,8 @@
 
     <PreferencesPanel ref="preferencesRef" />
 
+    <ItemEditor :visible="editorVisible" :item="editingItem" :is-new="isNewItem" :position="editorPos" @close="editorVisible = false" @save="onEditorSave" />
+
     <Teleport to="body">
       <div v-if="sidebarContextVisible" class="nexus-context-menu" :style="sidebarContextStyle" @click.stop>
         <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !sidebarContextHasItem }"
@@ -226,6 +228,7 @@ import GlobalSearch from '../components/common/GlobalSearch.vue'
 import PreferencesPanel from '../components/PreferencesPanel.vue'
 import StartMenu from '../components/desktop/StartMenu.vue'
 import WindowsStartIcon from '../components/desktop/WindowsStartIcon.vue'
+import ItemEditor from '../components/desktop/ItemEditor.vue'
 
 const appStore = useAppStore()
 const menuStore = useMenuStore()
@@ -363,6 +366,21 @@ async function handleMenuSelect(index) {
 }
 
 function handleLocaleChange(locale) { i18nStore.setLocale(locale) }
+// ==================== 侧边栏编辑器 ====================
+const editorVisible = ref(false)
+const editingItem = ref(null)
+const isNewItem = ref(false)
+const editorPos = ref({ x: 0, y: 0 })
+
+function onEditorSave(data) {
+  if (isNewItem.value) {
+    disktopStore.addItem({ ...data })
+  } else if (editingItem.value) {
+    disktopStore.updateItem(editingItem.value.id, data)
+  }
+  editorVisible.value = false
+}
+
 // ==================== 侧边栏右键菜单 ====================
 const sidebarContextVisible = ref(false)
 const sidebarContextItem = ref(null)
@@ -379,15 +397,12 @@ function closeSidebarContext() { sidebarContextVisible.value = false }
 
 function editSidebarItem() {
   sidebarContextVisible.value = false
-  // 触发父组件的编辑器（通过 emit 到 MainLayout）
-  // 这里直接复用 disktopStore 的 updateItem
-  // 简化处理：弹出 prompt 编辑标题
   const item = sidebarContextItem.value
   if (!item) return
-  const newTitle = prompt('编辑标题', item.title)
-  if (newTitle && newTitle.trim()) {
-    disktopStore.updateItem(item.id, { title: newTitle.trim() })
-  }
+  editingItem.value = { ...item }
+  isNewItem.value = false
+  editorPos.value = { x: 200, y: 100 }
+  editorVisible.value = true
 }
 
 function deleteSidebarItem() {
@@ -399,11 +414,10 @@ function deleteSidebarItem() {
 
 async function addSidebarFolder() {
   sidebarContextVisible.value = false
-  const newItem = await disktopStore.addItem({ title: '新建文件夹', icon: 'FolderOpened', type: 'folder', parent_id: null })
-  const newTitle = prompt('编辑文件夹名称', newItem.title)
-  if (newTitle && newTitle.trim()) {
-    disktopStore.updateItem(newItem.id, { title: newTitle.trim() })
-  }
+  editingItem.value = { title: '新建文件夹', icon: 'FolderOpened', type: 'folder' }
+  isNewItem.value = true
+  editorPos.value = { x: 200, y: 100 }
+  editorVisible.value = true
 }
 
 // ==================== Tab 右键菜单 ====================
