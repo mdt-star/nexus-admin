@@ -30,7 +30,7 @@
           <template v-for="item in disktopStore.treeItems" :key="item.id">
             <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)"
               :data-folder-id="item.type === 'folder' ? item.id : ''"
-              @contextmenu.prevent="openSidebarContextMenu($event, item)">
+              @contextmenu.prevent.stop="openSidebarContextMenu($event, item)">
               <template #title>
                 <el-icon v-if="item.icon">
                   <component :is="getIconComponent(item.icon)" />
@@ -40,7 +40,7 @@
               <el-menu-item v-for="child in item.children" :key="child.id" :index="String(child.id)"
                 :data-folder-id="child.type === 'folder' ? child.id : ''">
                 <template #title>
-                  <span @contextmenu.prevent="openSidebarContextMenu($event, child)">{{ child.title }}</span>
+                  <span @contextmenu.prevent.stop="openSidebarContextMenu($event, child)">{{ child.title }}</span>
                 </template>
               </el-menu-item>
             </el-sub-menu>
@@ -49,7 +49,7 @@
                 <component :is="getIconComponent(item.icon)" />
               </el-icon>
               <template #title>
-                <span @contextmenu.prevent="openSidebarContextMenu($event, item)">{{ item.title }}</span>
+                <span @contextmenu.prevent.stop="openSidebarContextMenu($event, item)">{{ item.title }}</span>
               </template>
             </el-menu-item>
           </template>
