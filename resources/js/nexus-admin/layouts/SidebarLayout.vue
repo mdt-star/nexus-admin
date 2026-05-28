@@ -650,7 +650,8 @@ const isNewItem = ref(false)
 
 function onEditorSave(data) {
   if (isNewItem.value) {
-    disktopStore.addItem({ ...data })
+    // 合并 editingItem 中的额外字段（如 parent_id, sort）
+    disktopStore.addItem({ ...editingItem.value, ...data })
   } else if (editingItem.value) {
     disktopStore.updateItem(editingItem.value.id, data)
   }
