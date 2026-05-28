@@ -1,20 +1,18 @@
 <template>
   <el-popover
     ref="popoverRef"
-    trigger="manual"
-    :visible="visible"
+    trigger="click"
     :width="360"
-    :popper-style="{ padding: 0, borderRadius: '16px', marginTop: '8px' }"
     :popper-class="'nexus-start-popper'"
-    placement="bottom-start"
-    @hide="onPopoverHide"
+    close-delay="0"
+    placement="right"
   >
     <template #reference>
       <slot name="reference" />
     </template>
     <div class="nexus-start-panel" ref="panelRef" @click.stop>
       <div class="nexus-start-header">
-        <el-icon :size="22"><TrendCharts /></el-icon>
+        <el-icon :size="22"><HelpFilled /></el-icon>
         <span class="nexus-start-title">开始菜单</span>
       </div>
       <div class="nexus-start-search">
@@ -53,11 +51,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMenuStore } from '../../stores/menu'
 import { useI18nStore } from '../../stores/i18n'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import { ArrowRight, FolderOpened, Rank, TrendCharts } from '@element-plus/icons-vue'
+import { ArrowRight, FolderOpened, Rank, TrendCharts, HelpFilled } from '@element-plus/icons-vue'
 
-const props = defineProps({
-  visible: { type: Boolean, default: false }
-})
 const emit = defineEmits(['close', 'add-item', 'open-page'])
 
 const menuStore = useMenuStore()
