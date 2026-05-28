@@ -315,6 +315,8 @@ const dragInsertAfter = ref(false)
 const sidebarMenuRef = ref(null)
 let nativeDragOverHandler = null
 let nativeDragEndHandler = null
+// 缓存来自 StartMenu 的拖拽数据（dragend 中 dataTransfer 不可读）
+let pendingStartMenuData = null
 
 function onDragStart(event, item) {
   console.log('开始拖动:', item)
@@ -331,6 +333,13 @@ function handleNativeDragOver(event) {
   const isFromStartMenu = event.dataTransfer.types.includes('application/json')
   if (!dragItem.value && !isFromStartMenu) return
   event.dataTransfer.dropEffect = dragItem.value ? 'move' : 'copy'
+  // 缓存 StartMenu 的拖拽数据（dragend 中 dataTransfer 不可读）
+  if (isFromStartMenu && !dragItem.value && !pendingStartMenuData) {
+    try {
+      const raw = event.dataTransfer.getData('application/json')
+      if (raw) pendingStartMenuData = JSON.parse(raw)
+    } catch (_) {}
+  }
   // 用 elementFromPoint 找到鼠标下方的菜单项（绕过 el-menu 事件拦截）
   const el = document.elementFromPoint(event.clientX, event.clientY)
   // 只对 el-menu-item 响应 dragover，忽略 el-sub-menu（父级容器）
@@ -395,19 +404,14 @@ function handleNativeDragEnd(event) {
     // 侧边栏内部拖拽排序
     if (source.id === target.id) return
     disktopStore.reorderItem(source.id, newSort, newParentId)
-  } else {
-    // 来自 StartMenu 的拖拽添加
-    const raw = event.dataTransfer.getData('application/json')
-    if (!raw) return
-    try {
-      const item = JSON.parse(raw)
-      disktopStore.addItem({
-        title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu',
-        parent_id: newParentId, sort: newSort
-      })
-    } catch (e) {
-      console.warn('[NexusAdmin] 从 StartMenu 添加失败:', e)
-    }
+  } else if (pendingStartMenuData) {
+    // 来自 StartMenu 的拖拽添加（使用 dragover 时缓存的数据）
+    const item = pendingStartMenuData
+    pendingStartMenuData = null
+    disktopStore.addItem({
+      title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu',
+      parent_id: newParentId, sort: newSort
+    })
   }
 }
 
