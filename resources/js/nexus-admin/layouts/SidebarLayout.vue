@@ -59,7 +59,7 @@
           <template #reference>
             <div class="nexus-start-btn-wrapper">
               <el-button class="nexus-start-btn">
-                <WindowsStartIcon :size="22" />
+                <WindowsStartIcon :size="20" />
               </el-button>
             </div>
           </template>
