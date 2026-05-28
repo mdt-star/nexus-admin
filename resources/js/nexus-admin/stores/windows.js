@@ -168,17 +168,19 @@ export const useWindowStore = defineStore('nexus-windows', () => {
 
   /**
    * 更新指定 Tab 的搜索参数，并同步到浏览器 URL
+   * 搜索参数存储在 item.params.query 中，与菜单自带参数互不冲突
    * @param {string} id
-   * @param {object} params
+   * @param {object} query
    */
-  function updateSearchParams(id, params) {
+  function updateSearchParams(id, query) {
     const item = items.value.find(item => item.id === id)
     if (item) {
-      item.searchParams = { ...params }
+      if (!item.params) item.params = {}
+      item.params.query = { ...query }
     }
     // 如果更新的是当前激活的 Tab，同步到 URL
     if (id === activeId.value && item?.route) {
-      router.replace({ path: item.route, query: { ...params } }).catch(() => {})
+      router.replace({ path: item.route, query: { ...query } }).catch(() => {})
     } 
 
   }
@@ -192,8 +194,9 @@ export const useWindowStore = defineStore('nexus-windows', () => {
    */
   function getSearchParams(id) {
     const item = items.value.find(item => item.id === id)
-    return item?.searchParams || {}
+    return item?.params?.query || {}
   }
+
 
   return {
     items,

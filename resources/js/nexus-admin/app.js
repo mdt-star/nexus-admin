@@ -268,7 +268,8 @@ async function initNexusAdmin(mountSelector = '#app') {
   const windowStore = useWindowStore()
   watch(() => windowStore.active, (active) => {
     if (active && active.route) {
-      router.push({ path: active.route, query: active.searchParams }).catch(() => {})
+      router.push({ path: active.route, query: active.params?.query || {} }).catch(() => {})
+
     }
   }, { immediate: true })
 
