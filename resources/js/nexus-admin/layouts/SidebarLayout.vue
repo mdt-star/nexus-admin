@@ -574,11 +574,12 @@ onMounted(async () => {
   const menuEl = sidebarMenuRef.value?.$el
   if (menuEl) {
     menuEl.addEventListener('dragover', handleNativeDragOver)
-    menuEl.addEventListener('dragend', handleNativeDragEnd)
     menuEl.addEventListener('dragstart', handleNativeDragStart)
     nativeDragOverHandler = menuEl
-    nativeDragEndHandler = menuEl
   }
+  // 在 document 上监听 dragend，确保从 StartMenu 拖拽取消时也能清除高亮
+  document.addEventListener('dragend', handleNativeDragEnd)
+  nativeDragEndHandler = document
 })
 
 // 监听 activeId 变化，同步侧边栏选中状态
