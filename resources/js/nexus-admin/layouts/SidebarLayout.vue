@@ -109,8 +109,8 @@
           </el-dropdown>
           <el-dropdown @command="handleUserCommand" v-if="userStore.isLoggedIn">
             <el-button class="nexus-user-btn" style="padding-right: 0 !important;">
-              <el-avatar :size="22" :src="userStore.user?.avatar || ''" class="nexus-user-avatar"
-                :style="avatarStyle">{{ userInitial }}</el-avatar>
+              <el-avatar :size="22" :src="userStore.user?.avatar || ''" :class="{'nexus-user-avatar': true, 'nexus-user-avatar-themed': hasHeaderColor}"
+               >{{ userInitial }}</el-avatar>
               <span style="margin-left: 4px;">{{ userStore.user?.nickname }}</span>
             </el-button>
             <template #dropdown>
@@ -299,13 +299,9 @@ const headerStyle = computed(() => {
   const color = configStore.get('headerColor', '')
   return color ? { background: color, borderBottom: 'none' } : {}
 })
-const avatarStyle = computed(() => {
-  const color = configStore.get('headerColor', '')
-  return color ? { background: '#fff', color: color } : {}
-})
 
 const localeDisplay = computed(() => ({ 'zh-CN': '中文', 'en': 'English' })[currentLocale.value] || currentLocale.value)
-const userInitial = computed(() => (userStore.user?.nickname || 'U').charAt(0))
+const userInitial = computed(() => (userStore.user?.username || 'U').charAt(0).toUpperCase())
 
 const logoIconSize = computed(() => {
   const collapsed = appStore.sidebarCollapsed
@@ -665,6 +661,11 @@ function handleUserCommand(cmd) {
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
+.nexus-header[style*="background"] .nexus-user-btn span.nexus-user-avatar-themed{
+  background-color: #fff !important;
+  color: var(--nexus-primary-color) !important;
+}
+
 .nexus-user-btn {
   padding-right: 0 !important;
 }
@@ -935,4 +936,6 @@ function handleUserCommand(cmd) {
   background-color: var(--nexus-border-color);
   margin: 4px 8px;
 }
+
+
 </style>
