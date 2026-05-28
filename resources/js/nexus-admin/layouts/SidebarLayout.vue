@@ -465,9 +465,11 @@ function closeRightTabs() {
   const items = windowStore.items
   const idx = items.findIndex(t => t.id === id)
   if (idx === -1) return
-  // 关闭右侧所有 tab
+  // 从右向左关闭，避免索引偏移
   const toClose = items.slice(idx + 1).map(t => t.id)
-  toClose.forEach(tid => windowStore.close(tid))
+  for (let i = toClose.length - 1; i >= 0; i--) {
+    windowStore.close(toClose[i])
+  }
 }
 
 function handleUserCommand(cmd) {

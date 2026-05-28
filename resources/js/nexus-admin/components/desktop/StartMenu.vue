@@ -10,7 +10,7 @@
       <el-alert :title="t('startMenu.dragHint')" :closable="false" show-icon type="info" style="margin-bottom: 10px;" >
       </el-alert>
       <div class="nexus-start-search">
-        <el-input v-model="searchQuery" :placeholder="t('common.searchPlaceholder')" size="small" clearable
+        <el-input v-model="searchQuery" :placeholder="t('common.searchPlaceholder')" clearable
           prefix-icon="Search" @input="onSearchInput" />
       </div>
       <div class="nexus-start-tree" ref="treeRef">
