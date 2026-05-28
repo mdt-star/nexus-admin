@@ -490,10 +490,27 @@ function handleNativeDragEnd(event) {
     // 来自 StartMenu 的拖拽添加（使用 dragover 时缓存的数据）
     const item = pendingStartMenuData
     pendingStartMenuData = null
-    disktopStore.addItem({
-      title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu',
-      parent_id: newParentId, sort: newSort
-    })
+    // 异步添加（dragend 事件不能 await）
+    addStartMenuItemWithChildren(item, newParentId, newSort)
+  }
+}
+
+/**
+ * 异步添加 StartMenu 拖拽的菜单项及其子节点
+ */
+async function addStartMenuItemWithChildren(item, parentId, sort) {
+  const newItem = await disktopStore.addItem({
+    title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu',
+    parent_id: parentId, sort
+  })
+  if (item.children?.length && newItem?.id) {
+    for (let i = 0; i < item.children.length; i++) {
+      const child = item.children[i]
+      await disktopStore.addItem({
+        title: child.title, icon: child.icon, component: child.component, path: child.path,
+        type: child.type || 'menu', parent_id: newItem.id, sort: i
+      })
+    }
   }
 }
 
