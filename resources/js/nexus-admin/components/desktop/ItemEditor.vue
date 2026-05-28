@@ -1,32 +1,29 @@
 <template>
-  <el-dialog :model-value="visible" :title="isNew ? '添加项' : '编辑项'" width="360px" :close-on-click-modal="false"
+  <el-dialog :model-value="visible" :title="isNew ? '添加项' : '编辑项'" width="390px" 
     :draggable="true" @close="close" @open="onOpen">
-    <el-form :model="form" label-position="top">
+    <el-form :model="form">
       <el-form-item label="标题">
         <el-input v-model="form.title" placeholder="输入标题" />
       </el-form-item>
 
       <el-form-item label="图标">
         <div class="nexus-editor-icon-select">
-          <el-input v-model="form.icon" placeholder="选择图标" readonly>
-            <template #prefix>
-              <el-icon v-if="form.icon" :size="16">
-                <component :is="getIconComponent(form.icon)" />
-              </el-icon>
-            </template>
-            <template #append>
-              <el-popover v-model:visible="iconPopoverVisible" placement="bottom-start" :width="320" trigger="click">
+          <el-popover v-model:visible="iconPopoverVisible" title="选择图标" placement="right-start" :width="335" trigger="click">
                 <template #reference>
-                  <el-button>
-                    <el-icon><Search /></el-icon>
-                  </el-button>
+                  <el-input v-model="form.icon" placeholder="选择图标" readonly  suffix-icon="el-icon-date">
+                    <template #prepend>
+                      <el-icon v-if="form.icon" :size="16">
+                        <component :is="getIconComponent(form.icon)" />
+                      </el-icon>
+                    </template>
+                  </el-input>
                 </template>
                 <div class="nexus-icon-picker">
-                  <el-input v-model="iconSearch" placeholder="搜索图标..." size="small" clearable @input="onIconSearch" />
+                  <el-input v-model="iconSearch" placeholder="搜索图标..." style="margin-bottom: 10px; margin-top: 5px;" size="small" clearable @input="onIconSearch" />
                   <div class="nexus-icon-picker-grid">
                     <div v-for="icon in filteredIcons" :key="icon" class="nexus-icon-picker-item"
                       :class="{ 'nexus-icon-picker-active': form.icon === icon }" @click="selectIcon(icon)">
-                      <el-icon :size="18">
+                      <el-icon :size="24">
                         <component :is="getIconComponent(icon)" />
                       </el-icon>
                       <span class="nexus-icon-picker-label">{{ icon }}</span>
@@ -45,8 +42,7 @@
                   </div>
                 </div>
               </el-popover>
-            </template>
-          </el-input>
+          
         </div>
       </el-form-item>
 
@@ -175,7 +171,7 @@ function getIconComponent(iconName) {
 
 .nexus-icon-picker-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 4px;
   overflow-y: auto;
   max-height: 260px;

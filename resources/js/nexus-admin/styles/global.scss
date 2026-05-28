@@ -164,6 +164,12 @@ a {
 
 /* 输入框 */
 .el-input__wrapper { border-radius: var(--nexus-border-radius) !important; }
+.el-input-group--prepend>.el-input__wrapper { border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; }
+.el-input-group--append>.el-input__wrapper { border-top-right-radius: var(--nexus-border-radius) !important; border-bottom-right-radius: var(--nexus-border-radius) !important; }
+.el-input-group__prepend{
+  border-top-left-radius: var(--nexus-border-radius) !important;
+  border-bottom-left-radius: var(--nexus-border-radius) !important;
+}
 
 /* 表格 */
 .el-table { border-radius: var(--nexus-border-radius-lg) !important; overflow: hidden; }
