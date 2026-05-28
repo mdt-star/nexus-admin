@@ -109,8 +109,8 @@
           </el-dropdown>
           <el-dropdown @command="handleUserCommand" v-if="userStore.isLoggedIn">
             <el-button class="nexus-user-btn" style="padding-right: 0 !important;">
-              <el-avatar :size="22" :src="userStore.user?.avatar || ''" class="nexus-user-avatar">{{ userInitial
-                }}</el-avatar>
+              <el-avatar :size="22" :src="userStore.user?.avatar || ''" class="nexus-user-avatar"
+                :style="avatarStyle">{{ userInitial }}</el-avatar>
               <span style="margin-left: 4px;">{{ userStore.user?.nickname }}</span>
             </el-button>
             <template #dropdown>
@@ -298,6 +298,10 @@ const hasHeaderColor = computed(() => !!configStore.get('headerColor', ''))
 const headerStyle = computed(() => {
   const color = configStore.get('headerColor', '')
   return color ? { background: color, borderBottom: 'none' } : {}
+})
+const avatarStyle = computed(() => {
+  const color = configStore.get('headerColor', '')
+  return color ? { background: color } : {}
 })
 
 const localeDisplay = computed(() => ({ 'zh-CN': '中文', 'en': 'English' })[currentLocale.value] || currentLocale.value)

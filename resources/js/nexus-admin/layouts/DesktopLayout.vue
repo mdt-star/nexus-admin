@@ -43,7 +43,7 @@
         </el-dropdown>
         <el-dropdown @command="handleUserCommand" v-if="userStore.isLoggedIn">
           <el-button class="nexus-user-btn">
-            <el-avatar :size="22" :src="userStore.user?.avatar || ''">{{ userInitial }}</el-avatar>
+            <el-avatar :size="22" :src="userStore.user?.avatar || ''" :style="avatarStyle">{{ userInitial }}</el-avatar>
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
@@ -137,6 +137,10 @@ const appName = computed(() => config.get('appName', 'Nexus Admin'))
 const footerText = computed(() => config.get('footer', ''))
 const lang = computed(() => ({ 'zh-CN': '中文', 'en': 'English' })[i18n.locale] || i18n.locale)
 const userInitial = computed(() => (userStore.user?.nickname || 'U').charAt(0))
+const avatarStyle = computed(() => {
+  const color = config.get('headerColor', '')
+  return color ? { background: color } : {}
+})
 
 const { getWindowRect, startDrag } = useWindowDrag()
 const cache = {}
