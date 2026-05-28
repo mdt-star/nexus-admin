@@ -417,6 +417,23 @@ function handleNativeDragOver(event) {
   itemEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
 }
 
+function handleNativeDragStart(event) {
+  // 通过 data-item-id 找到被拖拽的菜单项
+  const el = document.elementFromPoint(event.clientX, event.clientY)
+  const itemEl = el?.closest('[data-item-id]')
+  if (!itemEl) return
+  const itemId = Number(itemEl.dataset.itemId)
+  if (!itemId) return
+  const item = disktopStore.items.find(i => i.id === itemId)
+  if (!item) return
+  console.log('开始拖动:', item)
+  dragItem.value = item
+  dragTarget.value = null
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', String(item.id))
+  itemEl.classList.add('nexus-dragging')
+}
+
 function handleNativeDragEnd(event) {
   // 清除样式
   document.querySelectorAll('.nexus-dragging, .nexus-drag-before, .nexus-drag-after')
@@ -508,12 +525,13 @@ onMounted(async () => {
   }
   document.addEventListener('click', closeSidebarContext)
 
-  // 使用原生 DOM 事件监听 dragover/dragend，绕过 el-menu 事件拦截
+  // 使用原生 DOM 事件监听 dragover/dragend/dragstart，绕过 el-menu 事件拦截
   await nextTick()
   const menuEl = sidebarMenuRef.value?.$el
   if (menuEl) {
     menuEl.addEventListener('dragover', handleNativeDragOver)
     menuEl.addEventListener('dragend', handleNativeDragEnd)
+    menuEl.addEventListener('dragstart', handleNativeDragStart)
     nativeDragOverHandler = menuEl
     nativeDragEndHandler = menuEl
   }
@@ -530,6 +548,7 @@ onUnmounted(() => {
   // 移除原生事件监听
   if (nativeDragOverHandler) {
     nativeDragOverHandler.removeEventListener('dragover', handleNativeDragOver)
+    nativeDragOverHandler.removeEventListener('dragstart', handleNativeDragStart)
   }
   if (nativeDragEndHandler) {
     nativeDragEndHandler.removeEventListener('dragend', handleNativeDragEnd)
