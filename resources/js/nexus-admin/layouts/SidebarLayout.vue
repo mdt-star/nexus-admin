@@ -399,11 +399,13 @@ function handleNativeDragOver(event) {
   const el = document.elementFromPoint(event.clientX, event.clientY)
   // 优先匹配 el-menu-item，其次匹配 el-sub-menu（父节点）
   let itemEl = el?.closest('.el-menu-item')
+  let isSubMenu = false
   if (!itemEl) {
     const subEl = el?.closest('.el-sub-menu')
     if (subEl) {
-      // el-sub-menu 的标题区域是 .el-sub-menu__title
-      itemEl = subEl.querySelector('.el-sub-menu__title')
+      // el-sub-menu 的 data-item-id 在 el-sub-menu 元素上，不在 .el-sub-menu__title 上
+      itemEl = subEl
+      isSubMenu = true
     }
   }
   if (!itemEl) {
@@ -431,7 +433,10 @@ function handleNativeDragOver(event) {
   const target = disktopStore.items.find(i => i.id === targetId)
   if (!target) return
   dragTarget.value = target
-  const rect = itemEl.getBoundingClientRect()
+  // 高亮和位置计算使用标题元素（el-sub-menu 用 .el-sub-menu__title，el-menu-item 用自身）
+  const highlightEl = isSubMenu ? itemEl.querySelector('.el-sub-menu__title') : itemEl
+  if (!highlightEl) return
+  const rect = highlightEl.getBoundingClientRect()
   const y = event.clientY - rect.top
   dragInsertAfter.value = y >= rect.height / 2
   // 缓存拖拽目标信息（供 onSidebarDrop 使用）
@@ -440,8 +445,8 @@ function handleNativeDragOver(event) {
   // 清除其他高亮
   document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
     .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
-  itemEl.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
-  itemEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
+  highlightEl.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
+  highlightEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
 }
 
 function handleNativeDragStart(event) {
