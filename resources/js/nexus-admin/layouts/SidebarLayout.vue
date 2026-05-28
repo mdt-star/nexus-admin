@@ -294,18 +294,62 @@ function onSidebarDragLeave() {
 async function onSidebarDrop(event) {
   isDragOver.value = false
   dragEnterCounter = 0
-  const data = event.dataTransfer.getData('application/json')
-  if (!data) return
-  try {
-    const item = JSON.parse(data)
-    // 检测鼠标下方是否有文件夹菜单项
-    const el = document.elementFromPoint(event.clientX, event.clientY)
-    const folderEl = el?.closest('[data-folder-id]')
-    const parentId = folderEl ? Number(folderEl.dataset.folderId) || null : null
-    await disktopStore.addItem({ title: item.title, icon: item.icon, component: item.component, path: item.path, type: item.type || 'menu', parent_id: parentId })
-  } catch (e) {
-    console.warn('[NexusAdmin] 侧边栏拖放添加失败:', e)
+  // 优先使用 dragover 时缓存的数据（包含 sort 信息）
+  let item = pendingStartMenuData
+  pendingStartMenuData = null
+  if (!item) {
+    try {
+      const raw = event.dataTransfer.getData('application/json')
+      if (raw) item = JSON.parse(raw)
+    } catch (_) {}
   }
+  if (!item) return
+  // 检测鼠标下方是否有菜单项（用于精确插入位置）
+  const el = document.elementFromPoint(event.clientX, event.clientY)
+  const itemEl = el?.closest('.el-menu-item')
+  const folderEl = el?.closest('[data-folder-id]')
+  const parentId = folderEl ? Number(folderEl.dataset.folderId) || null : null
+  let newSort
+  if (itemEl) {
+    // 拖到某个菜单项上 → 插入到该项的前面或后面
+    const targetId = Number(itemEl.dataset.itemId)
+    const target = disktopStore.items.find(i => i.id === targetId)
+    if (target) {
+      const siblings = disktopStore.items
+        .filter(i => i.parent_id === parentId)
+        .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+      const targetIdx = siblings.findIndex(i => i.id === target.id)
+      if (targetIdx !== -1) {
+        const rect = itemEl.getBoundingClientRect()
+        const y = event.clientY - rect.top
+        const insertAfter = y >= rect.height / 2
+        if (insertAfter) {
+          if (targetIdx + 1 < siblings.length) {
+            newSort = ((siblings[targetIdx].sort || 0) + (siblings[targetIdx + 1].sort || 0)) / 2
+          } else {
+            newSort = (siblings[targetIdx].sort || 0) + 1
+          }
+        } else {
+          if (targetIdx > 0) {
+            newSort = ((siblings[targetIdx - 1].sort || 0) + (siblings[targetIdx].sort || 0)) / 2
+          } else {
+            newSort = (siblings[0].sort || 0) - 1
+          }
+        }
+      }
+    }
+  }
+  if (newSort === undefined) {
+    // 拖到空白区域 → 追加到最后
+    const siblings = disktopStore.items
+      .filter(i => i.parent_id === parentId)
+      .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+    newSort = siblings.length > 0 ? (siblings[siblings.length - 1].sort || 0) + 1 : 0
+  }
+  await disktopStore.addItem({
+    title: item.title, icon: item.icon, component: item.component, path: item.path,
+    type: item.type || 'menu', parent_id: parentId, sort: newSort
+  })
 }
 
 // ==================== 侧边栏拖拽排序 ====================
