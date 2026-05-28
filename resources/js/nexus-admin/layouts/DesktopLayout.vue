@@ -137,7 +137,6 @@ const { t } = i18n
 const appName = computed(() => config.get('appName', 'Nexus Admin'))
 const footerText = computed(() => config.get('footer', ''))
 const lang = computed(() => ({ 'zh-CN': '中文', 'en': 'English' })[i18n.locale] || i18n.locale)
-const hasHeaderColor = computed(() => !!config.get('headerColor', ''))
 const userInitial = computed(() => (userStore.user?.username || 'U').charAt(0).toUpperCase())
 const avatarStyle = computed(() => {
   const color = config.get('headerColor', '')
@@ -219,7 +218,6 @@ function handleUserCommand(cmd) { if (cmd === 'logout') userStore.logout() }
 .nexus-header-right :deep(.el-button:focus-visible) { border: none !important; border-color: transparent !important; outline: none !important; }
 .nexus-user-btn { padding-right: 0 !important; }
 
-.nexus-user-btn :deep(.nexus-user-avatar-themed) { background-color: #fff !important; color: var(--nexus-primary-color) !important; }
 .nexus-desktop { flex: 1; position: relative; overflow: hidden; }
 .nexus-desktop-icons { display: grid; grid-template-columns: repeat(auto-fill, 80px); gap: 16px; padding: 24px; justify-content: center; }
 .nexus-desktop-icon { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 8px; cursor: pointer; border-radius: 8px; }
