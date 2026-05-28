@@ -104,12 +104,40 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
    * 添加项到当前桌面
    * @param {object} data - { title, icon, component, path, type, parent_id, custom }
    */
+  /**
+   * 同级同名项自动加"副本"后缀并编序
+   * @param {string} title
+   * @param {number|null} parentId
+   * @returns {string}
+   */
+  function deduplicateTitle(title, parentId) {
+    const siblings = items.value.filter(i => i.parent_id === parentId)
+    // 精确匹配同名
+    const sameName = siblings.filter(i => i.title === title)
+    if (sameName.length === 0) return title
+    // 已有同名，计算当前 title 的副本序号
+    const copyPattern = new RegExp(`^${escapeRegex(title)}\\s+副本(\\d+)?$`)
+    const copies = siblings.filter(i => copyPattern.test(i.title))
+    const maxNum = copies.reduce((max, i) => {
+      const m = i.title.match(copyPattern)
+      return m ? Math.max(max, parseInt(m[1] || '1', 10)) : max
+    }, 0)
+    return maxNum === 0 ? `${title} 副本` : `${title} 副本${maxNum + 1}`
+  }
+
+  function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  }
+
   async function addItem(data) {
+    // 同级同名自动重命名
+    const title = deduplicateTitle(data.title || '未命名', data.parent_id ?? null)
+    const dedupedData = { ...data, title }
     try {
       const { createDisktopItem } = await import('../services/api')
       const response = await createDisktopItem({
         disktop_id: activeDisktopId.value,
-        ...data
+        ...dedupedData
       })
       const newItem = { ...response.data, parent_id: response.data.parent_id ?? null }
       items.value.push(newItem)
@@ -120,14 +148,14 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
       const fallbackItem = {
         id: Date.now(),
         disktop_id: activeDisktopId.value,
-        parent_id: data.parent_id ?? null,
-        type: data.type || 'menu',
-        title: data.title || '未命名',
-        icon: data.icon || null,
-        component: data.component || null,
-        path: data.path || null,
-        custom: data.custom || {},
-        sort: items.value.filter(i => i.parent_id === (data.parent_id || null)).length
+        parent_id: dedupedData.parent_id ?? null,
+        type: dedupedData.type || 'menu',
+        title: dedupedData.title || '未命名',
+        icon: dedupedData.icon || null,
+        component: dedupedData.component || null,
+        path: dedupedData.path || null,
+        custom: dedupedData.custom || {},
+        sort: items.value.filter(i => i.parent_id === (dedupedData.parent_id || null)).length
       }
       items.value.push(fallbackItem)
       return fallbackItem
