@@ -39,6 +39,9 @@
               </template>
               <el-menu-item v-for="child in item.children" :key="child.id" :index="String(child.id)"
                 :data-folder-id="child.type === 'folder' ? child.id : ''">
+                <el-icon v-if="child.icon">
+                  <component :is="getIconComponent(child.icon)" />
+                </el-icon>
                 <template #title>
                   <span @contextmenu.prevent.stop="openSidebarContextMenu($event, child)">{{ child.title }}</span>
                 </template>
