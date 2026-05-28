@@ -26,7 +26,7 @@
       </div>
       <div class="nexus-sidebar-menu-container">
         <el-menu :default-active="menuActiveId" class="nexus-sidebar-menu" :collapse="appStore.sidebarCollapsed"
-          :collapse-transition="false"  @select="handleMenuSelect">
+          :collapse-transition="false" @contextmenu.prevent="openSidebarContextMenu($event, null)" @select="handleMenuSelect">
           <template v-for="item in disktopStore.treeItems" :key="item.id">
             <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)"
               :data-folder-id="item.type === 'folder' ? item.id : ''"
@@ -167,16 +167,18 @@
 
     <Teleport to="body">
       <div v-if="sidebarContextVisible" class="nexus-context-menu" :style="sidebarContextStyle" @click.stop>
-        <div class="nexus-context-item" @click="editSidebarItem"><el-icon>
-            <Edit />
-          </el-icon><span>编辑</span></div>
-        <div class="nexus-context-item" @click="deleteSidebarItem"><el-icon>
-            <Delete />
-          </el-icon><span>删除</span></div>
+        <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !sidebarContextHasItem }"
+          @click="sidebarContextHasItem && editSidebarItem()">
+          <el-icon><Edit /></el-icon><span>编辑</span>
+        </div>
+        <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !sidebarContextHasItem }"
+          @click="sidebarContextHasItem && deleteSidebarItem()">
+          <el-icon><Delete /></el-icon><span>删除</span>
+        </div>
         <div class="nexus-context-divider" />
-        <div class="nexus-context-item" @click="addSidebarFolder"><el-icon>
-            <FolderAdd />
-          </el-icon><span>新建文件夹</span></div>
+        <div class="nexus-context-item" @click="addSidebarFolder">
+          <el-icon><FolderAdd /></el-icon><span>新建文件夹</span>
+        </div>
       </div>
     </Teleport>
 
@@ -365,6 +367,7 @@ function handleLocaleChange(locale) { i18nStore.setLocale(locale) }
 const sidebarContextVisible = ref(false)
 const sidebarContextItem = ref(null)
 const sidebarContextStyle = ref({})
+const sidebarContextHasItem = computed(() => sidebarContextItem.value !== null)
 
 function openSidebarContextMenu(event, item) {
   sidebarContextVisible.value = true
@@ -603,7 +606,7 @@ function handleUserCommand(cmd) {
 }
 
 :deep(.el-menu-item.is-active) {
-  background-color: color-mix(in srgb, var(--nexus-primary-color) 8%, transparent) !important;
+  background-color: color-mix(in srgb, var(--nexus-primary-color) 6%, transparent) !important;
   color: var(--nexus-primary-color) !important;
 }
 
