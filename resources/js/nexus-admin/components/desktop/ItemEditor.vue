@@ -15,37 +15,38 @@
               </el-icon>
             </template>
             <template #append>
-              <el-button @click="iconPopoverVisible = !iconPopoverVisible">
-                <el-icon><Search /></el-icon>
-              </el-button>
+              <el-popover v-model:visible="iconPopoverVisible" placement="bottom-start" :width="320" trigger="click">
+                <template #reference>
+                  <el-button>
+                    <el-icon><Search /></el-icon>
+                  </el-button>
+                </template>
+                <div class="nexus-icon-picker">
+                  <el-input v-model="iconSearch" placeholder="搜索图标..." size="small" clearable @input="onIconSearch" />
+                  <div class="nexus-icon-picker-grid">
+                    <div v-for="icon in filteredIcons" :key="icon" class="nexus-icon-picker-item"
+                      :class="{ 'nexus-icon-picker-active': form.icon === icon }" @click="selectIcon(icon)">
+                      <el-icon :size="18">
+                        <component :is="getIconComponent(icon)" />
+                      </el-icon>
+                      <span class="nexus-icon-picker-label">{{ icon }}</span>
+                    </div>
+                  </div>
+                  <div class="nexus-icon-picker-custom">
+                    <el-divider />
+                    <el-button size="small" @click="showCustomInput = true" v-if="!showCustomInput">
+                      自定义图标
+                    </el-button>
+                    <div v-else class="nexus-icon-picker-custom-input">
+                      <el-input v-model="customIconName" placeholder="输入图标名称..." size="small" />
+                      <el-button size="small" type="primary" @click="confirmCustomIcon">确认</el-button>
+                      <el-button size="small" @click="showCustomInput = false">取消</el-button>
+                    </div>
+                  </div>
+                </div>
+              </el-popover>
             </template>
           </el-input>
-          <el-popover :visible="iconPopoverVisible" placement="bottom-start" :width="320" trigger="manual"
-            @hide="iconPopoverVisible = false">
-            <div class="nexus-icon-picker">
-              <el-input v-model="iconSearch" placeholder="搜索图标..." size="small" clearable @input="onIconSearch" />
-              <div class="nexus-icon-picker-grid">
-                <div v-for="icon in filteredIcons" :key="icon" class="nexus-icon-picker-item"
-                  :class="{ 'nexus-icon-picker-active': form.icon === icon }" @click="selectIcon(icon)">
-                  <el-icon :size="18">
-                    <component :is="getIconComponent(icon)" />
-                  </el-icon>
-                  <span class="nexus-icon-picker-label">{{ icon }}</span>
-                </div>
-              </div>
-              <div class="nexus-icon-picker-custom">
-                <el-divider />
-                <el-button size="small" @click="showCustomInput = true" v-if="!showCustomInput">
-                  自定义图标
-                </el-button>
-                <div v-else class="nexus-icon-picker-custom-input">
-                  <el-input v-model="customIconName" placeholder="输入图标名称..." size="small" />
-                  <el-button size="small" type="primary" @click="confirmCustomIcon">确认</el-button>
-                  <el-button size="small" @click="showCustomInput = false">取消</el-button>
-                </div>
-              </div>
-            </div>
-          </el-popover>
         </div>
       </el-form-item>
 
