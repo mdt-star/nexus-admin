@@ -133,12 +133,16 @@
       <div class="nexus-tabs" v-if="configStore.get('tabMode', true) && windowStore.items.length > 0">
         <div class="nexus-tabs-wrapper" ref="tabsWrapperRef">
           <div v-for="tab in windowStore.items" :key="tab.id" class="nexus-tab"
-            :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)">
+            :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)"
+            @contextmenu.prevent="openTabContextMenu($event, tab)">
             <span class="nexus-tab-label">{{ tab.title }}</span>
             <el-icon class="nexus-tab-close" size="12" @click.stop="windowStore.close(tab.id)">
               <Close />
             </el-icon>
           </div>
+          <div class="nexus-tabs-divider" />
+          <el-button class="nexus-tabs-close-all-btn" :icon="Close" size="small" circle
+            @click="windowStore.closeAll()" />
         </div>
         <div class="nexus-tabs-actions">
           <el-button class="nexus-tab-btn" :icon="ArrowLeft" circle @click="scrollTabs(-1)"
@@ -175,6 +179,20 @@
         <div class="nexus-context-item" @click="addSidebarFolder"><el-icon>
             <FolderAdd />
           </el-icon><span>新建文件夹</span></div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
+      <div v-if="tabContextVisible" class="nexus-context-menu" :style="tabContextStyle" @click.stop>
+        <div class="nexus-context-item" @click="closeAllTabs"><el-icon>
+            <Close />
+          </el-icon><span>关闭全部</span></div>
+        <div class="nexus-context-item" @click="closeOtherTabs"><el-icon>
+            <CircleClose />
+          </el-icon><span>关闭其他</span></div>
+        <div class="nexus-context-item" @click="closeRightTabs"><el-icon>
+            <DArrowRight />
+          </el-icon><span>关闭右侧标签页</span></div>
       </div>
     </Teleport>
   </div>
@@ -379,6 +397,46 @@ async function addSidebarFolder() {
   }
 }
 
+// ==================== Tab 右键菜单 ====================
+const tabContextVisible = ref(false)
+const tabContextItem = ref(null)
+const tabContextStyle = ref({})
+
+function openTabContextMenu(event, tab) {
+  tabContextVisible.value = true
+  tabContextItem.value = tab
+  tabContextStyle.value = { left: `${event.clientX}px`, top: `${event.clientY}px` }
+  // 点击其他地方关闭
+  setTimeout(() => document.addEventListener('click', closeTabContext, { once: true }), 0)
+}
+
+function closeTabContext() {
+  tabContextVisible.value = false
+}
+
+function closeAllTabs() {
+  tabContextVisible.value = false
+  windowStore.closeAll()
+}
+
+function closeOtherTabs() {
+  tabContextVisible.value = false
+  const id = tabContextItem.value?.id
+  if (id) windowStore.closeOthers(id)
+}
+
+function closeRightTabs() {
+  tabContextVisible.value = false
+  const id = tabContextItem.value?.id
+  if (!id) return
+  const items = windowStore.items
+  const idx = items.findIndex(t => t.id === id)
+  if (idx === -1) return
+  // 关闭右侧所有 tab
+  const toClose = items.slice(idx + 1).map(t => t.id)
+  toClose.forEach(tid => windowStore.close(tid))
+}
+
 function handleUserCommand(cmd) {
   if (cmd === 'preferences') preferencesRef.value?.open()
   else if (cmd === 'logout') userStore.logout()
@@ -453,6 +511,7 @@ function handleUserCommand(cmd) {
 
 .nexus-sidebar-themed .nexus-sidebar-menu-container {
   border-right: 1px solid var(--nexus-border-color) !important;
+  overflow: hidden;
 }
 
 .nexus-sidebar-logo-themed {
@@ -706,6 +765,27 @@ function handleUserCommand(cmd) {
   opacity: 1;
 }
 
+.nexus-tabs-divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--nexus-border-color);
+  margin: auto 4px;
+  flex-shrink: 0;
+}
+
+.nexus-tabs-close-all-btn {
+  flex-shrink: 0;
+  margin: auto 6px auto 4px !important;
+  border: none !important;
+  background-color: transparent !important;
+  color: var(--nexus-text-color-secondary) !important;
+}
+
+.nexus-tabs-close-all-btn:hover {
+  color: var(--nexus-text-color) !important;
+  background-color: var(--nexus-bg-color-dark) !important;
+}
+
 .nexus-header[style*="background"]+.nexus-tabs {
   background-color: var(--nexus-bg-color-light) !important;
 }
@@ -804,5 +884,45 @@ function handleUserCommand(cmd) {
   border-width: 0px;
   border-top-width: 1px;
   font-size: 24px;
+}
+</style>
+
+<style>
+.nexus-context-menu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 160px;
+  background-color: var(--nexus-bg-color-light);
+  border: 1px solid var(--nexus-border-color);
+  border-radius: var(--nexus-border-radius);
+  box-shadow: var(--nexus-box-shadow-lg);
+  padding: 4px;
+}
+
+.nexus-context-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: var(--nexus-font-size-base);
+  color: var(--nexus-text-color);
+  cursor: pointer;
+  border-radius: var(--nexus-border-radius-sm);
+  transition: background-color 0.15s;
+}
+
+.nexus-context-item:hover {
+  background-color: var(--nexus-bg-color-dark);
+}
+
+.nexus-context-item .el-icon {
+  font-size: 16px;
+  color: var(--nexus-text-color-secondary);
+}
+
+.nexus-context-divider {
+  height: 1px;
+  background-color: var(--nexus-border-color);
+  margin: 4px 8px;
 }
 </style>

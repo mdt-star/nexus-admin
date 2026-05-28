@@ -7,7 +7,7 @@
     <div class="nexus-start-panel" ref="panelRef" @click.stop>
 
 
-      <el-alert :title="t('startMenu.dragHint')" closable show-icon type="info" style="margin-bottom: 10px;" >
+      <el-alert :title="t('startMenu.dragHint')" :closable="false" show-icon type="info" style="margin-bottom: 10px;" >
       </el-alert>
       <div class="nexus-start-search">
         <el-input v-model="searchQuery" :placeholder="t('common.searchPlaceholder')" size="small" clearable
@@ -141,7 +141,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 }
 
 .nexus-start-search {
-  padding: 0 16px 12px;
+  padding: 0 0px 12px;
 }
 
 .nexus-start-tree {
