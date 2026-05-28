@@ -47,7 +47,7 @@
 
               <!-- 类型 -->
               <el-form-item label="类型">
-                <el-select v-model="form.type" style="width: 100%" teleported="false">
+                <el-select v-model="form.type" style="width: 100%" teleported="false" :popper-options="{ modifiers: [{ name: 'offset', options: { offset: [0, 0] } }] }">
                   <el-option label="菜单项" value="menu" />
                   <el-option label="文件夹" value="folder" />
                   <el-option label="分隔线" value="divider" />
@@ -212,7 +212,6 @@ function getIconComponent(iconName) {
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--nexus-border-color);
-  overflow: hidden;
 }
 
 .nexus-editor-header {
@@ -221,6 +220,12 @@ function getIconComponent(iconName) {
   justify-content: space-between;
   padding: 12px 16px;
   border-bottom: 1px solid var(--nexus-border-color);
+  cursor: grab;
+  user-select: none;
+}
+
+.nexus-editor-header:active {
+  cursor: grabbing;
 }
 
 .nexus-editor-title {
@@ -292,5 +297,12 @@ function getIconComponent(iconName) {
 [data-theme="dark"] .nexus-editor-panel {
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+</style>
+
+<style>
+/* 确保 el-select 下拉菜单在弹窗内部时 z-index 高于 overlay */
+.nexus-editor-panel .el-select__popper {
+  z-index: 3001 !important;
 }
 </style>
