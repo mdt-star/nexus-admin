@@ -316,6 +316,7 @@ let nativeDragOverHandler = null
 let nativeDragEndHandler = null
 
 function onDragStart(event, item) {
+  console.log('开始拖动:', item)
   dragItem.value = item
   dragTarget.value = null
   event.dataTransfer.effectAllowed = 'move'
@@ -329,10 +330,11 @@ function handleNativeDragOver(event) {
   event.dataTransfer.dropEffect = 'move'
   // 用 elementFromPoint 找到鼠标下方的菜单项（绕过 el-menu 事件拦截）
   const el = document.elementFromPoint(event.clientX, event.clientY)
-  const itemEl = el?.closest('[data-item-id]')
+  // 只对 el-menu-item 响应 dragover，忽略 el-sub-menu（父级容器）
+  const itemEl = el?.closest('.el-menu-item')
   if (!itemEl) return
   const targetId = Number(itemEl.dataset.itemId)
-  if (targetId === dragItem.value.id) return
+  if (!targetId || targetId === dragItem.value.id) return
   const target = disktopStore.items.find(i => i.id === targetId)
   if (!target) return
   dragTarget.value = target
