@@ -25,7 +25,7 @@
         </div>
       </div>
       <div class="nexus-sidebar-menu-container">
-        <el-menu :default-active="windowStore.activeId" class="nexus-sidebar-menu" :collapse="appStore.sidebarCollapsed"
+        <el-menu :default-active="menuActiveId" class="nexus-sidebar-menu" :collapse="appStore.sidebarCollapsed"
           :collapse-transition="false"  @select="handleMenuSelect">
           <template v-for="item in disktopStore.treeItems" :key="item.id">
             <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)"
@@ -181,7 +181,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '../stores/app'
 import { useMenuStore } from '../stores/menu'
 import { useDisktopStore } from '../stores/disktop'
@@ -218,6 +218,7 @@ const currentLocale = computed(() => i18nStore.locale)
 
 const preferencesRef = ref(null)
 const isDragOver = ref(false)
+const menuActiveId = ref('')
 let dragEnterCounter = 0
 
 function onStartMenuOpenPage(item) {
@@ -296,6 +297,8 @@ function scrollTabs(dir) { tabsWrapperRef.value?.scrollBy({ left: dir * 200, beh
 onMounted(async () => {
   if (!disktopStore.loaded) await disktopStore.loadDisktops()
   if (disktopStore.activeDisktopId) await disktopStore.loadItems()
+  // 菜单加载完成后，同步 activeId 到侧边栏选中状态
+  menuActiveId.value = windowStore.activeId ? String(windowStore.activeId) : ''
   const el = tabsWrapperRef.value
   if (el) {
     el.addEventListener('scroll', updateScrollState)
@@ -303,6 +306,11 @@ onMounted(async () => {
     updateScrollState()
   }
   document.addEventListener('click', closeSidebarContext)
+})
+
+// 监听 activeId 变化，同步侧边栏选中状态
+watch(() => windowStore.activeId, (id) => {
+  menuActiveId.value = id ? String(id) : ''
 })
 
 onUnmounted(() => {

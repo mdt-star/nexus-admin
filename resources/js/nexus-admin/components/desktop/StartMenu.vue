@@ -1,8 +1,7 @@
 <template>
   <el-popover
     ref="popoverRef"
-    trigger="manual"
-    :visible="visible"
+    trigger="hover"
     :width="360"
     :popper-class="'nexus-start-popper'"
     :show-arrow="false"
