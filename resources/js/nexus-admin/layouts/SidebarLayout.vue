@@ -42,7 +42,7 @@
               <el-menu-item v-for="child in item.children" :key="child.id" :index="String(child.id)"
                 :data-folder-id="child.type === 'folder' ? child.id : ''" :data-item-id="child.id"
                 draggable="true"
-                @dragstart="onDragStart($event, child)">
+                @dragstart.stop="onDragStart($event, child)">
                 <el-icon v-if="child.icon">
                   <component :is="getIconComponent(child.icon)" />
                 </el-icon>
