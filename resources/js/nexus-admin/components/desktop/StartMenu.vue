@@ -1,11 +1,13 @@
 <template>
   <el-popover
     ref="popoverRef"
-    trigger="click"
+    trigger="manual"
+    :visible="visible"
     :width="360"
     :popper-class="'nexus-start-popper'"
-    close-delay="0"
+    :show-arrow="false"
     placement="right"
+    @hide="onPopoverHide"
   >
     <template #reference>
       <slot name="reference" />
@@ -53,6 +55,9 @@ import { useI18nStore } from '../../stores/i18n'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { ArrowRight, FolderOpened, Rank, TrendCharts, HelpFilled } from '@element-plus/icons-vue'
 
+const props = defineProps({
+  visible: { type: Boolean, default: false }
+})
 const emit = defineEmits(['close', 'add-item', 'open-page'])
 
 const menuStore = useMenuStore()
