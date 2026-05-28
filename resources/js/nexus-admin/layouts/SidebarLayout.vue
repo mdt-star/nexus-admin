@@ -361,14 +361,15 @@ function handleNativeDragEnd(event) {
 
   if (!source || !target || source.id === target.id) return
 
-  const parentId = source.parent_id
+  // 目标项的父级作为新的 parent_id
+  const newParentId = target.parent_id
+  // 获取目标项所在层级的所有兄弟节点
   const siblings = disktopStore.items
-    .filter(i => i.parent_id === parentId)
+    .filter(i => i.parent_id === newParentId)
     .sort((a, b) => (a.sort || 0) - (b.sort || 0))
 
-  const sourceIdx = siblings.findIndex(i => i.id === source.id)
   const targetIdx = siblings.findIndex(i => i.id === target.id)
-  if (sourceIdx === -1 || targetIdx === -1) return
+  if (targetIdx === -1) return
 
   let newSort
   if (dragInsertAfter.value) {
@@ -387,7 +388,7 @@ function handleNativeDragEnd(event) {
     }
   }
 
-  disktopStore.reorderItem(source.id, newSort)
+  disktopStore.reorderItem(source.id, newSort, newParentId)
 }
 
 // 顶部背景色

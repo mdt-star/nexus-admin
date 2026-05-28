@@ -182,17 +182,21 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
   }
 
   /**
-   * 重新排序
+   * 重新排序（支持跨父级移动）
    * @param {number} id
    * @param {number} newSort
+   * @param {number|null} [newParentId] - 新的父级 ID，不传则保持原父级
    */
-  async function reorderItem(id, newSort) {
+  async function reorderItem(id, newSort, newParentId) {
     const item = items.value.find(i => i.id === id)
     if (!item) return
     item.sort = newSort
+    if (newParentId !== undefined) {
+      item.parent_id = newParentId
+    }
     try {
       const { updateDisktopItem } = await import('../services/api')
-      await updateDisktopItem(id, { sort: newSort })
+      await updateDisktopItem(id, { sort: newSort, parent_id: item.parent_id })
     } catch (e) {
       console.warn('[NexusAdmin] 排序失败:', e)
     }

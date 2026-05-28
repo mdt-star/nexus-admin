@@ -14,8 +14,8 @@
         <template v-for="item in filteredMenus" :key="item.id">
           <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)">
             <template #title>
-              <el-icon>
-                <FolderOpened />
+             <el-icon>
+                <component :is="getIconComponent(item.icon)" />
               </el-icon>
               <span>{{ item.title }}</span>
             </template>
