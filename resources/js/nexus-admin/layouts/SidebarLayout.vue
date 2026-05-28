@@ -712,6 +712,8 @@ function handleUserCommand(cmd) {
   align-items: stretch;
   overflow-x: auto;
   flex: 1;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .nexus-tab {
