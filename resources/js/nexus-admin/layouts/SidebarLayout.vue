@@ -56,8 +56,11 @@
             circle
             @click="appStore.toggleSidebar()"
           />
+          <!-- 全局搜索 -->
+          <GlobalSearch />
         </div>
         <div class="nexus-header-right">
+
           <!-- 通知铃铛 -->
           <NotificationBell />
 
@@ -168,7 +171,9 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { ArrowLeft, ArrowRight, Refresh } from '@element-plus/icons-vue'
 import GlobeIcon from '../components/GlobeIcon.vue'
 import NotificationBell from '../components/common/NotificationBell.vue'
+import GlobalSearch from '../components/common/GlobalSearch.vue'
 import PreferencesPanel from '../components/PreferencesPanel.vue'
+
 
 import { ElMessage } from 'element-plus'
 

@@ -116,10 +116,16 @@ const cn = {
     sort: '排序',
     remark: '备注',
     published: '已发布',
-    draft: '草稿'
+    draft: '草稿',
+    searchPlaceholder: '搜索菜单或页面...',
+    noSearchResults: '未找到匹配结果',
+    menu: '菜单',
+    page: '页面',
+    items: '项'
   },
   menu: {
     dashboard: '控制台',
+
     system: '系统管理',
     'system-user': '用户管理',
     'system-role': '角色管理',
@@ -237,10 +243,17 @@ const en = {
     sort: 'Sort',
     remark: 'Remark',
     published: 'Published',
-    draft: 'Draft'
+    draft: 'Draft',
+    searchPlaceholder: 'Search menus or pages...',
+    noSearchResults: 'No results found',
+    menu: 'Menu',
+    page: 'Page',
+    items: 'items'
   },
+
   menu: {
     dashboard: 'Dashboard',
+
     system: 'System',
     'system-user': 'Users',
     'system-role': 'Roles',

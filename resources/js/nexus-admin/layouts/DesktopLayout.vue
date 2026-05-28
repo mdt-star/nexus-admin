@@ -4,10 +4,13 @@
     <header class="nexus-header">
       <div class="nexus-header-left">
         <span class="nexus-header-title">{{ appName }}</span>
+        <!-- 全局搜索 -->
+        <GlobalSearch />
       </div>
       <div class="nexus-header-center">
         <!-- 桌面图标区域 -->
       </div>
+
       <div class="nexus-header-right">
         <!-- 通知铃铛 -->
         <NotificationBell />
@@ -169,7 +172,9 @@ import hookManager from '../utils/hook-manager'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import GlobeIcon from '../components/GlobeIcon.vue'
 import NotificationBell from '../components/common/NotificationBell.vue'
+import GlobalSearch from '../components/common/GlobalSearch.vue'
 import { useWindowDrag } from '../composables/useWindowDrag'
+
 
 import { useUserStore } from '../stores/user'
 import { useUiSizeStore } from '../stores/size'
