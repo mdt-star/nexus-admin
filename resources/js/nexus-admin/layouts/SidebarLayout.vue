@@ -29,7 +29,12 @@
           :collapse-transition="false" @contextmenu.prevent="openSidebarContextMenu($event, null)" @select="handleMenuSelect">
           <template v-for="item in disktopStore.treeItems" :key="item.id">
             <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)"
-              :data-folder-id="item.type === 'folder' ? item.id : ''"
+              :data-folder-id="item.type === 'folder' ? item.id : ''" :data-item-id="item.id"
+              draggable="true"
+              @dragstart="onDragStart($event, item)"
+              @dragover.prevent="onDragOver($event, item)"
+              @dragend="onDragEnd"
+              @drop.prevent="onDrop($event, item)"
               @contextmenu.prevent.stop="openSidebarContextMenu($event, item)">
               <template #title>
                 <el-icon v-if="item.icon">
@@ -38,7 +43,12 @@
                 <span>{{ item.title }}</span>
               </template>
               <el-menu-item v-for="child in item.children" :key="child.id" :index="String(child.id)"
-                :data-folder-id="child.type === 'folder' ? child.id : ''">
+                :data-folder-id="child.type === 'folder' ? child.id : ''" :data-item-id="child.id"
+                draggable="true"
+                @dragstart="onDragStart($event, child)"
+                @dragover.prevent="onDragOver($event, child)"
+                @dragend="onDragEnd"
+                @drop.prevent="onDrop($event, child)">
                 <el-icon v-if="child.icon">
                   <component :is="getIconComponent(child.icon)" />
                 </el-icon>
@@ -47,7 +57,12 @@
                 </template>
               </el-menu-item>
             </el-sub-menu>
-            <el-menu-item v-else :index="String(item.id)" :data-folder-id="item.type === 'folder' ? item.id : ''">
+            <el-menu-item v-else :index="String(item.id)" :data-folder-id="item.type === 'folder' ? item.id : ''"
+              :data-item-id="item.id" draggable="true"
+              @dragstart="onDragStart($event, item)"
+              @dragover.prevent="onDragOver($event, item)"
+              @dragend="onDragEnd"
+              @drop.prevent="onDrop($event, item)">
               <el-icon v-if="item.icon">
                 <component :is="getIconComponent(item.icon)" />
               </el-icon>
@@ -299,6 +314,78 @@ async function onSidebarDrop(event) {
   } catch (e) {
     console.warn('[NexusAdmin] 侧边栏拖放添加失败:', e)
   }
+}
+
+// ==================== 侧边栏拖拽排序 ====================
+const dragItem = ref(null)
+
+function onDragStart(event, item) {
+  dragItem.value = item
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', String(item.id))
+  // 添加拖拽中的样式
+  event.target.classList.add('nexus-dragging')
+}
+
+function onDragOver(event, item) {
+  if (!dragItem.value || dragItem.value.id === item.id) return
+  event.dataTransfer.dropEffect = 'move'
+  // 高亮目标
+  const target = event.currentTarget
+  const rect = target.getBoundingClientRect()
+  const y = event.clientY - rect.top
+  target.classList.toggle('nexus-drag-before', y < rect.height / 2)
+  target.classList.toggle('nexus-drag-after', y >= rect.height / 2)
+}
+
+function onDragEnd(event) {
+  document.querySelectorAll('.nexus-dragging, .nexus-drag-before, .nexus-drag-after')
+    .forEach(el => el.classList.remove('nexus-dragging', 'nexus-drag-before', 'nexus-drag-after'))
+  dragItem.value = null
+}
+
+async function onDrop(event, targetItem) {
+  onDragEnd(event)
+  if (!dragItem.value || dragItem.value.id === targetItem.id) return
+
+  const sourceId = dragItem.value.id
+  const targetId = targetItem.id
+
+  // 获取同级列表
+  const parentId = dragItem.value.parent_id
+  const siblings = disktopStore.items
+    .filter(i => i.parent_id === parentId)
+    .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+
+  const sourceIdx = siblings.findIndex(i => i.id === sourceId)
+  const targetIdx = siblings.findIndex(i => i.id === targetId)
+  if (sourceIdx === -1 || targetIdx === -1) return
+
+  // 计算新的 sort 值
+  const rect = event.currentTarget.getBoundingClientRect()
+  const y = event.clientY - rect.top
+  const insertAfter = y >= rect.height / 2
+
+  let newSort
+  if (insertAfter) {
+    // 插入到目标后面
+    if (targetIdx + 1 < siblings.length) {
+      const next = siblings[targetIdx + 1]
+      newSort = (siblings[targetIdx].sort || 0) + (next.sort || 0) / 2
+    } else {
+      newSort = (siblings[targetIdx].sort || 0) + 1
+    }
+  } else {
+    // 插入到目标前面
+    if (targetIdx > 0) {
+      const prev = siblings[targetIdx - 1]
+      newSort = (prev.sort || 0) + (siblings[targetIdx].sort || 0) / 2
+    } else {
+      newSort = (siblings[0].sort || 0) - 1
+    }
+  }
+
+  await disktopStore.reorderItem(sourceId, newSort)
 }
 
 // 顶部背景色
@@ -923,6 +1010,19 @@ function handleUserCommand(cmd) {
   border-width: 0px;
   border-top-width: 1px;
   font-size: 24px;
+}
+
+/* 拖拽排序样式 */
+:deep(.nexus-dragging) {
+  opacity: 0.4 !important;
+}
+
+:deep(.nexus-drag-before) {
+  box-shadow: inset 0 2px 0 0 var(--nexus-primary-color) !important;
+}
+
+:deep(.nexus-drag-after) {
+  box-shadow: inset 0 -2px 0 0 var(--nexus-primary-color) !important;
 }
 </style>
 
