@@ -406,7 +406,24 @@ function handleNativeDragOver(event) {
       itemEl = subEl.querySelector('.el-sub-menu__title')
     }
   }
-  if (!itemEl) return
+  if (!itemEl) {
+    // 鼠标在空白区域 → 高亮最后一个根级菜单项（追加到末尾）
+    const rootItems = disktopStore.rootItems
+    if (rootItems.length > 0) {
+      const lastRoot = rootItems[rootItems.length - 1]
+      const lastEl = sidebarMenuRef.value?.$el?.querySelector(`[data-item-id="${lastRoot.id}"]`)
+      if (lastEl) {
+        // 清除其他高亮
+        document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
+          .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
+        lastEl.classList.add('nexus-drag-after')
+        // 缓存拖拽目标信息
+        pendingDropTarget = lastRoot
+        pendingDropAfter = true
+      }
+    }
+    return
+  }
   const targetId = Number(itemEl.dataset.itemId)
   if (!targetId) return
   // 如果是侧边栏内部拖拽，跳过自身
