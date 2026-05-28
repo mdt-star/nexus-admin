@@ -208,6 +208,9 @@ const cn = {
     logout: '退出登录',
     profile: '个人信息'
   },
+  startMenu: {
+    dragHint: '可以拖动菜单到桌面或侧边栏'
+  },
   preferences: {
     title: '偏好设置',
     tabMode: 'Tab 栏模式',
@@ -335,6 +338,9 @@ const en = {
     failed: 'Invalid credentials',
     logout: 'Logout',
     profile: 'Profile'
+  },
+  startMenu: {
+    dragHint: 'Drag menus to desktop or sidebar'
   },
   preferences: {
     title: 'Preferences',

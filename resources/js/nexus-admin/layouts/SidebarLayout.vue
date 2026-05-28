@@ -528,7 +528,7 @@ function handleUserCommand(cmd) {
 }
 
 :deep(.el-menu-item.is-active) {
-  background-color: color-mix(in srgb, var(--nexus-primary-color) 12%, transparent) !important;
+  background-color: color-mix(in srgb, var(--nexus-primary-color) 8%, transparent) !important;
   color: var(--nexus-primary-color) !important;
 }
 
