@@ -130,11 +130,12 @@
         </div>
       </header>
 
-      <div class="nexus-tabs" v-if="configStore.get('tabMode', true) && windowStore.items.length > 0">
+      <div class="nexus-tabs" v-if="configStore.get('tabMode', true) && windowStore.items.length > 0"
+        @contextmenu.prevent="openTabContextMenu($event, null)">
         <div class="nexus-tabs-wrapper" ref="tabsWrapperRef">
           <div v-for="tab in windowStore.items" :key="tab.id" class="nexus-tab"
             :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)"
-            @contextmenu.prevent="openTabContextMenu($event, tab)">
+            @contextmenu.stop="openTabContextMenu($event, tab)">
             <span class="nexus-tab-label">{{ tab.title }}</span>
             <el-icon class="nexus-tab-close" size="12" @click.stop="windowStore.close(tab.id)">
               <Close />
@@ -411,7 +412,9 @@ const tabContextIsActive = ref(false)
 function openTabContextMenu(event, tab) {
   tabContextVisible.value = true
   tabContextItem.value = tab
-  tabContextIsActive.value = tab.id === windowStore.activeId
+  // tab 为 null 表示在 tabs 空白区域右键 → 只有关闭全部可点
+  // tab 不为 null 表示在某个 tab 上右键 → 全部可点
+  tabContextIsActive.value = tab !== null
   tabContextStyle.value = { left: `${event.clientX}px`, top: `${event.clientY}px` }
   // 点击其他地方关闭
   setTimeout(() => document.addEventListener('click', closeTabContext, { once: true }), 0)
