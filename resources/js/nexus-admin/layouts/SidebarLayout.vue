@@ -687,10 +687,12 @@ function handleUserCommand(cmd) {
 .nexus-header-right :deep(.el-button),
 .nexus-header-left :deep(.el-button) {
   border: none !important;
+  border-color: transparent !important;
   background-color: transparent;
   color: var(--nexus-text-color-secondary);
   transition: all 0.25s ease;
   margin-left: 0 !important;
+  outline: none !important;
 }
 
 .nexus-header-right :deep(.el-button:hover),
@@ -698,6 +700,17 @@ function handleUserCommand(cmd) {
   background-color: var(--nexus-bg-color-dark);
   color: var(--nexus-primary-color);
   border: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+}
+
+.nexus-header-right :deep(.el-button:focus),
+.nexus-header-left :deep(.el-button:focus),
+.nexus-header-right :deep(.el-button:focus-visible),
+.nexus-header-left :deep(.el-button:focus-visible) {
+  border: none !important;
+  border-color: transparent !important;
+  outline: none !important;
 }
 
 [data-theme="dark"] .nexus-header-right :deep(.el-button:hover),

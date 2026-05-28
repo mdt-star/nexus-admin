@@ -211,8 +211,10 @@ function handleUserCommand(cmd) { if (cmd === 'logout') userStore.logout() }
 .nexus-header-title { font-size: var(--nexus-font-size-lg); font-weight: 600; }
 .nexus-start-btn { border: none; background: transparent; color: var(--nexus-text-color-secondary); }
 .nexus-start-btn:hover { background: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
-.nexus-header-right :deep(.el-button) { border: none !important; background: transparent; color: var(--nexus-text-color-secondary); }
-.nexus-header-right :deep(.el-button:hover) { background: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); border: none !important; }
+.nexus-header-right :deep(.el-button) { border: none !important; border-color: transparent !important; background: transparent; color: var(--nexus-text-color-secondary); outline: none !important; }
+.nexus-header-right :deep(.el-button:hover) { background: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); border: none !important; border-color: transparent !important; outline: none !important; }
+.nexus-header-right :deep(.el-button:focus),
+.nexus-header-right :deep(.el-button:focus-visible) { border: none !important; border-color: transparent !important; outline: none !important; }
 .nexus-desktop { flex: 1; position: relative; overflow: hidden; }
 .nexus-desktop-icons { display: grid; grid-template-columns: repeat(auto-fill, 80px); gap: 16px; padding: 24px; justify-content: center; }
 .nexus-desktop-icon { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 8px; cursor: pointer; border-radius: 8px; }
