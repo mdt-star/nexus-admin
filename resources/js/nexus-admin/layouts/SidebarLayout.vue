@@ -130,11 +130,11 @@
         </div>
       </header>
 
-      <div class="nexus-tabs" v-if="configStore.get('tabMode', true) && windowStore.items.length > 0"
-        @contextmenu.prevent="openTabContextMenu($event)">
+      <div class="nexus-tabs" v-if="configStore.get('tabMode', true) && windowStore.items.length > 0">
         <div class="nexus-tabs-wrapper" ref="tabsWrapperRef">
           <div v-for="tab in windowStore.items" :key="tab.id" class="nexus-tab"
-            :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)">
+            :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)"
+            @contextmenu.prevent="openTabContextMenu($event, tab)">
             <span class="nexus-tab-label">{{ tab.title }}</span>
             <el-icon class="nexus-tab-close" size="12" @click.stop="windowStore.close(tab.id)">
               <Close />
@@ -181,16 +181,23 @@
 
     <Teleport to="body">
       <div v-if="tabContextVisible" class="nexus-context-menu" :style="tabContextStyle" @click.stop>
-        <div class="nexus-context-item" @click="closeAllTabs"><el-icon>
-            <Close />
-          </el-icon><span>关闭全部</span></div>
+        <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !tabContextIsActive }"
+          @click="tabContextIsActive && closeCurrentTab()">
+          <el-icon><Close /></el-icon><span>关闭</span>
+        </div>
         <div class="nexus-context-divider" />
-        <div class="nexus-context-item" @click="closeOtherTabs"><el-icon>
-            <CircleClose />
-          </el-icon><span>关闭其他</span></div>
-        <div class="nexus-context-item" @click="closeRightTabs"><el-icon>
-            <DArrowRight />
-          </el-icon><span>关闭右侧标签页</span></div>
+        <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !tabContextIsActive }"
+          @click="tabContextIsActive && closeOtherTabs()">
+          <el-icon><CircleClose /></el-icon><span>关闭其他</span>
+        </div>
+        <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !tabContextIsActive }"
+          @click="tabContextIsActive && closeRightTabs()">
+          <el-icon><DArrowRight /></el-icon><span>关闭右侧标签页</span>
+        </div>
+        <div class="nexus-context-divider" />
+        <div class="nexus-context-item" @click="closeAllTabs">
+          <el-icon><Close /></el-icon><span>关闭全部</span>
+        </div>
       </div>
     </Teleport>
   </div>
@@ -399,11 +406,12 @@ async function addSidebarFolder() {
 const tabContextVisible = ref(false)
 const tabContextItem = ref(null)
 const tabContextStyle = ref({})
+const tabContextIsActive = ref(false)
 
-function openTabContextMenu(event) {
+function openTabContextMenu(event, tab) {
   tabContextVisible.value = true
-  // 以当前激活的 tab 为基准执行关闭其他/关闭右侧
-  tabContextItem.value = windowStore.active
+  tabContextItem.value = tab
+  tabContextIsActive.value = tab.id === windowStore.activeId
   tabContextStyle.value = { left: `${event.clientX}px`, top: `${event.clientY}px` }
   // 点击其他地方关闭
   setTimeout(() => document.addEventListener('click', closeTabContext, { once: true }), 0)
@@ -411,6 +419,12 @@ function openTabContextMenu(event) {
 
 function closeTabContext() {
   tabContextVisible.value = false
+}
+
+function closeCurrentTab() {
+  tabContextVisible.value = false
+  const id = tabContextItem.value?.id
+  if (id) windowStore.close(id)
 }
 
 function closeAllTabs() {
@@ -891,6 +905,15 @@ function handleUserCommand(cmd) {
 
 .nexus-context-item:hover {
   background-color: var(--nexus-bg-color-dark);
+}
+
+.nexus-context-item-disabled {
+  opacity: 0.4;
+  cursor: not-allowed !important;
+}
+
+.nexus-context-item-disabled:hover {
+  background-color: transparent !important;
 }
 
 .nexus-context-item .el-icon {
