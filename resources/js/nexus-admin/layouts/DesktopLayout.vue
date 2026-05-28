@@ -273,7 +273,9 @@ function handleUserCommand(command) {
 .nexus-desktop-layout { display: flex; flex-direction: column; height: 100vh; background-color: var(--nexus-bg-color); }
 .nexus-header { display: flex; align-items: center; justify-content: space-between; height: var(--nexus-header-height); padding: 0 16px; background-color: var(--nexus-bg-color-light); border-bottom: 1px solid var(--nexus-border-color); z-index: 100; }
 .nexus-header-title { font-size: var(--nexus-font-size-lg); font-weight: 600; }
+.nexus-header-left { display: flex; align-items: center; gap: 8px; }
 .nexus-header-right { display: flex; align-items: center; gap: 4px; }
+
 .nexus-header-right :deep(.el-button) { border: none; background-color: transparent; color: var(--nexus-text-color-secondary); transition: all 0.25s ease; }
 .nexus-header-right :deep(.el-button:hover) { background-color: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
 .nexus-header-right :deep(.el-button.is-disabled), .nexus-header-right :deep(.el-button.is-disabled:hover) { background-color: transparent; color: var(--nexus-text-color-placeholder); }

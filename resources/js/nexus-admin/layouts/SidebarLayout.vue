@@ -367,12 +367,14 @@ function handleUserCommand(command) {
 .nexus-header[style*="background"] .nexus-user-btn span { color: rgba(255,255,255,0.9) !important; }
 .nexus-user-btn { padding-right: 0 !important; }
 
+.nexus-header-left { display: flex; align-items: center; gap: 4px; }
 .nexus-header-right { display: flex; align-items: center; gap: 4px; }
 
 .nexus-header-right :deep(.el-button) { border: none; background-color: transparent; color: var(--nexus-text-color-secondary); transition: all 0.25s ease; margin-left: 0 !important; padding-left: 8px !important; padding-right: 8px !important; }
 .nexus-header-right :deep(.el-button:hover) { background-color: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
 .nexus-header-left :deep(.el-button) { border: none; background-color: transparent; color: var(--nexus-text-color-secondary); transition: all 0.25s ease; margin-left: 0 !important; }
 .nexus-header-left :deep(.el-button:hover) { background-color: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
+
 [data-theme="dark"] .nexus-header-right :deep(.el-button:hover), [data-theme="dark"] .nexus-header-left :deep(.el-button:hover) { background-color: rgba(255, 255, 255, 0.08); }
 
 .nexus-tabs {  height: var(--nexus-tab-height); background-color: var(--nexus-bg-color); border-bottom: 1px solid var(--nexus-border-color); display: flex; align-items: stretch; overflow: hidden; padding-left: 0px; }
