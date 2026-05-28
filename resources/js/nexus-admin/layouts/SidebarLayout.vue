@@ -326,16 +326,20 @@ function onDragStart(event, item) {
 }
 
 function handleNativeDragOver(event) {
-  if (!dragItem.value) return
   event.preventDefault()
-  event.dataTransfer.dropEffect = 'move'
+  // 检查是否来自 StartMenu（有 application/json 数据）
+  const isFromStartMenu = event.dataTransfer.types.includes('application/json')
+  if (!dragItem.value && !isFromStartMenu) return
+  event.dataTransfer.dropEffect = dragItem.value ? 'move' : 'copy'
   // 用 elementFromPoint 找到鼠标下方的菜单项（绕过 el-menu 事件拦截）
   const el = document.elementFromPoint(event.clientX, event.clientY)
   // 只对 el-menu-item 响应 dragover，忽略 el-sub-menu（父级容器）
   const itemEl = el?.closest('.el-menu-item')
   if (!itemEl) return
   const targetId = Number(itemEl.dataset.itemId)
-  if (!targetId || targetId === dragItem.value.id) return
+  if (!targetId) return
+  // 如果是侧边栏内部拖拽，跳过自身
+  if (dragItem.value && targetId === dragItem.value.id) return
   const target = disktopStore.items.find(i => i.id === targetId)
   if (!target) return
   dragTarget.value = target
@@ -359,11 +363,10 @@ function handleNativeDragEnd(event) {
   dragItem.value = null
   dragTarget.value = null
 
-  if (!source || !target || source.id === target.id) return
+  if (!target) return
 
-  // 目标项的父级作为新的 parent_id
+  // 计算插入位置的 sort 值
   const newParentId = target.parent_id
-  // 获取目标项所在层级的所有兄弟节点
   const siblings = disktopStore.items
     .filter(i => i.parent_id === newParentId)
     .sort((a, b) => (a.sort || 0) - (b.sort || 0))
@@ -388,7 +391,24 @@ function handleNativeDragEnd(event) {
     }
   }
 
-  disktopStore.reorderItem(source.id, newSort, newParentId)
+  if (source) {
+    // 侧边栏内部拖拽排序
+    if (source.id === target.id) return
+    disktopStore.reorderItem(source.id, newSort, newParentId)
+  } else {
+    // 来自 StartMenu 的拖拽添加
+    const raw = event.dataTransfer.getData('application/json')
+    if (!raw) return
+    try {
+      const item = JSON.parse(raw)
+      disktopStore.addItem({
+        title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu',
+        parent_id: newParentId, sort: newSort
+      })
+    } catch (e) {
+      console.warn('[NexusAdmin] 从 StartMenu 添加失败:', e)
+    }
+  }
 }
 
 // 顶部背景色

@@ -124,10 +124,12 @@ function findItem(items, id) {
 
 function onDragStart(event, item) {
   isDragging.value = true
-  event.dataTransfer.setData('application/json', JSON.stringify({
+  const data = JSON.stringify({
     title: item.title, icon: item.icon, component: item.component, path: item.route, type: 'menu'
-  }))
-  event.dataTransfer.effectAllowed = 'copy'
+  })
+  event.dataTransfer.setData('application/json', data)
+  event.dataTransfer.setData('text/plain', data)
+  event.dataTransfer.effectAllowed = 'copyMove'
   event.currentTarget.addEventListener('dragend', onDragEnd, { once: true })
 }
 
