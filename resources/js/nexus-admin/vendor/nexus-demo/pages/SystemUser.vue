@@ -154,8 +154,6 @@ const { t } = useI18nStore()
 const route = useRoute()
 const windowStore = useWindowStore()
 
-const props = defineProps({ searchParams: Object })
-
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEditing = ref(false)
