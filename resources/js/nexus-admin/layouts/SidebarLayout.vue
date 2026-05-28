@@ -191,7 +191,7 @@
         </div>
         <div class="nexus-context-divider" />
         <div class="nexus-context-item" @click="addSidebarFolder">
-          <el-icon><FolderAdd /></el-icon><span>新建文件夹</span>
+          <el-icon><FolderAdd /></el-icon><span>新建项目</span>
         </div>
       </div>
     </Teleport>
@@ -712,7 +712,7 @@ async function addSidebarFolder() {
     const rootItems = disktopStore.rootItems
     sort = rootItems.length > 0 ? (rootItems[rootItems.length - 1].sort || 0) + 1 : 0
   }
-  editingItem.value = { title: '新建文件夹', icon: 'FolderOpened', type: 'folder', parent_id: parentId, sort }
+  editingItem.value = { title: '新建项目', icon: 'FolderOpened', type: 'folder', parent_id: parentId, sort }
   isNewItem.value = true
   editorVisible.value = true
 }
