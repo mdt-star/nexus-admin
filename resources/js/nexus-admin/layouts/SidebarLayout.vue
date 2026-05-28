@@ -165,7 +165,7 @@
 
     <PreferencesPanel ref="preferencesRef" />
 
-    <ItemEditor :visible="editorVisible" :item="editingItem" :is-new="isNewItem" :position="editorPos" @close="editorVisible = false" @save="onEditorSave" />
+    <ItemEditor :visible="editorVisible" :item="editingItem" :is-new="isNewItem" @close="editorVisible = false" @save="onEditorSave" />
 
     <Teleport to="body">
       <div v-if="sidebarContextVisible" class="nexus-context-menu" :style="sidebarContextStyle" @click.stop>
@@ -370,7 +370,6 @@ function handleLocaleChange(locale) { i18nStore.setLocale(locale) }
 const editorVisible = ref(false)
 const editingItem = ref(null)
 const isNewItem = ref(false)
-const editorPos = ref({ x: 0, y: 0 })
 
 function onEditorSave(data) {
   if (isNewItem.value) {
@@ -401,7 +400,6 @@ function editSidebarItem() {
   if (!item) return
   editingItem.value = { ...item }
   isNewItem.value = false
-  editorPos.value = { x: 200, y: 100 }
   editorVisible.value = true
 }
 
@@ -416,7 +414,6 @@ async function addSidebarFolder() {
   sidebarContextVisible.value = false
   editingItem.value = { title: '新建文件夹', icon: 'FolderOpened', type: 'folder' }
   isNewItem.value = true
-  editorPos.value = { x: 200, y: 100 }
   editorVisible.value = true
 }
 
