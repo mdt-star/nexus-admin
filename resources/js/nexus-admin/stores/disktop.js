@@ -111,7 +111,7 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
         disktop_id: activeDisktopId.value,
         ...data
       })
-      const newItem = response.data
+      const newItem = { ...response.data, parent_id: response.data.parent_id ?? null }
       items.value.push(newItem)
       return newItem
     } catch (e) {
@@ -120,7 +120,7 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
       const fallbackItem = {
         id: Date.now(),
         disktop_id: activeDisktopId.value,
-        parent_id: data.parent_id || null,
+        parent_id: data.parent_id ?? null,
         type: data.type || 'menu',
         title: data.title || '未命名',
         icon: data.icon || null,
