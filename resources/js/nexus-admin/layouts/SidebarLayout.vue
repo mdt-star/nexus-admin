@@ -44,23 +44,25 @@
               <el-menu-item v-for="child in item.children" :key="child.id" :index="String(child.id)"
                 :data-folder-id="child.type === 'folder' ? child.id : ''" :data-item-id="child.id"
                 draggable="true"
-                @dragstart.stop="onDragStart($event, child)">
+                @dragstart.stop="onDragStart($event, child)"
+                @contextmenu.prevent.stop="openSidebarContextMenu($event, child)">
                 <el-icon v-if="child.icon">
                   <component :is="getIconComponent(child.icon)" />
                 </el-icon>
                 <template #title>
-                  <span @contextmenu.prevent.stop="openSidebarContextMenu($event, child)">{{ child.title }}</span>
+                  <span>{{ child.title }}</span>
                 </template>
               </el-menu-item>
             </el-sub-menu>
             <el-menu-item v-else :index="String(item.id)" :data-folder-id="item.type === 'folder' ? item.id : ''"
               :data-item-id="item.id" draggable="true"
-              @dragstart="onDragStart($event, item)">
+              @dragstart="onDragStart($event, item)"
+              @contextmenu.prevent.stop="openSidebarContextMenu($event, item)">
               <el-icon v-if="item.icon">
                 <component :is="getIconComponent(item.icon)" />
               </el-icon>
               <template #title>
-                <span @contextmenu.prevent.stop="openSidebarContextMenu($event, item)">{{ item.title }}</span>
+                <span>{{ item.title }}</span>
               </template>
             </el-menu-item>
           </template>
