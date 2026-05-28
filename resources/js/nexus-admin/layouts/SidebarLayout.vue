@@ -528,11 +528,23 @@ function handleUserCommand(cmd) {
 }
 
 :deep(.el-menu-item.is-active) {
-  color: var(--el-menu-active-color) !important;
+  color: var(--nexus-primary-color) !important;
 }
 
 :deep(.el-menu-item.is-active .el-icon) {
-  color: var(--el-menu-active-color) !important;
+  color: var(--nexus-primary-color) !important;
+}
+
+:deep(.el-menu-item.is-active::before) {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: var(--nexus-primary-color);
+  border-radius: 0 3px 3px 0;
 }
 
 .nexus-sidebar-collapsed .nexus-sidebar-menu :deep(.el-menu-item),
