@@ -139,7 +139,7 @@ const lang = computed(() => ({ 'zh-CN': '中文', 'en': 'English' })[i18n.locale
 const userInitial = computed(() => (userStore.user?.nickname || 'U').charAt(0))
 const avatarStyle = computed(() => {
   const color = config.get('headerColor', '')
-  return color ? { background: color } : {}
+  return color ? { background: '#fff' } : {}
 })
 
 const { getWindowRect, startDrag } = useWindowDrag()
