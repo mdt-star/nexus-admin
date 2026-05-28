@@ -344,10 +344,20 @@ async function onSidebarDrop(event) {
       .sort((a, b) => (a.sort || 0) - (b.sort || 0))
     newSort = siblings.length > 0 ? (siblings[siblings.length - 1].sort || 0) + 1 : 0
   }
-  await disktopStore.addItem({
+  const newItem = await disktopStore.addItem({
     title: item.title, icon: item.icon, component: item.component, path: item.path,
     type: item.type || 'menu', parent_id: parentId, sort: newSort
   })
+  // 如果有子节点，递归添加
+  if (item.children?.length && newItem?.id) {
+    for (let i = 0; i < item.children.length; i++) {
+      const child = item.children[i]
+      await disktopStore.addItem({
+        title: child.title, icon: child.icon, component: child.component, path: child.path,
+        type: child.type || 'menu', parent_id: newItem.id, sort: i
+      })
+    }
+  }
 }
 
 // ==================== 侧边栏拖拽排序 ====================
