@@ -12,7 +12,8 @@
       </div>
       <el-menu ref="menuRef" class="nexus-start-menu" :default-active="activeIndex" @select="onSelect">
         <template v-for="item in filteredMenus" :key="item.id">
-          <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)">
+          <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)"
+            draggable="true" @dragstart="onDragStart($event, item)">
             <template #title>
              <el-icon>
                 <component :is="getIconComponent(item.icon)" />
