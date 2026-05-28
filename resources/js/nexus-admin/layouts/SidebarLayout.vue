@@ -438,15 +438,34 @@ function handleNativeDragOver(event) {
   if (!highlightEl) return
   const rect = highlightEl.getBoundingClientRect()
   const y = event.clientY - rect.top
-  dragInsertAfter.value = y >= rect.height / 2
-  // 缓存拖拽目标信息（供 onSidebarDrop 使用）
-  pendingDropTarget = target
-  pendingDropAfter = dragInsertAfter.value
   // 清除其他高亮
   document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
     .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
-  highlightEl.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
-  highlightEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
+  if (isSubMenu) {
+    // el-sub-menu：鼠标在标题区域上半部分 → 插入到之前（before）
+    // 鼠标在标题区域下半部分或子菜单区域 → 插入到内部（after on title）
+    const isInTitleArea = y >= 0 && y <= rect.height
+    if (isInTitleArea && y < rect.height / 2) {
+      // 标题上半部分 → 插入到该父节点之前
+      dragInsertAfter.value = false
+      highlightEl.classList.add('nexus-drag-before')
+      pendingDropTarget = target
+      pendingDropAfter = false
+    } else {
+      // 标题下半部分或子菜单区域 → 插入到该父节点内部（作为子节点）
+      dragInsertAfter.value = true
+      highlightEl.classList.add('nexus-drag-after')
+      pendingDropTarget = target
+      pendingDropAfter = true
+    }
+  } else {
+    // el-menu-item：根据上下半区分 before/after
+    dragInsertAfter.value = y >= rect.height / 2
+    highlightEl.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
+    highlightEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
+    pendingDropTarget = target
+    pendingDropAfter = dragInsertAfter.value
+  }
 }
 
 function handleNativeDragStart(event) {
