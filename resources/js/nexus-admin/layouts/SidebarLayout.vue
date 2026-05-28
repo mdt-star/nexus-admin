@@ -597,6 +597,8 @@ function handleUserCommand(cmd) {
 :deep(.el-menu-item),
 :deep(.el-sub-menu__title) {
   font-size: var(--nexus-font-size-base) !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 :deep(.el-menu-item .el-icon),
