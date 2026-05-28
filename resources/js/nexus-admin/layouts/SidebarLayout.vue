@@ -284,9 +284,14 @@ async function handleMenuSelect(index) {
   const item = menuStore.findMenuByComponent(index) || menuStore.findMenuByRoute(index)
   if (item) {
     await hookManager.emit('menu:item-click', item)
+    // tabMode=false 时，侧边栏只保留当前一个页面记录
+    if (!configStore.get('tabMode', true)) {
+      windowStore.closeAll()
+    }
     windowStore.open(item)
   }
 }
+
 
 function handleLocaleChange(locale) {
   i18nStore.setLocale(locale)
