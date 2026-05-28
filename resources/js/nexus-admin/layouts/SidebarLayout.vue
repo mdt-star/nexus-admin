@@ -304,35 +304,34 @@ async function onSidebarDrop(event) {
     } catch (_) {}
   }
   if (!item) return
-  // 检测鼠标下方是否有菜单项（用于精确插入位置）
-  const el = document.elementFromPoint(event.clientX, event.clientY)
-  const itemEl = el?.closest('.el-menu-item')
+  // 清除拖拽高亮
+  document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
+    .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
+  // 使用 handleNativeDragOver 缓存的拖拽目标信息（不依赖 DOM class）
+  const target = pendingDropTarget
+  const insertAfter = pendingDropAfter
+  pendingDropTarget = null
+  pendingDropAfter = false
   let parentId = null
   let newSort
-  if (itemEl) {
-    // 拖到某个菜单项上 → 根据高亮方向决定插入前面还是后面
-    const insertAfter = itemEl.classList.contains('nexus-drag-after')
-    const targetId = Number(itemEl.dataset.itemId)
-    const target = disktopStore.items.find(i => i.id === targetId)
-    if (target) {
-      parentId = target.parent_id
-      const siblings = disktopStore.items
-        .filter(i => i.parent_id === parentId)
-        .sort((a, b) => (a.sort || 0) - (b.sort || 0))
-      const targetIdx = siblings.findIndex(i => i.id === target.id)
-      if (targetIdx !== -1) {
-        if (insertAfter) {
-          if (targetIdx + 1 < siblings.length) {
-            newSort = ((siblings[targetIdx].sort || 0) + (siblings[targetIdx + 1].sort || 0)) / 2
-          } else {
-            newSort = (siblings[targetIdx].sort || 0) + 1
-          }
+  if (target) {
+    parentId = target.parent_id
+    const siblings = disktopStore.items
+      .filter(i => i.parent_id === parentId)
+      .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+    const targetIdx = siblings.findIndex(i => i.id === target.id)
+    if (targetIdx !== -1) {
+      if (insertAfter) {
+        if (targetIdx + 1 < siblings.length) {
+          newSort = ((siblings[targetIdx].sort || 0) + (siblings[targetIdx + 1].sort || 0)) / 2
         } else {
-          if (targetIdx > 0) {
-            newSort = ((siblings[targetIdx - 1].sort || 0) + (siblings[targetIdx].sort || 0)) / 2
-          } else {
-            newSort = (siblings[0].sort || 0) - 1
-          }
+          newSort = (siblings[targetIdx].sort || 0) + 1
+        }
+      } else {
+        if (targetIdx > 0) {
+          newSort = ((siblings[targetIdx - 1].sort || 0) + (siblings[targetIdx].sort || 0)) / 2
+        } else {
+          newSort = (siblings[0].sort || 0) - 1
         }
       }
     }
@@ -345,9 +344,6 @@ async function onSidebarDrop(event) {
       .sort((a, b) => (a.sort || 0) - (b.sort || 0))
     newSort = siblings.length > 0 ? (siblings[siblings.length - 1].sort || 0) + 1 : 0
   }
-  // 清除拖拽高亮（在读取高亮状态之后）
-  document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
-    .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
   await disktopStore.addItem({
     title: item.title, icon: item.icon, component: item.component, path: item.path,
     type: item.type || 'menu', parent_id: parentId, sort: newSort
@@ -363,6 +359,9 @@ let nativeDragOverHandler = null
 let nativeDragEndHandler = null
 // 缓存来自 StartMenu 的拖拽数据（dragend 中 dataTransfer 不可读）
 let pendingStartMenuData = null
+// 缓存当前拖拽目标节点和插入方向（drop 时直接使用，不依赖 DOM class）
+let pendingDropTarget = null
+let pendingDropAfter = false
 
 function onDragStart(event, item) {
   console.log('开始拖动:', item)
@@ -401,6 +400,9 @@ function handleNativeDragOver(event) {
   const rect = itemEl.getBoundingClientRect()
   const y = event.clientY - rect.top
   dragInsertAfter.value = y >= rect.height / 2
+  // 缓存拖拽目标信息（供 onSidebarDrop 使用）
+  pendingDropTarget = target
+  pendingDropAfter = dragInsertAfter.value
   // 清除其他高亮
   document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
     .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
