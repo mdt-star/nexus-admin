@@ -689,7 +689,27 @@ function deleteSidebarItem() {
 
 async function addSidebarFolder() {
   sidebarContextVisible.value = false
-  editingItem.value = { title: '新建文件夹', icon: 'FolderOpened', type: 'folder' }
+  const contextItem = sidebarContextItem.value
+  let parentId = null
+  let sort
+  if (contextItem) {
+    // 在右键节点的同级后面插入
+    parentId = contextItem.parent_id
+    const siblings = disktopStore.items
+      .filter(i => i.parent_id === parentId)
+      .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+    const idx = siblings.findIndex(i => i.id === contextItem.id)
+    if (idx !== -1 && idx + 1 < siblings.length) {
+      sort = ((siblings[idx].sort || 0) + (siblings[idx + 1].sort || 0)) / 2
+    } else {
+      sort = (siblings[idx]?.sort || 0) + 1
+    }
+  } else {
+    // 空白区域右键 → 追加到根级末尾
+    const rootItems = disktopStore.rootItems
+    sort = rootItems.length > 0 ? (rootItems[rootItems.length - 1].sort || 0) + 1 : 0
+  }
+  editingItem.value = { title: '新建文件夹', icon: 'FolderOpened', type: 'folder', parent_id: parentId, sort }
   isNewItem.value = true
   editorVisible.value = true
 }
