@@ -387,8 +387,15 @@ function handleNativeDragOver(event) {
   }
   // 用 elementFromPoint 找到鼠标下方的菜单项（绕过 el-menu 事件拦截）
   const el = document.elementFromPoint(event.clientX, event.clientY)
-  // 只对 el-menu-item 响应 dragover，忽略 el-sub-menu（父级容器）
-  const itemEl = el?.closest('.el-menu-item')
+  // 优先匹配 el-menu-item，其次匹配 el-sub-menu（父节点）
+  let itemEl = el?.closest('.el-menu-item')
+  if (!itemEl) {
+    const subEl = el?.closest('.el-sub-menu')
+    if (subEl) {
+      // el-sub-menu 的标题区域是 .el-sub-menu__title
+      itemEl = subEl.querySelector('.el-sub-menu__title')
+    }
+  }
   if (!itemEl) return
   const targetId = Number(itemEl.dataset.itemId)
   if (!targetId) return
