@@ -183,15 +183,15 @@
       <div v-if="sidebarContextVisible" class="nexus-context-menu" :style="sidebarContextStyle" @click.stop>
         <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !sidebarContextHasItem }"
           @click="sidebarContextHasItem && editSidebarItem()">
-          <el-icon><Edit /></el-icon><span>编辑</span>
+          <el-icon><Edit /></el-icon><span>{{ t('common.edit') }}</span>
         </div>
         <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !sidebarContextHasItem }"
           @click="sidebarContextHasItem && deleteSidebarItem()">
-          <el-icon><Delete /></el-icon><span>删除</span>
+          <el-icon><Delete /></el-icon><span>{{ t('common.delete') }}</span>
         </div>
         <div class="nexus-context-divider" />
         <div class="nexus-context-item" @click="addSidebarFolder">
-          <el-icon><FolderAdd /></el-icon><span>新建项目</span>
+          <el-icon><FolderAdd /></el-icon><span>{{ t('startMenu.newProject') }}</span>
         </div>
       </div>
     </Teleport>
@@ -200,20 +200,20 @@
       <div v-if="tabContextVisible" class="nexus-context-menu" :style="tabContextStyle" @click.stop>
         <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !tabContextIsActive }"
           @click="tabContextIsActive && closeCurrentTab()">
-          <el-icon><Close /></el-icon><span>关闭</span>
+          <el-icon><Close /></el-icon><span>{{ t('tab.close') }}</span>
         </div>
         <div class="nexus-context-divider" />
         <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !tabContextIsActive }"
           @click="tabContextIsActive && closeOtherTabs()">
-          <el-icon><CircleClose /></el-icon><span>关闭其他</span>
+          <el-icon><CircleClose /></el-icon><span>{{ t('tab.closeOthers') }}</span>
         </div>
         <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !tabContextIsActive }"
           @click="tabContextIsActive && closeRightTabs()">
-          <el-icon><DArrowRight /></el-icon><span>关闭右侧标签页</span>
+          <el-icon><DArrowRight /></el-icon><span>{{ t('tab.closeRight') }}</span>
         </div>
         <div class="nexus-context-divider" />
         <div class="nexus-context-item" @click="closeAllTabs">
-          <el-icon><Close /></el-icon><span>关闭全部</span>
+          <el-icon><Close /></el-icon><span>{{ t('tab.closeAll') }}</span>
         </div>
       </div>
     </Teleport>
@@ -267,7 +267,7 @@ function onStartMenuOpenPage(item) {
 }
 
 async function onStartMenuAddItem(item) {
-  await disktopStore.addItem({ title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu' })
+  await disktopStore.addItem({ title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu', _copySuffix: ` ${t('startMenu.copy')}` })
 }
 
 // ==================== 侧边栏拖放 ====================
@@ -346,9 +346,10 @@ async function onSidebarDrop(event) {
       .sort((a, b) => (a.sort || 0) - (b.sort || 0))
     newSort = siblings.length > 0 ? (siblings[siblings.length - 1].sort || 0) + 1 : 0
   }
+  const copySuffix = ` ${t('startMenu.copy')}`
   const newItem = await disktopStore.addItem({
     title: item.title, icon: item.icon, component: item.component, path: item.path,
-    type: item.type || 'menu', parent_id: parentId, sort: newSort
+    type: item.type || 'menu', parent_id: parentId, sort: newSort, _copySuffix: copySuffix
   })
   // 如果有子节点，递归添加
   if (item.children?.length && newItem?.id) {
@@ -356,7 +357,7 @@ async function onSidebarDrop(event) {
       const child = item.children[i]
       await disktopStore.addItem({
         title: child.title, icon: child.icon, component: child.component, path: child.path,
-        type: child.type || 'menu', parent_id: newItem.id, sort: i
+        type: child.type || 'menu', parent_id: newItem.id, sort: i, _copySuffix: copySuffix
       })
     }
   }
@@ -542,16 +543,17 @@ function handleNativeDragEnd(event) {
  * 异步添加 StartMenu 拖拽的菜单项及其子节点
  */
 async function addStartMenuItemWithChildren(item, parentId, sort) {
+  const copySuffix = ` ${t('startMenu.copy')}`
   const newItem = await disktopStore.addItem({
     title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu',
-    parent_id: parentId, sort
+    parent_id: parentId, sort, _copySuffix: copySuffix
   })
   if (item.children?.length && newItem?.id) {
     for (let i = 0; i < item.children.length; i++) {
       const child = item.children[i]
       await disktopStore.addItem({
         title: child.title, icon: child.icon, component: child.component, path: child.path,
-        type: child.type || 'menu', parent_id: newItem.id, sort: i
+        type: child.type || 'menu', parent_id: newItem.id, sort: i, _copySuffix: copySuffix
       })
     }
   }
@@ -713,9 +715,10 @@ async function addSidebarFolder() {
     sort = rootItems.length > 0 ? (rootItems[rootItems.length - 1].sort || 0) + 1 : 0
   }
   // 计算同级未命名的序号
+  const unnamed = t('startMenu.unnamed')
   const siblings = disktopStore.items.filter(i => i.parent_id === parentId)
-  const unnamedCount = siblings.filter(i => i.title?.startsWith('未命名')).length
-  const title = unnamedCount === 0 ? '未命名' : `未命名 ${unnamedCount + 1}`
+  const unnamedCount = siblings.filter(i => i.title?.startsWith(unnamed)).length
+  const title = unnamedCount === 0 ? unnamed : `${unnamed} ${unnamedCount + 1}`
   editingItem.value = { title, icon: 'FolderOpened', type: 'folder', parent_id: parentId, sort }
   isNewItem.value = true
   editorVisible.value = true

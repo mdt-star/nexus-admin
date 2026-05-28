@@ -208,8 +208,17 @@ const cn = {
     logout: '退出登录',
     profile: '个人信息'
   },
+  tab: {
+    close: '关闭',
+    closeOthers: '关闭其他',
+    closeRight: '关闭右侧标签页',
+    closeAll: '关闭全部'
+  },
   startMenu: {
-    dragHint: '可以拖动菜单到桌面或侧边栏'
+    dragHint: '可以拖动菜单到桌面或侧边栏',
+    newProject: '新建项目',
+    unnamed: '未命名',
+    copy: '副本'
   },
   preferences: {
     title: '偏好设置',
@@ -339,8 +348,17 @@ const en = {
     logout: 'Logout',
     profile: 'Profile'
   },
+  tab: {
+    close: 'Close',
+    closeOthers: 'Close Others',
+    closeRight: 'Close Right Tabs',
+    closeAll: 'Close All'
+  },
   startMenu: {
-    dragHint: 'Drag menus to desktop or sidebar'
+    dragHint: 'Drag menus to desktop or sidebar',
+    newProject: 'New Project',
+    unnamed: 'Untitled',
+    copy: 'Copy'
   },
   preferences: {
     title: 'Preferences',

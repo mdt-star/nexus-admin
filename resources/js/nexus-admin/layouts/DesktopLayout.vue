@@ -94,10 +94,10 @@
 
     <Teleport to="body">
       <div v-if="ctxVisible" class="nexus-ctx" :style="ctxStyle" @click.stop>
-        <div class="nexus-ctx-item" @click="editItem(ctxItem)"><el-icon><Edit /></el-icon>编辑</div>
-        <div class="nexus-ctx-item" @click="deleteItem(ctxItem)"><el-icon><Delete /></el-icon>删除</div>
+        <div class="nexus-ctx-item" @click="editItem(ctxItem)"><el-icon><Edit /></el-icon>{{ t('common.edit') }}</div>
+        <div class="nexus-ctx-item" @click="deleteItem(ctxItem)"><el-icon><Delete /></el-icon>{{ t('common.delete') }}</div>
         <div class="nexus-ctx-divider" />
-        <div class="nexus-ctx-item" @click="addFolder"><el-icon><FolderAdd /></el-icon>新建文件夹</div>
+        <div class="nexus-ctx-item" @click="addFolder"><el-icon><FolderAdd /></el-icon>{{ t('startMenu.newProject') }}</div>
       </div>
     </Teleport>
   </div>

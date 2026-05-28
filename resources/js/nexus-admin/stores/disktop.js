@@ -105,24 +105,26 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
    * @param {object} data - { title, icon, component, path, type, parent_id, custom }
    */
   /**
-   * 同级同名项自动加"副本"后缀并编序
+   * 同级同名项自动加副本后缀并编序
    * @param {string} title
    * @param {number|null} parentId
+   * @param {string} [copySuffix] - 副本后缀，默认 ' 副本'
    * @returns {string}
    */
-  function deduplicateTitle(title, parentId) {
+  function deduplicateTitle(title, parentId, copySuffix = ' 副本') {
     const siblings = items.value.filter(i => i.parent_id === parentId)
     // 精确匹配同名
     const sameName = siblings.filter(i => i.title === title)
     if (sameName.length === 0) return title
     // 已有同名，计算当前 title 的副本序号
-    const copyPattern = new RegExp(`^${escapeRegex(title)}\\s+副本(\\d+)?$`)
+    const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const copyPattern = new RegExp(`^${escaped}${escapeRegex(copySuffix)}(\\d+)?$`)
     const copies = siblings.filter(i => copyPattern.test(i.title))
     const maxNum = copies.reduce((max, i) => {
       const m = i.title.match(copyPattern)
       return m ? Math.max(max, parseInt(m[1] || '1', 10)) : max
     }, 0)
-    return maxNum === 0 ? `${title} 副本` : `${title} 副本${maxNum + 1}`
+    return maxNum === 0 ? `${title}${copySuffix}` : `${title}${copySuffix}${maxNum + 1}`
   }
 
   function escapeRegex(str) {
@@ -131,7 +133,8 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
 
   async function addItem(data) {
     // 同级同名自动重命名
-    const title = deduplicateTitle(data.title || '未命名', data.parent_id ?? null)
+    const copySuffix = data._copySuffix || ' 副本'
+    const title = deduplicateTitle(data.title || '未命名', data.parent_id ?? null, copySuffix)
     const dedupedData = { ...data, title }
     try {
       const { createDisktopItem } = await import('../services/api')
