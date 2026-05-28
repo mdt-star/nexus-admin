@@ -344,11 +344,14 @@ async function onDragEnd(event, targetItem) {
     .forEach(el => el.classList.remove('nexus-dragging', 'nexus-drag-before', 'nexus-drag-after'))
 
   const source = dragItem.value
-  // 通过 elementFromPoint 找到鼠标下方的实际元素，绕过 el-menu 事件拦截
-  const el = document.elementFromPoint(event.clientX, event.clientY)
-  const itemEl = el?.closest('[data-item-id]')
-  const targetId = itemEl ? Number(itemEl.dataset.itemId) : null
-  const target = targetId ? disktopStore.items.find(i => i.id === targetId) : null
+  // 优先使用 dragover 时记录的目标，否则用 elementFromPoint 查找
+  let target = dragTarget.value
+  if (!target) {
+    const el = document.elementFromPoint(event.clientX, event.clientY)
+    const itemEl = el?.closest('[data-item-id]')
+    const targetId = itemEl ? Number(itemEl.dataset.itemId) : null
+    target = targetId ? disktopStore.items.find(i => i.id === targetId) : null
+  }
 
   dragItem.value = null
   dragTarget.value = null
