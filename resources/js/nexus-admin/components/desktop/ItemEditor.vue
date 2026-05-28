@@ -1,7 +1,7 @@
 <template>
   <el-dialog :model-value="visible" :title="isNew ? '添加项' : '编辑项'" width="360px" :close-on-click-modal="false"
     :draggable="true" @close="close" @open="onOpen">
-    <el-form :model="form" label-position="top" size="small">
+    <el-form :model="form" label-position="top">
       <el-form-item label="标题">
         <el-input v-model="form.title" placeholder="输入标题" />
       </el-form-item>
@@ -45,8 +45,8 @@
     </el-form>
 
     <template #footer>
-      <el-button size="small" @click="close">取消</el-button>
-      <el-button size="small" type="primary" @click="save">保存</el-button>
+      <el-button @click="close">取消</el-button>
+      <el-button type="primary" @click="save">保存</el-button>
     </template>
   </el-dialog>
 </template>
