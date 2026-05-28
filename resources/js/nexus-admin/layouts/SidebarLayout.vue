@@ -26,14 +26,14 @@
       </div>
       <div class="nexus-sidebar-menu-container">
         <el-menu :default-active="menuActiveId" class="nexus-sidebar-menu" :collapse="appStore.sidebarCollapsed"
-          :collapse-transition="false" @contextmenu.prevent="openSidebarContextMenu($event, null)" @select="handleMenuSelect">
+          :collapse-transition="false" @contextmenu.prevent="openSidebarContextMenu($event, null)" @select="handleMenuSelect"
+          @dragover.prevent="onMenuDragOver"
+          @dragend="onMenuDragEnd">
           <template v-for="item in disktopStore.treeItems" :key="item.id">
             <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)"
               :data-folder-id="item.type === 'folder' ? item.id : ''" :data-item-id="item.id"
               draggable="true"
               @dragstart="onDragStart($event, item)"
-              @dragover.prevent="onDragOver($event, item)"
-              @dragend="onDragEnd($event, item)"
               @contextmenu.prevent.stop="openSidebarContextMenu($event, item)">
               <template #title>
                 <el-icon v-if="item.icon">
@@ -44,9 +44,7 @@
               <el-menu-item v-for="child in item.children" :key="child.id" :index="String(child.id)"
                 :data-folder-id="child.type === 'folder' ? child.id : ''" :data-item-id="child.id"
                 draggable="true"
-                @dragstart="onDragStart($event, child)"
-                @dragover.prevent="onDragOver($event, child)"
-                @dragend="onDragEnd($event, child)">
+                @dragstart="onDragStart($event, child)">
                 <el-icon v-if="child.icon">
                   <component :is="getIconComponent(child.icon)" />
                 </el-icon>
@@ -57,9 +55,7 @@
             </el-sub-menu>
             <el-menu-item v-else :index="String(item.id)" :data-folder-id="item.type === 'folder' ? item.id : ''"
               :data-item-id="item.id" draggable="true"
-              @dragstart="onDragStart($event, item)"
-              @dragover.prevent="onDragOver($event, item)"
-              @dragend="onDragEnd($event, item)">
+              @dragstart="onDragStart($event, item)">
               <el-icon v-if="item.icon">
                 <component :is="getIconComponent(item.icon)" />
               </el-icon>
@@ -326,33 +322,35 @@ function onDragStart(event, item) {
   event.target.classList.add('nexus-dragging')
 }
 
-function onDragOver(event, item) {
-  if (!dragItem.value || dragItem.value.id === item.id) return
+function onMenuDragOver(event) {
+  if (!dragItem.value) return
   event.dataTransfer.dropEffect = 'move'
-  dragTarget.value = item
-  const target = event.currentTarget
-  const rect = target.getBoundingClientRect()
+  // 用 elementFromPoint 找到鼠标下方的菜单项（绕过 el-menu 事件拦截）
+  const el = document.elementFromPoint(event.clientX, event.clientY)
+  const itemEl = el?.closest('[data-item-id]')
+  if (!itemEl) return
+  const targetId = Number(itemEl.dataset.itemId)
+  if (targetId === dragItem.value.id) return
+  const target = disktopStore.items.find(i => i.id === targetId)
+  if (!target) return
+  dragTarget.value = target
+  const rect = itemEl.getBoundingClientRect()
   const y = event.clientY - rect.top
   dragInsertAfter.value = y >= rect.height / 2
-  target.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
-  target.classList.toggle('nexus-drag-after', dragInsertAfter.value)
+  // 清除其他高亮
+  document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
+    .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
+  itemEl.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
+  itemEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
 }
 
-async function onDragEnd(event, targetItem) {
+function onMenuDragEnd(event) {
   // 清除样式
   document.querySelectorAll('.nexus-dragging, .nexus-drag-before, .nexus-drag-after')
     .forEach(el => el.classList.remove('nexus-dragging', 'nexus-drag-before', 'nexus-drag-after'))
 
   const source = dragItem.value
-  // 优先使用 dragover 时记录的目标，否则用 elementFromPoint 查找
-  let target = dragTarget.value
-  if (!target) {
-    const el = document.elementFromPoint(event.clientX, event.clientY)
-    const itemEl = el?.closest('[data-item-id]')
-    const targetId = itemEl ? Number(itemEl.dataset.itemId) : null
-    target = targetId ? disktopStore.items.find(i => i.id === targetId) : null
-  }
-
+  const target = dragTarget.value
   dragItem.value = null
   dragTarget.value = null
 
@@ -384,7 +382,7 @@ async function onDragEnd(event, targetItem) {
     }
   }
 
-  await disktopStore.reorderItem(source.id, newSort)
+  disktopStore.reorderItem(source.id, newSort)
 }
 
 // 顶部背景色
