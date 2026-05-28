@@ -311,7 +311,7 @@ async function onSidebarDrop(event) {
   const parentId = folderEl ? Number(folderEl.dataset.folderId) || null : null
   let newSort
   if (itemEl) {
-    // 拖到某个菜单项上 → 插入到该项的前面或后面
+    // 拖到某个菜单项上 → 插入到该项的后面
     const targetId = Number(itemEl.dataset.itemId)
     const target = disktopStore.items.find(i => i.id === targetId)
     if (target) {
@@ -320,21 +320,10 @@ async function onSidebarDrop(event) {
         .sort((a, b) => (a.sort || 0) - (b.sort || 0))
       const targetIdx = siblings.findIndex(i => i.id === target.id)
       if (targetIdx !== -1) {
-        const rect = itemEl.getBoundingClientRect()
-        const y = event.clientY - rect.top
-        const insertAfter = y >= rect.height / 2
-        if (insertAfter) {
-          if (targetIdx + 1 < siblings.length) {
-            newSort = ((siblings[targetIdx].sort || 0) + (siblings[targetIdx + 1].sort || 0)) / 2
-          } else {
-            newSort = (siblings[targetIdx].sort || 0) + 1
-          }
+        if (targetIdx + 1 < siblings.length) {
+          newSort = ((siblings[targetIdx].sort || 0) + (siblings[targetIdx + 1].sort || 0)) / 2
         } else {
-          if (targetIdx > 0) {
-            newSort = ((siblings[targetIdx - 1].sort || 0) + (siblings[targetIdx].sort || 0)) / 2
-          } else {
-            newSort = (siblings[0].sort || 0) - 1
-          }
+          newSort = (siblings[targetIdx].sort || 0) + 1
         }
       }
     }
