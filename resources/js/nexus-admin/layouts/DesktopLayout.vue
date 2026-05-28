@@ -1,23 +1,16 @@
 <template>
   <div class="nexus-desktop-layout">
-    <!-- 顶部栏 -->
     <header class="nexus-header">
       <div class="nexus-header-left">
+        <el-tooltip content="开始菜单" placement="bottom">
+          <el-button class="nexus-start-btn" :icon="TrendCharts" circle @click="toggleStartMenu" />
+        </el-tooltip>
         <span class="nexus-header-title">{{ appName }}</span>
-        <!-- 全局搜索 -->
         <GlobalSearch />
       </div>
-      <div class="nexus-header-center">
-        <!-- 桌面图标区域 -->
-      </div>
-
       <div class="nexus-header-right">
-        <!-- 通知铃铛 -->
         <NotificationBell />
-
-        <!-- 主题切换 + 布局切换（零间距分组） -->
         <div style="display: flex; align-items: center; gap: 0;">
-
           <el-tooltip :content="t('theme.toggle')" placement="bottom">
             <el-button :icon="themeStore.theme === 'dark' ? 'Sunny' : 'Moon'" circle @click="themeStore.toggleTheme()" />
           </el-tooltip>
@@ -25,27 +18,18 @@
             <el-button icon="Grid" circle @click="appStore.toggleLayout()" />
           </el-tooltip>
         </div>
-
-        <!-- 尺寸切换 -->
-        <el-dropdown @command="(val) => uiSizeStore.setSize(val)">
-          <el-button>
-            <span style="font-size:13px;font-weight:600">{{ uiSizeStore.size.charAt(0).toUpperCase() }}</span>
-          </el-button>
+        <el-dropdown @command="(val) => sizeStore.setSize(val)">
+          <el-button><span style="font-size:13px;font-weight:600">{{ sizeStore.size.charAt(0).toUpperCase() }}</span></el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="small" :class="{ 'is-active': uiSizeStore.size === 'small' }">S - Small</el-dropdown-item>
-              <el-dropdown-item command="medium" :class="{ 'is-active': uiSizeStore.size === 'medium' }">M - Medium</el-dropdown-item>
-              <el-dropdown-item command="large" :class="{ 'is-active': uiSizeStore.size === 'large' }">L - Large</el-dropdown-item>
+              <el-dropdown-item command="small">S - Small</el-dropdown-item>
+              <el-dropdown-item command="medium">M - Medium</el-dropdown-item>
+              <el-dropdown-item command="large">L - Large</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-
-        <!-- 语言切换 -->
         <el-dropdown @command="handleLocaleChange">
-          <el-button>
-            <globe-icon style="vertical-align: middle;" /> {{ localeDisplay }}
-            <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-          </el-button>
+          <el-button><globe-icon style="vertical-align: middle;" /> {{ lang }}</el-button>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="zh-CN">中文</el-dropdown-item>
@@ -53,250 +37,190 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-
-        <!-- 用户菜单 -->
         <el-dropdown @command="handleUserCommand" v-if="userStore.isLoggedIn">
-          <el-button class="nexus-user-btn" style=" padding-right: 0 !important;">
-            <el-avatar
-              :size="22"
-              :src="userStore.user?.avatar || ''"
-              class="nexus-user-avatar"
-            >{{ userInitial }}</el-avatar>
-            <span style="margin-left: 4px;">{{ userStore.user?.nickname }}</span>
+          <el-button class="nexus-user-btn">
+            <el-avatar :size="22" :src="userStore.user?.avatar || ''">{{ userInitial }}</el-avatar>
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="profile">
-                <el-icon><InfoFilled /></el-icon>
-                {{ t('login.profile') }}
-              </el-dropdown-item>
-              <el-dropdown-item divided command="logout">
-                <el-icon><SwitchButton /></el-icon>
-                {{ t('login.logout') }}
-              </el-dropdown-item>
+              <el-dropdown-item command="profile">{{ t('login.profile') }}</el-dropdown-item>
+              <el-dropdown-item divided command="logout">{{ t('login.logout') }}</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </div>
     </header>
 
-    <!-- 桌面区域 -->
-    <main class="nexus-desktop">
-      <!-- 桌面图标网格 -->
+    <main class="nexus-desktop" @dragover.prevent="onDragOver" @drop.prevent="onDrop">
       <div class="nexus-desktop-icons">
         <div
-          v-for="item in menuStore.desktopItems"
-          :key="item.id"
+          v-for="item in disktopStore.rootItems" :key="item.id"
           class="nexus-desktop-icon"
+          :data-folder-id="item.type === 'folder' ? item.id : ''"
           @click="handleItemClick(item)"
+          @contextmenu.prevent="openContextMenu($event, item)"
         >
-          <div
-            class="nexus-desktop-icon-img"
-            :class="{ 'nexus-desktop-icon-img-folder': item.isFolder }"
-          >
-            <el-icon :size="item.isFolder ? 28 : 32">
-              <component :is="item.isFolder ? 'FolderOpened' : getIconComponent(item.icon)" />
-            </el-icon>
+          <div class="nexus-desktop-icon-img">
+            <el-icon :size="28"><component :is="item.type === 'folder' ? 'FolderOpened' : getIconComponent(item.icon)" /></el-icon>
           </div>
           <span class="nexus-desktop-icon-label">{{ item.title }}</span>
         </div>
-      </div>
-
-      <!-- 窗口容器 -->
-      <div class="nexus-desktop-windows">
-        <div
-          v-for="(win, index) in windowStore.items"
-          :key="win.id"
-          class="nexus-window"
-          :class="{ 'nexus-window-active': win.id === windowStore.activeId }"
-          :style="getWindowStyle(win.id, index)"
-          @mousedown="onWindowMouseDown(win.id)"
-        >
-          <!-- 窗口标题栏 -->
-          <div
-            class="nexus-window-header"
-            @mousedown.prevent="startDrag($event, win.id)"
-          >
-            <span class="nexus-window-title">
-              <el-icon v-if="win.icon" size="14">
-                <component :is="getIconComponent(win.icon)" />
-              </el-icon>
-              {{ win.title }}
-            </span>
-            <div class="nexus-window-actions">
-              <el-button
-                icon="Close"
-                circle
-                text
-                @click="windowStore.close(win.id)"
-              />
-            </div>
-          </div>
-
-          <!-- 窗口内容 -->
-          <div class="nexus-window-body">
-            <component
-              :is="getPageComponent(win.component)"
-              v-bind="win || {}"
-              @open="(child) => windowStore.open(child)"
-            />
-          </div>
+        <div v-if="disktopStore.rootItems.length === 0" class="nexus-desktop-empty">
+          <el-empty description="从开始菜单拖拽或点击添加桌面项" :image-size="80" />
         </div>
       </div>
 
-      <!-- iOS 风格文件夹弹出层 -->
-      <FolderView
-        v-if="currentFolder"
-        :folder="currentFolder"
-        @open="(child) => windowStore.open(child)"
-        @close="closeFolder"
-      />
+      <div class="nexus-desktop-windows">
+        <div v-for="(win, idx) in windowStore.items" :key="win.id" class="nexus-window" :class="{ active: win.id === windowStore.activeId }" :style="winStyle(win.id, idx)" @mousedown="windowStore.activate(win.id)">
+          <div class="nexus-window-header" @mousedown.prevent="startDrag($event, win.id)">
+            <span class="nexus-window-title">{{ win.title }}</span>
+            <el-button icon="Close" circle text @click.stop="windowStore.close(win.id)" />
+          </div>
+          <div class="nexus-window-body"><component :is="getPage(win.component)" /></div>
+        </div>
+      </div>
+
+      <FolderView v-if="currentFolder" :folder="currentFolder" @open="(c) => windowStore.open(c)" @close="currentFolder = null" />
     </main>
 
-    <!-- 底部栏 -->
-    <footer class="nexus-footer">
-      <span>{{ footerText }}</span>
-    </footer>
+    <footer class="nexus-footer">{{ footerText }}</footer>
+
+    <StartMenu :visible="menuVisible" @close="menuVisible = false" @open-page="onMenuOpen" @add-item="onMenuAdd" />
+    <ItemEditor :visible="editorVisible" :item="editingItem" :is-new="isNewItem" :position="editorPos" @close="editorVisible = false" @save="onEditorSave" />
+
+    <Teleport to="body">
+      <div v-if="ctxVisible" class="nexus-ctx" :style="ctxStyle" @click.stop>
+        <div class="nexus-ctx-item" @click="editItem(ctxItem)"><el-icon><Edit /></el-icon>编辑</div>
+        <div class="nexus-ctx-item" @click="deleteItem(ctxItem)"><el-icon><Delete /></el-icon>删除</div>
+        <div class="nexus-ctx-divider" />
+        <div class="nexus-ctx-item" @click="addFolder"><el-icon><FolderAdd /></el-icon>新建文件夹</div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useAppStore } from '../stores/app'
 import { useMenuStore } from '../stores/menu'
+import { useDisktopStore } from '../stores/disktop'
 import { useWindowStore } from '../stores/windows'
 import { useThemeStore } from '../stores/theme'
 import { useI18nStore } from '../stores/i18n'
 import { useConfigStore } from '../stores/config'
-import hookManager from '../utils/hook-manager'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import { useUserStore } from '../stores/user'
+import { useUiSizeStore } from '../stores/size'
+import * as Icons from '@element-plus/icons-vue'
 import GlobeIcon from '../components/GlobeIcon.vue'
 import NotificationBell from '../components/common/NotificationBell.vue'
 import GlobalSearch from '../components/common/GlobalSearch.vue'
 import { useWindowDrag } from '../composables/useWindowDrag'
-
-
-import { useUserStore } from '../stores/user'
-import { useUiSizeStore } from '../stores/size'
 import FolderView from '../components/desktop/FolderView.vue'
+import StartMenu from '../components/desktop/StartMenu.vue'
+import ItemEditor from '../components/desktop/ItemEditor.vue'
+import { TrendCharts, Edit, Delete, FolderAdd } from '@element-plus/icons-vue'
 
 const appStore = useAppStore()
 const menuStore = useMenuStore()
+const disktopStore = useDisktopStore()
 const windowStore = useWindowStore()
 const themeStore = useThemeStore()
-const i18nStore = useI18nStore()
-const configStore = useConfigStore()
+const i18n = useI18nStore()
+const config = useConfigStore()
 const userStore = useUserStore()
-const uiSizeStore = useUiSizeStore()
-
-const { t } = i18nStore
-
-const appName = computed(() => configStore.get('appName', 'Nexus Admin'))
-const footerText = computed(() => configStore.get('footer', ''))
-const currentLocale = computed(() => i18nStore.locale)
-
-const localeDisplay = computed(() => {
-  const map = { 'zh-CN': '中文', 'en': 'English' }
-  return map[currentLocale.value] || currentLocale.value
-})
-
-const userInitial = computed(() => {
-  if (!userStore.user?.nickname) return 'U'
-  return userStore.user.nickname.charAt(0)
-})
+const sizeStore = useUiSizeStore()
+const { t } = i18n
+const appName = computed(() => config.get('appName', 'Nexus Admin'))
+const footerText = computed(() => config.get('footer', ''))
+const lang = computed(() => ({ 'zh-CN': '中文', 'en': 'English' })[i18n.locale] || i18n.locale)
+const userInitial = computed(() => (userStore.user?.nickname || 'U').charAt(0))
 
 const { getWindowRect, startDrag } = useWindowDrag()
-const pageCache = {}
+const cache = {}
 const currentFolder = ref(null)
+const menuVisible = ref(false)
+const editorVisible = ref(false)
+const editingItem = ref(null)
+const isNewItem = ref(false)
+const editorPos = ref({ x: 0, y: 0 })
+const ctxVisible = ref(false)
+const ctxItem = ref(null)
+const ctxStyle = ref({})
 
-function getIconComponent(iconName) {
-  if (!iconName) return null
-  return ElementPlusIconsVue[iconName] || null
-}
+onMounted(async () => {
+  if (!disktopStore.loaded) await disktopStore.loadDisktops()
+  if (disktopStore.activeDisktopId) await disktopStore.loadItems()
+  document.addEventListener('click', () => ctxVisible.value = false)
+})
 
-function getPageComponent(componentName) {
-  if (!componentName) return null
-  if (pageCache[componentName]) return pageCache[componentName]
-  const pages = window.__NEXUS_ADMIN_PAGES__ || {}
-  const component = pages[componentName]
-  if (component) {
-    pageCache[componentName] = component
-    return component
-  }
-  return null
-}
-
-function getWindowStyle(windowId, index) {
-  const rect = getWindowRect(windowId, index)
-  const zIndex = windowId === windowStore.activeId ? 100 : (10 + index)
-  return {
-    left: `${rect.left}px`,
-    top: `${rect.top}px`,
-    width: `${rect.width}px`,
-    height: `${rect.height}px`,
-    zIndex
-  }
-}
-
-function onWindowMouseDown(windowId) {
-  windowStore.activate(windowId)
+function getIconComponent(n) { return n ? Icons[n] || null : null }
+function getPage(name) { return cache[name] || (cache[name] = (window.__NEXUS_ADMIN_PAGES__ || {})[name] || null) }
+function winStyle(id, idx) {
+  const r = getWindowRect(id, idx)
+  return { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', zIndex: id === windowStore.activeId ? 100 : 10 + idx }
 }
 
 function handleItemClick(item) {
-  if (item.isFolder) {
-    openFolder(item)
-  } else {
-    windowStore.open(item)
-  }
+  if (item.type === 'folder') currentFolder.value = { ...item, children: disktopStore.getChildren(item.id) }
+  else if (item.component) windowStore.open(item)
+}
+function toggleStartMenu() { menuVisible.value = !menuVisible.value }
+function onMenuOpen(item) { windowStore.open(item) }
+function onMenuAdd(item) { disktopStore.addItem({ ...item, type: 'menu' }) }
+
+function onDragOver(e) { e.dataTransfer.dropEffect = 'copy' }
+async function onDrop(e) {
+  const data = e.dataTransfer.getData('application/json')
+  if (!data) return
+  try {
+    const item = JSON.parse(data)
+    const el = document.elementFromPoint(e.clientX, e.clientY)
+    const folder = el?.closest('[data-folder-id]')
+    await disktopStore.addItem({ title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu', parent_id: folder ? Number(folder.dataset.folderId) || null : null })
+  } catch (ex) { console.warn('drop fail', ex) }
 }
 
-function openFolder(folder) {
-  currentFolder.value = folder
+function openContextMenu(e, item) { ctxVisible.value = true; ctxItem.value = item; ctxStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' } }
+function editItem(item) { ctxVisible.value = false; editingItem.value = item; isNewItem.value = false; editorPos.value = { x: 200, y: 100 }; editorVisible.value = true }
+function deleteItem(item) { ctxVisible.value = false; disktopStore.removeItem(item.id) }
+async function addFolder() {
+  ctxVisible.value = false
+  const item = await disktopStore.addItem({ title: '新建文件夹', icon: 'FolderOpened', type: 'folder' })
+  editingItem.value = item; isNewItem.value = false; editorPos.value = { x: 200, y: 100 }; editorVisible.value = true
+}
+async function onEditorSave(data) {
+  if (isNewItem.value) await disktopStore.addItem(data)
+  else if (editingItem.value) await disktopStore.updateItem(editingItem.value.id, data)
 }
 
-function closeFolder() {
-  currentFolder.value = null
-}
-
-function handleLocaleChange(locale) {
-  i18nStore.setLocale(locale)
-}
-
-function handleUserCommand(command) {
-  if (command === 'logout') {
-    userStore.logout()
-  }
-}
+function handleLocaleChange(loc) { i18n.setLocale(loc) }
+function handleUserCommand(cmd) { if (cmd === 'logout') userStore.logout() }
 </script>
 
 <style scoped>
-.nexus-desktop-layout { display: flex; flex-direction: column; height: 100vh; background-color: var(--nexus-bg-color); }
-.nexus-header { display: flex; align-items: center; justify-content: space-between; height: var(--nexus-header-height); padding: 0 16px; background-color: var(--nexus-bg-color-light); border-bottom: 1px solid var(--nexus-border-color); z-index: 100; }
+.nexus-desktop-layout { display: flex; flex-direction: column; height: 100vh; background: var(--nexus-bg-color); }
+.nexus-header { display: flex; align-items: center; justify-content: space-between; height: var(--nexus-header-height); padding: 0 16px; background: var(--nexus-bg-color-light); border-bottom: 1px solid var(--nexus-border-color); z-index: 100; }
+.nexus-header-left, .nexus-header-right { display: flex; align-items: center; gap: 8px; }
 .nexus-header-title { font-size: var(--nexus-font-size-lg); font-weight: 600; }
-.nexus-header-left { display: flex; align-items: center; gap: 8px; }
-.nexus-header-right { display: flex; align-items: center; gap: 4px; }
-
-.nexus-header-right :deep(.el-button) { border: none; background-color: transparent; color: var(--nexus-text-color-secondary); transition: all 0.25s ease; }
-.nexus-header-right :deep(.el-button:hover) { background-color: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
-.nexus-header-right :deep(.el-button.is-disabled), .nexus-header-right :deep(.el-button.is-disabled:hover) { background-color: transparent; color: var(--nexus-text-color-placeholder); }
-[data-theme="dark"] .nexus-header-right :deep(.el-button:hover) { background-color: rgba(255, 255, 255, 0.08); }
-
-.nexus-desktop { flex: 1; position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; }
-.nexus-desktop-icons { display: grid; grid-template-columns: repeat(auto-fill, 80px); gap: 16px; padding: 24px; justify-content: center; align-content: start; }
-.nexus-desktop-icon { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 8px; cursor: pointer; border-radius: var(--nexus-border-radius); transition: background-color 0.2s; user-select: none; }
-.nexus-desktop-icon:hover { background-color: var(--nexus-bg-color-dark); }
-.nexus-desktop-icon-img { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background-color: var(--nexus-bg-color-light); border-radius: 12px; box-shadow: var(--nexus-box-shadow); transition: all 0.2s; }
-.nexus-desktop-icon-img :deep(.el-icon) { font-size: 32px !important; }
-[data-ui-size="small"] .nexus-desktop-icon-img { width: 40px; height: 40px; }
-[data-ui-size="small"] .nexus-desktop-icon-img :deep(.el-icon) { font-size: 24px !important; }
-[data-ui-size="large"] .nexus-desktop-icon-img { width: 56px; height: 56px; }
-[data-ui-size="large"] .nexus-desktop-icon-img :deep(.el-icon) { font-size: 36px !important; }
-.nexus-desktop-icon-label { font-size: var(--nexus-font-size-sm); text-align: center; word-break: break-all; line-height: 1.3; }
-.nexus-desktop-windows { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-.nexus-window { position: absolute; background-color: var(--nexus-bg-color-light); border-radius: 8px; box-shadow: var(--nexus-box-shadow); display: flex; flex-direction: column; pointer-events: auto; overflow: hidden; transition: box-shadow 0.2s; }
-.nexus-window-active { z-index: 100; box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.15); }
-.nexus-window-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background-color: var(--nexus-bg-color); border-bottom: 1px solid var(--nexus-border-color); cursor: move; }
-.nexus-window-title { display: flex; align-items: center; gap: 6px; font-size: var(--nexus-font-size-base); font-weight: 500; }
+.nexus-start-btn { border: none; background: transparent; color: var(--nexus-text-color-secondary); }
+.nexus-start-btn:hover { background: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
+.nexus-header-right :deep(.el-button) { border: none; background: transparent; color: var(--nexus-text-color-secondary); }
+.nexus-header-right :deep(.el-button:hover) { background: var(--nexus-bg-color-dark); color: var(--nexus-primary-color); }
+.nexus-desktop { flex: 1; position: relative; overflow: hidden; }
+.nexus-desktop-icons { display: grid; grid-template-columns: repeat(auto-fill, 80px); gap: 16px; padding: 24px; justify-content: center; }
+.nexus-desktop-icon { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 8px; cursor: pointer; border-radius: 8px; }
+.nexus-desktop-icon:hover { background: var(--nexus-bg-color-dark); }
+.nexus-desktop-icon-img { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--nexus-bg-color-light); border-radius: 12px; box-shadow: var(--nexus-box-shadow); }
+.nexus-desktop-icon-label { font-size: var(--nexus-font-size-sm); text-align: center; word-break: break-all; }
+.nexus-desktop-empty { grid-column: 1 / -1; display: flex; justify-content: center; padding: 60px 0; }
+.nexus-desktop-windows { position: absolute; inset: 0; pointer-events: none; }
+.nexus-window { position: absolute; background: var(--nexus-bg-color-light); border-radius: 8px; box-shadow: var(--nexus-box-shadow); display: flex; flex-direction: column; pointer-events: auto; overflow: hidden; }
+.nexus-window-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--nexus-bg-color); border-bottom: 1px solid var(--nexus-border-color); cursor: move; }
+.nexus-window-title { font-size: var(--nexus-font-size-base); font-weight: 500; }
 .nexus-window-body { flex: 1; overflow: auto; padding: 16px; }
-.nexus-footer { display: flex; align-items: center; justify-content: center; height: var(--nexus-footer-height); font-size: var(--nexus-font-size-sm); color: var(--nexus-text-color-secondary); background-color: var(--nexus-bg-color-light); border-top: 1px solid var(--nexus-border-color); }
+.nexus-footer { display: flex; align-items: center; justify-content: center; height: var(--nexus-footer-height); font-size: var(--nexus-font-size-sm); color: var(--nexus-text-color-secondary); background: var(--nexus-bg-color-light); border-top: 1px solid var(--nexus-border-color); }
+.nexus-ctx { position: fixed; z-index: 5000; background: var(--nexus-bg-color-light); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 1px solid var(--nexus-border-color); padding: 4px; min-width: 140px; }
+.nexus-ctx-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; border-radius: 6px; font-size: 13px; }
+.nexus-ctx-item:hover { background: var(--nexus-bg-color-dark); }
+.nexus-ctx-divider { height: 1px; background: var(--nexus-border-color); margin: 4px 8px; }
 </style>

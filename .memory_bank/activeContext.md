@@ -1,20 +1,28 @@
 # 当前活动上下文
 
 ## 当前状态
-示例扩展包（nexus-demo）已补充完整的业务页面，包括文章管理、分类管理、用户管理、角色管理、系统配置。
+实现了完整的桌面自定义系统（Disktop），用户可以通过开始菜单拖拽/点击添加桌面项，支持右键编辑、删除、新建文件夹，桌面图标和侧边栏菜单均来自用户自定义的 disktop_items。
 
 ## 最近变更
-- 顶部图标按钮主题融合优化（DesktopLayout.vue、SidebarLayout.vue）
-- Tab 栏视觉重构（SidebarLayout.vue）- 去留白、分隔线、激活下划线指示器
-- 窗口拖拽功能实现（composables/useWindowDrag.js + DesktopLayout.vue）
-- 移动端适配优化（MainLayout.vue）：
-  - 屏幕宽度 < 768px 自动检测，强制切换为 sidebar 布局
-  - 新增移动端专属顶部导航栏（菜单折叠按钮 + 标题 + 主题切换）
-  - 侧边栏改为 fixed 定位 + transform 滑入/滑出
-  - 桌面布局的 header 在移动端隐藏
-  - 桌面图标缩小（网格 64px、图标 40px、字号 10px）
-  - 窗口尺寸自适应（宽度 92%、高度 85%）
-  - 内容区 padding 缩小，底部栏隐藏
+- **侧边栏拖放功能**（SidebarLayout.vue）：侧边栏 `<aside>` 新增 `@dragenter`/`@dragover`/`@dragleave`/`@drop` 事件处理
+  - 从开始菜单拖拽菜单项时，侧边栏自动高亮显示拖放区域（虚线边框 + 脉冲动画提示）
+  - 使用 `dragEnterCounter` 计数器避免子元素进出导致闪烁
+  - 拖放成功后调用 `disktopStore.addItem()` 添加到自定义菜单
+  - 新增 CSS：`.nexus-sidebar-dragover` 高亮状态、`.nexus-sidebar-drop-overlay` 覆盖层、`nexus-drop-pulse` 脉冲动画
+
+- **拖放目标定位与层级嵌套**（StartMenu.vue, DesktopLayout.vue, SidebarLayout.vue）
+  - StartMenu.vue：拖拽开始时 overlay 添加 `pointer-events: none` 确保拖放事件穿透
+  - DesktopLayout.vue：每个桌面图标新增 `@dragover/@dragleave/@drop` 事件，拖到文件夹图标上时高亮并支持放入子级
+    - 新增 `dropTargetId` 状态追踪当前悬停目标
+    - 新增 `tryParseDragData()` 统一解析拖拽数据
+    - 新增 `onIconDragOver/onIconDragLeave/onIconDrop` 处理单图标拖放
+    - `onDrop` 添加 `parent_id: null` 明确表示根级
+    - 新增 CSS `.nexus-desktop-icon-drop-target` 拖放目标高亮样式
+  - SidebarLayout.vue：每个侧边栏菜单项增加拖放目标，文件夹类型菜单项可接收子项拖入
+    - 每个 `el-menu-item` 和 `el-sub-menu` 的 `#title` 内嵌入 `.nexus-sidebar-item-title` div 承载拖放事件
+    - 新增 `dropTargetId` 状态和控制函数 `onItemDragOver/onItemDragLeave/onItemDrop`
+    - `onSidebarDrop` 添加 `parent_id: null` 明确表示根级
+    - 新增 CSS `.nexus-sidebar-item-title` 和 `.nexus-sidebar-drop-target` 样式
 
 ## 示例页面清单
 
@@ -78,12 +86,7 @@
 | `window:activate` | 窗口/Tab 激活时 | `item` |
 
 ## 下一步计划
-1. 安装依赖并启动开发服务器测试
-2. 窗口拖拽功能
-3. 移动端适配优化
-4. 单元测试
-5. 完善文档
+1. 验证构建无报错
 
 ## 已知问题
-- 窗口拖拽功能尚未实现
-- 移动端适配需要进一步优化
+- 无

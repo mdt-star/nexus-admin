@@ -24,6 +24,85 @@ export async function getMenus() {
   return mockResponse(mockMenus)
 }
 
+// ==================== Disktop API ====================
+
+// Mock disktops 数据
+const mockDisktops = [
+  { id: 1, user_id: 1, name: '默认桌面', is_default: true, sort: 0, created_at: new Date().toISOString() }
+]
+
+// Mock disktop_items 数据
+const mockDisktopItems = [
+  { id: 1, disktop_id: 1, parent_id: null, type: 'menu', title: '控制台', icon: 'Monitor', component: 'dashboard', path: '/dashboard', custom: {}, sort: 0 },
+  { id: 2, disktop_id: 1, parent_id: null, type: 'folder', title: '系统管理', icon: 'Setting', component: '', path: '', custom: {}, sort: 1 },
+  { id: 3, disktop_id: 1, parent_id: 2, type: 'menu', title: '用户管理', icon: 'User', component: 'system-user', path: '/system/user', custom: {}, sort: 0 },
+  { id: 4, disktop_id: 1, parent_id: 2, type: 'menu', title: '角色管理', icon: 'Avatar', component: 'system-role', path: '/system/role', custom: {}, sort: 1 },
+  { id: 5, disktop_id: 1, parent_id: 2, type: 'menu', title: '系统配置', icon: 'Tools', component: 'system-config', path: '/system/config', custom: {}, sort: 2 },
+  { id: 6, disktop_id: 1, parent_id: null, type: 'menu', title: '文章管理', icon: 'Notebook', component: 'content-article', path: '/content/article', custom: {}, sort: 2 },
+]
+
+/**
+ * 获取桌面列表
+ */
+export async function getDisktops() {
+  await delay()
+  return mockResponse(mockDisktops)
+}
+
+/**
+ * 获取指定桌面的所有项
+ * @param {number} disktopId
+ */
+export async function getDisktopItems(disktopId) {
+  await delay()
+  return mockResponse(mockDisktopItems.filter(item => item.disktop_id === disktopId))
+}
+
+/**
+ * 创建桌面项
+ * @param {object} data
+ */
+export async function createDisktopItem(data) {
+  await delay()
+  const newItem = {
+    id: Date.now(),
+    ...data,
+    custom: data.custom || {},
+    sort: data.sort ?? 0,
+    created_at: new Date().toISOString()
+  }
+  mockDisktopItems.push(newItem)
+  return mockResponse(newItem)
+}
+
+/**
+ * 更新桌面项
+ * @param {number} id
+ * @param {object} data
+ */
+export async function updateDisktopItem(id, data) {
+  await delay()
+  const item = mockDisktopItems.find(i => i.id === id)
+  if (item) {
+    Object.assign(item, data)
+  }
+  return mockResponse({ success: true })
+}
+
+/**
+ * 删除桌面项
+ * @param {number} id
+ */
+export async function deleteDisktopItem(id) {
+  await delay()
+  const index = mockDisktopItems.findIndex(i => i.id === id)
+  if (index !== -1) {
+    mockDisktopItems.splice(index, 1)
+  }
+  return mockResponse({ success: true })
+}
+
+
 /**
  * 获取配置
  */
