@@ -661,8 +661,10 @@ function handleUserCommand(cmd) {
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
+
+
 .nexus-header[style*="background"] .nexus-user-btn span.nexus-user-avatar-themed{
-  background-color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.85) !important;
   color: var(--nexus-primary-color) !important;
 }
 
@@ -684,7 +686,7 @@ function handleUserCommand(cmd) {
 
 .nexus-header-right :deep(.el-button),
 .nexus-header-left :deep(.el-button) {
-  border: none;
+  border: none !important;
   background-color: transparent;
   color: var(--nexus-text-color-secondary);
   transition: all 0.25s ease;
@@ -695,6 +697,7 @@ function handleUserCommand(cmd) {
 .nexus-header-left :deep(.el-button:hover) {
   background-color: var(--nexus-bg-color-dark);
   color: var(--nexus-primary-color);
+  border: none !important;
 }
 
 [data-theme="dark"] .nexus-header-right :deep(.el-button:hover),
