@@ -301,7 +301,7 @@ const headerStyle = computed(() => {
 })
 const avatarStyle = computed(() => {
   const color = configStore.get('headerColor', '')
-  return color ? { background: '#fff' } : {}
+  return color ? { background: '#fff', color: color } : {}
 })
 
 const localeDisplay = computed(() => ({ 'zh-CN': '中文', 'en': 'English' })[currentLocale.value] || currentLocale.value)
