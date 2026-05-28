@@ -712,7 +712,11 @@ async function addSidebarFolder() {
     const rootItems = disktopStore.rootItems
     sort = rootItems.length > 0 ? (rootItems[rootItems.length - 1].sort || 0) + 1 : 0
   }
-  editingItem.value = { title: '新建项目', icon: 'FolderOpened', type: 'folder', parent_id: parentId, sort }
+  // 计算同级未命名的序号
+  const siblings = disktopStore.items.filter(i => i.parent_id === parentId)
+  const unnamedCount = siblings.filter(i => i.title?.startsWith('未命名')).length
+  const title = unnamedCount === 0 ? '未命名' : `未命名 ${unnamedCount + 1}`
+  editingItem.value = { title, icon: 'FolderOpened', type: 'folder', parent_id: parentId, sort }
   isNewItem.value = true
   editorVisible.value = true
 }
