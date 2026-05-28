@@ -33,8 +33,7 @@
               draggable="true"
               @dragstart="onDragStart($event, item)"
               @dragover.prevent="onDragOver($event, item)"
-              @dragend="onDragEnd"
-              @drop.prevent="onDrop($event, item)"
+              @dragend="onDragEnd($event, item)"
               @contextmenu.prevent.stop="openSidebarContextMenu($event, item)">
               <template #title>
                 <el-icon v-if="item.icon">
@@ -47,8 +46,7 @@
                 draggable="true"
                 @dragstart="onDragStart($event, child)"
                 @dragover.prevent="onDragOver($event, child)"
-                @dragend="onDragEnd"
-                @drop.prevent="onDrop($event, child)">
+                @dragend="onDragEnd($event, child)">
                 <el-icon v-if="child.icon">
                   <component :is="getIconComponent(child.icon)" />
                 </el-icon>
@@ -61,8 +59,7 @@
               :data-item-id="item.id" draggable="true"
               @dragstart="onDragStart($event, item)"
               @dragover.prevent="onDragOver($event, item)"
-              @dragend="onDragEnd"
-              @drop.prevent="onDrop($event, item)">
+              @dragend="onDragEnd($event, item)">
               <el-icon v-if="item.icon">
                 <component :is="getIconComponent(item.icon)" />
               </el-icon>
@@ -318,74 +315,68 @@ async function onSidebarDrop(event) {
 
 // ==================== 侧边栏拖拽排序 ====================
 const dragItem = ref(null)
+const dragTarget = ref(null)
+const dragInsertAfter = ref(false)
 
 function onDragStart(event, item) {
   dragItem.value = item
+  dragTarget.value = null
   event.dataTransfer.effectAllowed = 'move'
   event.dataTransfer.setData('text/plain', String(item.id))
-  // 添加拖拽中的样式
   event.target.classList.add('nexus-dragging')
 }
 
 function onDragOver(event, item) {
   if (!dragItem.value || dragItem.value.id === item.id) return
   event.dataTransfer.dropEffect = 'move'
-  // 高亮目标
+  dragTarget.value = item
   const target = event.currentTarget
   const rect = target.getBoundingClientRect()
   const y = event.clientY - rect.top
-  target.classList.toggle('nexus-drag-before', y < rect.height / 2)
-  target.classList.toggle('nexus-drag-after', y >= rect.height / 2)
+  dragInsertAfter.value = y >= rect.height / 2
+  target.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
+  target.classList.toggle('nexus-drag-after', dragInsertAfter.value)
 }
 
-function onDragEnd(event) {
+async function onDragEnd(event, targetItem) {
+  // 清除样式
   document.querySelectorAll('.nexus-dragging, .nexus-drag-before, .nexus-drag-after')
     .forEach(el => el.classList.remove('nexus-dragging', 'nexus-drag-before', 'nexus-drag-after'))
+
+  const source = dragItem.value
+  const target = dragTarget.value
   dragItem.value = null
-}
+  dragTarget.value = null
 
-async function onDrop(event, targetItem) {
-  onDragEnd(event)
-  if (!dragItem.value || dragItem.value.id === targetItem.id) return
+  if (!source || !target || source.id === target.id) return
 
-  const sourceId = dragItem.value.id
-  const targetId = targetItem.id
-
-  // 获取同级列表
-  const parentId = dragItem.value.parent_id
+  const parentId = source.parent_id
   const siblings = disktopStore.items
     .filter(i => i.parent_id === parentId)
     .sort((a, b) => (a.sort || 0) - (b.sort || 0))
 
-  const sourceIdx = siblings.findIndex(i => i.id === sourceId)
-  const targetIdx = siblings.findIndex(i => i.id === targetId)
+  const sourceIdx = siblings.findIndex(i => i.id === source.id)
+  const targetIdx = siblings.findIndex(i => i.id === target.id)
   if (sourceIdx === -1 || targetIdx === -1) return
 
-  // 计算新的 sort 值
-  const rect = event.currentTarget.getBoundingClientRect()
-  const y = event.clientY - rect.top
-  const insertAfter = y >= rect.height / 2
-
   let newSort
-  if (insertAfter) {
-    // 插入到目标后面
+  if (dragInsertAfter.value) {
     if (targetIdx + 1 < siblings.length) {
       const next = siblings[targetIdx + 1]
-      newSort = (siblings[targetIdx].sort || 0) + (next.sort || 0) / 2
+      newSort = ((siblings[targetIdx].sort || 0) + (next.sort || 0)) / 2
     } else {
       newSort = (siblings[targetIdx].sort || 0) + 1
     }
   } else {
-    // 插入到目标前面
     if (targetIdx > 0) {
       const prev = siblings[targetIdx - 1]
-      newSort = (prev.sort || 0) + (siblings[targetIdx].sort || 0) / 2
+      newSort = ((prev.sort || 0) + (siblings[targetIdx].sort || 0)) / 2
     } else {
       newSort = (siblings[0].sort || 0) - 1
     }
   }
 
-  await disktopStore.reorderItem(sourceId, newSort)
+  await disktopStore.reorderItem(source.id, newSort)
 }
 
 // 顶部背景色
