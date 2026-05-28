@@ -2,10 +2,10 @@
   <div class="nexus-desktop-layout">
     <header class="nexus-header">
       <div class="nexus-header-left">
-        <StartMenu :visible="menuVisible" @close="menuVisible = false" @open-page="onMenuOpen" @add-item="onMenuAdd">
+        <StartMenu @open-page="onMenuOpen">
           <template #reference>
             <el-tooltip content="开始菜单" placement="bottom">
-              <el-button class="nexus-start-btn" :icon="TrendCharts" circle @click="toggleStartMenu" />
+              <el-button class="nexus-start-btn" :icon="TrendCharts" circle />
             </el-tooltip>
           </template>
         </StartMenu>
@@ -146,7 +146,6 @@ const avatarStyle = computed(() => {
 const { getWindowRect, startDrag } = useWindowDrag()
 const cache = {}
 const currentFolder = ref(null)
-const menuVisible = ref(false)
 const editorVisible = ref(false)
 const editingItem = ref(null)
 const isNewItem = ref(false)
@@ -172,9 +171,7 @@ function handleItemClick(item) {
   if (item.type === 'folder') currentFolder.value = { ...item, children: disktopStore.getChildren(item.id) }
   else if (item.component) windowStore.open(item)
 }
-function toggleStartMenu() { menuVisible.value = !menuVisible.value }
 function onMenuOpen(item) { windowStore.open(item) }
-function onMenuAdd(item) { disktopStore.addItem({ ...item, type: 'menu' }) }
 
 function onDragOver(e) { e.dataTransfer.dropEffect = 'copy' }
 async function onDrop(e) {

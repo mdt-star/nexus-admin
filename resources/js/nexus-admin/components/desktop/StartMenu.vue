@@ -1,19 +1,16 @@
 <template>
-  <el-popover ref="popoverRef" trigger="hover" title="开始菜单" :width="360" :popper-class="'nexus-start-popper'"
-    :show-arrow="false" placement="right" @hide="onPopoverHide">
+  <el-popover ref="popoverRef" trigger="click" :width="360" :popper-class="'nexus-start-popper'"
+    :show-arrow="false" placement="right-start" :offset="0">
     <template #reference>
       <slot name="reference" />
     </template>
-    <div class="nexus-start-panel" ref="panelRef" @click.stop>
-
-
-      <el-alert :title="t('startMenu.dragHint')" :closable="false" show-icon type="info" style="margin-bottom: 10px;" >
-      </el-alert>
+    <div class="nexus-start-panel" @click.stop>
+      <el-alert :title="t('startMenu.dragHint')" :closable="false" show-icon type="info" style="margin-bottom: 10px;" />
       <div class="nexus-start-search">
         <el-input v-model="searchQuery" :placeholder="t('common.searchPlaceholder')" clearable
           prefix-icon="Search" @input="onSearchInput" />
       </div>
-      <div class="nexus-start-tree" ref="treeRef">
+      <div class="nexus-start-tree">
         <div v-for="item in filteredMenus" :key="item.id" class="nexus-start-node">
           <template v-if="item.children && item.children.length > 0">
             <div class="nexus-start-node-header" :class="{ 'nexus-start-node-expanded': expandedFolders.has(item.id) }"
@@ -62,12 +59,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMenuStore } from '../../stores/menu'
 import { useI18nStore } from '../../stores/i18n'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import { ArrowRight, FolderOpened, Rank, TrendCharts, HelpFilled } from '@element-plus/icons-vue'
+import { ArrowRight, FolderOpened, Rank } from '@element-plus/icons-vue'
 
-const props = defineProps({
-  visible: { type: Boolean, default: false }
-})
-const emit = defineEmits(['close', 'add-item', 'open-page'])
+const emit = defineEmits(['open-page', 'add-item'])
 
 const menuStore = useMenuStore()
 const i18nStore = useI18nStore()
@@ -75,8 +69,6 @@ const { t } = i18nStore
 
 const searchQuery = ref('')
 const expandedFolders = ref(new Set())
-const panelRef = ref(null)
-const treeRef = ref(null)
 const popoverRef = ref(null)
 const isDragging = ref(false)
 
@@ -86,13 +78,19 @@ const filteredMenus = computed(() => {
   return filterMenus(menus, searchQuery.value.toLowerCase())
 })
 
-function onSearchInput() { if (searchQuery.value) expandAllMatching(menuStore.menus || []) }
+function onSearchInput() {
+  if (searchQuery.value) expandAllMatching(menuStore.menus || [])
+}
+
 function expandAllMatching(items) {
   items.forEach(item => {
-    if (item.children?.length && item.children.some(c => c.title.toLowerCase().includes(searchQuery.value.toLowerCase()))) expandedFolders.value.add(item.id)
+    if (item.children?.length && item.children.some(c => c.title.toLowerCase().includes(searchQuery.value.toLowerCase()))) {
+      expandedFolders.value.add(item.id)
+    }
     if (item.children?.length) expandAllMatching(item.children)
   })
 }
+
 function filterMenus(items, q) {
   return items.reduce((r, item) => {
     const match = item.title.toLowerCase().includes(q)
@@ -103,31 +101,46 @@ function filterMenus(items, q) {
     return r
   }, [])
 }
-function toggleFolder(id) { const s = new Set(expandedFolders.value); s.has(id) ? s.delete(id) : s.add(id); expandedFolders.value = s }
 
-function onLeafClick(item) { if (item.component) { emit('open-page', item); close() } }
+function toggleFolder(id) {
+  const s = new Set(expandedFolders.value)
+  s.has(id) ? s.delete(id) : s.add(id)
+  expandedFolders.value = s
+}
+
+function onLeafClick(item) {
+  if (item.component) {
+    emit('open-page', item)
+    hide()
+  }
+}
 
 function onDragStart(event, item) {
   isDragging.value = true
-  event.dataTransfer.setData('application/json', JSON.stringify({ title: item.title, icon: item.icon, component: item.component, path: item.route, type: 'menu' }))
+  event.dataTransfer.setData('application/json', JSON.stringify({
+    title: item.title, icon: item.icon, component: item.component, path: item.route, type: 'menu'
+  }))
   event.dataTransfer.effectAllowed = 'copy'
-  event.currentTarget.addEventListener('dragend', onGlobalDragEnd, { once: true })
+  event.currentTarget.addEventListener('dragend', onDragEnd, { once: true })
 }
 
-function onGlobalDragEnd() {
+function onDragEnd() {
   isDragging.value = false
-  emit('close')
+  hide()
 }
 
-function onPopoverHide() {
-  if (isDragging.value) return
-  emit('close')
+function hide() {
+  popoverRef.value?.hide()
 }
 
-function close() { if (isDragging.value) return; emit('close') }
+function getIconComponent(n) {
+  return n ? ElementPlusIconsVue[n] || null : null
+}
 
-function getIconComponent(n) { return n ? ElementPlusIconsVue[n] || null : null }
-function onKeydown(e) { if (e.key === 'Escape') close() }
+function onKeydown(e) {
+  if (e.key === 'Escape') hide()
+}
+
 onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 </script>

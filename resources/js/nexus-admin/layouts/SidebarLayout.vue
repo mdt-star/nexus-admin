@@ -6,6 +6,7 @@
       'nexus-sidebar-dragover': isDragOver
     }" @dragenter="onSidebarDragEnter" @dragover.prevent="onSidebarDragOver" @dragleave="onSidebarDragLeave"
       @drop.prevent="onSidebarDrop">
+      <!--
       <div v-if="isDragOver" class="nexus-sidebar-drop-overlay">
         <div class="nexus-sidebar-drop-hint">
           <el-icon :size="32">
@@ -14,6 +15,7 @@
           <span>释放以添加到快捷菜单</span>
         </div>
       </div>
+      -->
 
       <div class="nexus-sidebar-logo" :class="{ 'nexus-sidebar-logo-themed': hasHeaderColor }"
         :style="hasHeaderColor ? headerStyle : {}">
@@ -63,8 +65,7 @@
             </el-menu-item>
           </template>
         </el-menu>
-        <StartMenu @open-page="onStartMenuOpenPage"
-        @add-item="onStartMenuAddItem">
+        <StartMenu @open-page="onStartMenuOpenPage">
           <template #reference>
             <div class="nexus-start-btn-wrapper">
               <el-button class="nexus-start-btn">
