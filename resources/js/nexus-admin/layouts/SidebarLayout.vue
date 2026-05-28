@@ -294,9 +294,6 @@ function onSidebarDragLeave() {
 async function onSidebarDrop(event) {
   isDragOver.value = false
   dragEnterCounter = 0
-  // 清除拖拽高亮
-  document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
-    .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
   // 优先使用 dragover 时缓存的数据（包含 sort 信息）
   let item = pendingStartMenuData
   pendingStartMenuData = null
@@ -348,6 +345,9 @@ async function onSidebarDrop(event) {
       .sort((a, b) => (a.sort || 0) - (b.sort || 0))
     newSort = siblings.length > 0 ? (siblings[siblings.length - 1].sort || 0) + 1 : 0
   }
+  // 清除拖拽高亮（在读取高亮状态之后）
+  document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
+    .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
   await disktopStore.addItem({
     title: item.title, icon: item.icon, component: item.component, path: item.path,
     type: item.type || 'menu', parent_id: parentId, sort: newSort
