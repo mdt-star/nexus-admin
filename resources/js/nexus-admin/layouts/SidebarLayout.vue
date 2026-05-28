@@ -130,19 +130,16 @@
         </div>
       </header>
 
-      <div class="nexus-tabs" v-if="configStore.get('tabMode', true) && windowStore.items.length > 0">
+      <div class="nexus-tabs" v-if="configStore.get('tabMode', true) && windowStore.items.length > 0"
+        @contextmenu.prevent="openTabContextMenu($event)">
         <div class="nexus-tabs-wrapper" ref="tabsWrapperRef">
           <div v-for="tab in windowStore.items" :key="tab.id" class="nexus-tab"
-            :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)"
-            @contextmenu.prevent="openTabContextMenu($event, tab)">
+            :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)">
             <span class="nexus-tab-label">{{ tab.title }}</span>
             <el-icon class="nexus-tab-close" size="12" @click.stop="windowStore.close(tab.id)">
               <Close />
             </el-icon>
           </div>
-          <div class="nexus-tabs-divider" />
-          <el-button class="nexus-tabs-close-all-btn" :icon="Close" size="small" circle
-            @click="windowStore.closeAll()" />
         </div>
         <div class="nexus-tabs-actions">
           <el-button class="nexus-tab-btn" :icon="ArrowLeft" circle @click="scrollTabs(-1)"
@@ -187,6 +184,7 @@
         <div class="nexus-context-item" @click="closeAllTabs"><el-icon>
             <Close />
           </el-icon><span>关闭全部</span></div>
+        <div class="nexus-context-divider" />
         <div class="nexus-context-item" @click="closeOtherTabs"><el-icon>
             <CircleClose />
           </el-icon><span>关闭其他</span></div>
@@ -402,9 +400,10 @@ const tabContextVisible = ref(false)
 const tabContextItem = ref(null)
 const tabContextStyle = ref({})
 
-function openTabContextMenu(event, tab) {
+function openTabContextMenu(event) {
   tabContextVisible.value = true
-  tabContextItem.value = tab
+  // 以当前激活的 tab 为基准执行关闭其他/关闭右侧
+  tabContextItem.value = windowStore.active
   tabContextStyle.value = { left: `${event.clientX}px`, top: `${event.clientY}px` }
   // 点击其他地方关闭
   setTimeout(() => document.addEventListener('click', closeTabContext, { once: true }), 0)
@@ -763,27 +762,6 @@ function handleUserCommand(cmd) {
 
 .nexus-tab-active:hover .nexus-tab-close {
   opacity: 1;
-}
-
-.nexus-tabs-divider {
-  width: 1px;
-  height: 20px;
-  background-color: var(--nexus-border-color);
-  margin: auto 4px;
-  flex-shrink: 0;
-}
-
-.nexus-tabs-close-all-btn {
-  flex-shrink: 0;
-  margin: auto 6px auto 4px !important;
-  border: none !important;
-  background-color: transparent !important;
-  color: var(--nexus-text-color-secondary) !important;
-}
-
-.nexus-tabs-close-all-btn:hover {
-  color: var(--nexus-text-color) !important;
-  background-color: var(--nexus-bg-color-dark) !important;
 }
 
 .nexus-header[style*="background"]+.nexus-tabs {
