@@ -43,7 +43,7 @@
         </el-dropdown>
         <el-dropdown @command="handleUserCommand" v-if="userStore.isLoggedIn">
           <el-button class="nexus-user-btn" style="padding-right: 0 !important;">
-            <el-avatar :size="22" :src="userStore.user?.avatar || ''" :class="{'nexus-user-avatar': true, 'nexus-user-avatar-themed': hasHeaderColor}" :style="avatarStyle">{{ userInitial }}</el-avatar>
+            <el-avatar :size="22" :src="userStore.user?.avatar || ''" :class="{'nexus-user-avatar': true}">{{ userInitial }}</el-avatar>
             <span style="margin-left: 4px;">{{ userStore.user?.nickname }}</span>
           </el-button>
           <template #dropdown>
@@ -218,6 +218,7 @@ function handleUserCommand(cmd) { if (cmd === 'logout') userStore.logout() }
 .nexus-header-right :deep(.el-button:focus),
 .nexus-header-right :deep(.el-button:focus-visible) { border: none !important; border-color: transparent !important; outline: none !important; }
 .nexus-user-btn { padding-right: 0 !important; }
+
 .nexus-user-btn :deep(.nexus-user-avatar-themed) { background-color: #fff !important; color: var(--nexus-primary-color) !important; }
 .nexus-desktop { flex: 1; position: relative; overflow: hidden; }
 .nexus-desktop-icons { display: grid; grid-template-columns: repeat(auto-fill, 80px); gap: 16px; padding: 24px; justify-content: center; }
