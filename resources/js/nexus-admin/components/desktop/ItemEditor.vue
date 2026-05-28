@@ -8,21 +8,48 @@
 
       <el-form-item label="图标">
         <div class="nexus-editor-icon-select">
-          <el-input v-model="form.icon" placeholder="输入图标名或选择" clearable>
+          <el-input v-model="form.icon" placeholder="选择图标" readonly>
             <template #prefix>
               <el-icon v-if="form.icon" :size="16">
                 <component :is="getIconComponent(form.icon)" />
               </el-icon>
             </template>
+            <template #append>
+              <el-popover :visible="iconPopoverVisible" placement="bottom-start" :width="320" trigger="manual"
+                @hide="iconPopoverVisible = false">
+                <template #reference>
+                  <el-button @click="iconPopoverVisible = !iconPopoverVisible">
+                    <el-icon><Search /></el-icon>
+                  </el-button>
+                </template>
+                <div class="nexus-icon-picker">
+                  <el-input v-model="iconSearch" placeholder="搜索图标..." size="small" clearable
+                    @input="onIconSearch" />
+                  <div class="nexus-icon-picker-grid">
+                    <div v-for="icon in filteredIcons" :key="icon" class="nexus-icon-picker-item"
+                      :class="{ 'nexus-icon-picker-active': form.icon === icon }"
+                      @click="selectIcon(icon)">
+                      <el-icon :size="18">
+                        <component :is="getIconComponent(icon)" />
+                      </el-icon>
+                      <span class="nexus-icon-picker-label">{{ icon }}</span>
+                    </div>
+                  </div>
+                  <div class="nexus-icon-picker-custom">
+                    <el-divider />
+                    <el-button size="small" @click="showCustomInput = true" v-if="!showCustomInput">
+                      自定义图标
+                    </el-button>
+                    <div v-else class="nexus-icon-picker-custom-input">
+                      <el-input v-model="customIconName" placeholder="输入图标名称..." size="small" />
+                      <el-button size="small" type="primary" @click="confirmCustomIcon">确认</el-button>
+                      <el-button size="small" @click="showCustomInput = false">取消</el-button>
+                    </div>
+                  </div>
+                </div>
+              </el-popover>
+            </template>
           </el-input>
-          <div class="nexus-editor-icon-grid">
-            <div v-for="icon in popularIcons" :key="icon" class="nexus-editor-icon-item"
-              :class="{ 'nexus-editor-icon-active': form.icon === icon }" @click="form.icon = icon">
-              <el-icon :size="18">
-                <component :is="getIconComponent(icon)" />
-              </el-icon>
-            </div>
-          </div>
         </div>
       </el-form-item>
 
@@ -52,8 +79,9 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -68,13 +96,42 @@ const form = reactive({
   title: '', icon: '', type: 'menu', component: '', path: '', custom: {}
 })
 
-const popularIcons = [
-  'Monitor', 'Setting', 'User', 'Avatar', 'Tools',
-  'Document', 'Notebook', 'Collection', 'Message', 'Bell',
-  'DataBoard', 'PieChart', 'TrendCharts', 'Histogram',
-  'FolderOpened', 'Files', 'CopyDocument', 'Reading',
-  'Edit', 'Search', 'Share', 'Star'
-]
+// 图标选择器
+const iconPopoverVisible = ref(false)
+const iconSearch = ref('')
+const showCustomInput = ref(false)
+const customIconName = ref('')
+
+// 获取所有 Element Plus 图标名称
+const allIcons = Object.keys(ElementPlusIconsVue).filter(k => k[0] === k[0].toUpperCase())
+
+const filteredIcons = computed(() => {
+  if (!iconSearch.value) return allIcons
+  const q = iconSearch.value.toLowerCase()
+  return allIcons.filter(name => name.toLowerCase().includes(q))
+})
+
+function onIconSearch() {
+  // 搜索时自动重置自定义输入状态
+  showCustomInput.value = false
+}
+
+function selectIcon(name) {
+  form.icon = name
+  iconPopoverVisible.value = false
+  iconSearch.value = ''
+  showCustomInput.value = false
+}
+
+function confirmCustomIcon() {
+  if (customIconName.value.trim()) {
+    form.icon = customIconName.value.trim()
+  }
+  iconPopoverVisible.value = false
+  iconSearch.value = ''
+  showCustomInput.value = false
+  customIconName.value = ''
+}
 
 function onOpen() {
   if (props.item) {
@@ -109,35 +166,58 @@ function getIconComponent(iconName) {
 
 <style scoped>
 .nexus-editor-icon-select {
+  width: 100%;
+}
+
+.nexus-icon-picker {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 360px;
 }
 
-.nexus-editor-icon-grid {
+.nexus-icon-picker-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 4px;
+  overflow-y: auto;
+  max-height: 260px;
 }
 
-.nexus-editor-icon-item {
+.nexus-icon-picker-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 6px;
+  gap: 2px;
+  padding: 6px 4px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
   color: var(--nexus-text-color-secondary);
 }
 
-.nexus-editor-icon-item:hover {
+.nexus-icon-picker-item:hover {
   background-color: var(--nexus-bg-color-dark);
   color: var(--nexus-primary-color);
 }
 
-.nexus-editor-icon-active {
+.nexus-icon-picker-active {
   background-color: var(--nexus-primary-color-light);
   color: var(--nexus-primary-color);
+}
+
+.nexus-icon-picker-label {
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-align: center;
+}
+
+.nexus-icon-picker-custom-input {
+  display: flex;
+  gap: 4px;
+  align-items: center;
 }
 </style>
