@@ -4,25 +4,12 @@
 实现了完整的桌面自定义系统（Disktop），用户可以通过开始菜单拖拽/点击添加桌面项，支持右键编辑、删除、新建文件夹，桌面图标和侧边栏菜单均来自用户自定义的 disktop_items。
 
 ## 最近变更
-- **侧边栏拖放功能**（SidebarLayout.vue）：侧边栏 `<aside>` 新增 `@dragenter`/`@dragover`/`@dragleave`/`@drop` 事件处理
-  - 从开始菜单拖拽菜单项时，侧边栏自动高亮显示拖放区域（虚线边框 + 脉冲动画提示）
-  - 使用 `dragEnterCounter` 计数器避免子元素进出导致闪烁
-  - 拖放成功后调用 `disktopStore.addItem()` 添加到自定义菜单
-  - 新增 CSS：`.nexus-sidebar-dragover` 高亮状态、`.nexus-sidebar-drop-overlay` 覆盖层、`nexus-drop-pulse` 脉冲动画
-
-- **拖放目标定位与层级嵌套**（StartMenu.vue, DesktopLayout.vue, SidebarLayout.vue）
-  - StartMenu.vue：拖拽开始时 overlay 添加 `pointer-events: none` 确保拖放事件穿透
-  - DesktopLayout.vue：每个桌面图标新增 `@dragover/@dragleave/@drop` 事件，拖到文件夹图标上时高亮并支持放入子级
-    - 新增 `dropTargetId` 状态追踪当前悬停目标
-    - 新增 `tryParseDragData()` 统一解析拖拽数据
-    - 新增 `onIconDragOver/onIconDragLeave/onIconDrop` 处理单图标拖放
-    - `onDrop` 添加 `parent_id: null` 明确表示根级
-    - 新增 CSS `.nexus-desktop-icon-drop-target` 拖放目标高亮样式
-  - SidebarLayout.vue：每个侧边栏菜单项增加拖放目标，文件夹类型菜单项可接收子项拖入
-    - 每个 `el-menu-item` 和 `el-sub-menu` 的 `#title` 内嵌入 `.nexus-sidebar-item-title` div 承载拖放事件
-    - 新增 `dropTargetId` 状态和控制函数 `onItemDragOver/onItemDragLeave/onItemDrop`
-    - `onSidebarDrop` 添加 `parent_id: null` 明确表示根级
-    - 新增 CSS `.nexus-sidebar-item-title` 和 `.nexus-sidebar-drop-target` 样式
+- **StartMenu 重构为 el-popover 实现（修复定位问题）**（StartMenu.vue）：
+  - 移除 `virtual-ref` + `virtual-triggering` 方式（无法定位，因为 el-button 的 ref 是组件实例而非 DOM 元素）
+  - 改用 `el-popover` 的 `#reference` slot 方式，父组件将触发按钮放入 slot 中，popover 自动管理定位
+  - 移除 `triggerRef` prop，不再需要父组件传入 DOM 引用
+  - 父组件 DesktopLayout.vue / SidebarLayout.vue 将触发按钮移到 `<StartMenu>` 的 `<template #reference>` 内
+  - 移除父组件中独立的 `<StartMenu>` 调用（已合并到 header 的 slot 中）
 
 ## 示例页面清单
 

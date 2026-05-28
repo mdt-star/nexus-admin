@@ -41,13 +41,17 @@
   - [x] DesktopLayout 重构 - 使用 disktopStore，开始菜单、拖拽放置、右键菜单
   - [x] SidebarLayout 重构 - 侧边栏菜单使用 disktopStore.treeItems，开始菜单按钮
   - [x] **侧边栏拖放高亮提示** - 从开始菜单拖拽时侧边栏显示拖放区域（虚线边框 + 脉冲动画）
-
-## 待完成
 - [x] **拖放目标定位与层级嵌套**：
   - [x] StartMenu overlay 在拖拽时 pointer-events: none 确保事件穿透
   - [x] DesktopLayout 桌面图标支持拖放到文件夹下（parent_id 传入）
   - [x] DesktopLayout 文件夹图标悬停高亮（虚线边框 + 图标缩放）
   - [x] SidebarLayout 侧边栏菜单项支持拖放到文件夹层级
   - [x] SidebarLayout 单个菜单项拖放目标高亮样式
+- [x] **StartMenu 重构为 el-popover 实现**：
+  - [x] 移除自定义 Teleport + overlay，改用 el-popover virtual-triggering 模式
+  - [x] 新增 triggerRef prop 实现精确定位
+  - [x] 拖拽时防止 popover 自动关闭
+  - [x] 更新父组件传入 triggerRef
 
+## 待完成
 > 所有任务已全部完成

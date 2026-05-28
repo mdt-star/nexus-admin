@@ -52,9 +52,11 @@
     <div class="nexus-main-area">
       <header class="nexus-header" :style="headerStyle">
         <div class="nexus-header-left">
-          <el-tooltip content="开始菜单" placement="bottom">
-            <el-button class="nexus-start-btn" :icon="TrendCharts" circle @click="toggleStartMenu" />
-          </el-tooltip>
+          <StartMenu :visible="startMenuVisible" @close="startMenuVisible = false" @open-page="onStartMenuOpenPage" @add-item="onStartMenuAddItem">
+            <template #reference>
+              <el-button class="nexus-start-btn" :icon="TrendCharts" circle @click="toggleStartMenu" />
+            </template>
+          </StartMenu>
           <el-button :icon="appStore.sidebarCollapsed ? 'Expand' : 'Fold'" circle @click="appStore.toggleSidebar()" />
           <GlobalSearch />
         </div>
@@ -129,7 +131,6 @@
     </div>
 
     <PreferencesPanel ref="preferencesRef" />
-    <StartMenu :visible="startMenuVisible" @close="startMenuVisible = false" @open-page="onStartMenuOpenPage" @add-item="onStartMenuAddItem" />
 
     <Teleport to="body">
       <div v-if="sidebarContextVisible" class="nexus-context-menu" :style="sidebarContextStyle" @click.stop>

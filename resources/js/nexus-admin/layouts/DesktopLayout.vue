@@ -2,9 +2,13 @@
   <div class="nexus-desktop-layout">
     <header class="nexus-header">
       <div class="nexus-header-left">
-        <el-tooltip content="开始菜单" placement="bottom">
-          <el-button class="nexus-start-btn" :icon="TrendCharts" circle @click="toggleStartMenu" />
-        </el-tooltip>
+        <StartMenu :visible="menuVisible" @close="menuVisible = false" @open-page="onMenuOpen" @add-item="onMenuAdd">
+          <template #reference>
+            <el-tooltip content="开始菜单" placement="bottom">
+              <el-button class="nexus-start-btn" :icon="TrendCharts" circle @click="toggleStartMenu" />
+            </el-tooltip>
+          </template>
+        </StartMenu>
         <span class="nexus-header-title">{{ appName }}</span>
         <GlobalSearch />
       </div>
@@ -85,7 +89,6 @@
 
     <footer class="nexus-footer">{{ footerText }}</footer>
 
-    <StartMenu :visible="menuVisible" @close="menuVisible = false" @open-page="onMenuOpen" @add-item="onMenuAdd" />
     <ItemEditor :visible="editorVisible" :item="editingItem" :is-new="isNewItem" :position="editorPos" @close="editorVisible = false" @save="onEditorSave" />
 
     <Teleport to="body">
