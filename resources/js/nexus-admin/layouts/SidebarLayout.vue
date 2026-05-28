@@ -25,10 +25,8 @@
         </div>
       </div>
       <div class="nexus-sidebar-menu-container">
-        <el-menu :default-active="menuActiveId" class="nexus-sidebar-menu" :collapse="appStore.sidebarCollapsed"
-          :collapse-transition="false" @contextmenu.prevent="openSidebarContextMenu($event, null)" @select="handleMenuSelect"
-          @dragover.prevent="onMenuDragOver"
-          @dragend="onMenuDragEnd">
+        <el-menu ref="sidebarMenuRef" :default-active="menuActiveId" class="nexus-sidebar-menu" :collapse="appStore.sidebarCollapsed"
+          :collapse-transition="false" @contextmenu.prevent="openSidebarContextMenu($event, null)" @select="handleMenuSelect">
           <template v-for="item in disktopStore.treeItems" :key="item.id">
             <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)"
               :data-folder-id="item.type === 'folder' ? item.id : ''" :data-item-id="item.id"
@@ -220,7 +218,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAppStore } from '../stores/app'
 import { useMenuStore } from '../stores/menu'
 import { useDisktopStore } from '../stores/disktop'
@@ -313,6 +311,9 @@ async function onSidebarDrop(event) {
 const dragItem = ref(null)
 const dragTarget = ref(null)
 const dragInsertAfter = ref(false)
+const sidebarMenuRef = ref(null)
+let nativeDragOverHandler = null
+let nativeDragEndHandler = null
 
 function onDragStart(event, item) {
   dragItem.value = item
@@ -322,8 +323,9 @@ function onDragStart(event, item) {
   event.target.classList.add('nexus-dragging')
 }
 
-function onMenuDragOver(event) {
+function handleNativeDragOver(event) {
   if (!dragItem.value) return
+  event.preventDefault()
   event.dataTransfer.dropEffect = 'move'
   // 用 elementFromPoint 找到鼠标下方的菜单项（绕过 el-menu 事件拦截）
   const el = document.elementFromPoint(event.clientX, event.clientY)
@@ -344,7 +346,7 @@ function onMenuDragOver(event) {
   itemEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
 }
 
-function onMenuDragEnd(event) {
+function handleNativeDragEnd(event) {
   // 清除样式
   document.querySelectorAll('.nexus-dragging, .nexus-drag-before, .nexus-drag-after')
     .forEach(el => el.classList.remove('nexus-dragging', 'nexus-drag-before', 'nexus-drag-after'))
@@ -422,6 +424,16 @@ onMounted(async () => {
     updateScrollState()
   }
   document.addEventListener('click', closeSidebarContext)
+
+  // 使用原生 DOM 事件监听 dragover/dragend，绕过 el-menu 事件拦截
+  await nextTick()
+  const menuEl = sidebarMenuRef.value?.$el
+  if (menuEl) {
+    menuEl.addEventListener('dragover', handleNativeDragOver)
+    menuEl.addEventListener('dragend', handleNativeDragEnd)
+    nativeDragOverHandler = menuEl
+    nativeDragEndHandler = menuEl
+  }
 })
 
 // 监听 activeId 变化，同步侧边栏选中状态
@@ -432,6 +444,13 @@ watch(() => windowStore.activeId, (id) => {
 onUnmounted(() => {
   tabsWrapperRef.value?.removeEventListener('scroll', updateScrollState)
   document.removeEventListener('click', closeSidebarContext)
+  // 移除原生事件监听
+  if (nativeDragOverHandler) {
+    nativeDragOverHandler.removeEventListener('dragover', handleNativeDragOver)
+  }
+  if (nativeDragEndHandler) {
+    nativeDragEndHandler.removeEventListener('dragend', handleNativeDragEnd)
+  }
 })
 
 const pageCache = {}
