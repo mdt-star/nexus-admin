@@ -146,10 +146,10 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
     } catch (e) {
       console.warn('[NexusAdmin] 更新桌面项失败:', e)
     }
-    // 本地更新
+    // 本地更新：替换整个对象以触发响应式
     const index = items.value.findIndex(item => item.id === id)
     if (index !== -1) {
-      Object.assign(items.value[index], data)
+      items.value[index] = { ...items.value[index], ...data }
     }
   }
 
