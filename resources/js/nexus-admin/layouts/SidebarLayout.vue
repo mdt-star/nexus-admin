@@ -498,8 +498,6 @@ function handleNativeDragOver(event) {
       pendingDropAfter = true
     }
 
-    // 显示"悬停放入文件夹"标记（跟上下高亮一起显示）
-    showFolderDropMark(highlightEl)
     // 启动/重置悬停定时器：悬停一段时间后切换为"放入文件夹内部"
     startFolderHoverTimer(targetId, highlightEl)
   } else {
@@ -531,6 +529,8 @@ function startFolderHoverTimer(targetId, highlightEl) {
       .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after', 'nexus-drag-into'))
     if (highlightEl) {
       highlightEl.classList.add('nexus-drag-into')
+      // 同时显示📂标记
+      showFolderDropMark(highlightEl)
     }
     folderHoverTimer = null
   }, FOLDER_HOVER_DELAY)
