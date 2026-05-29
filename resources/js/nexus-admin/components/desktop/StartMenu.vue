@@ -7,7 +7,7 @@
     <div class="nexus-start-panel" @click.stop>
       <div class="nexus-start-header">
         <WindowsStartIcon :size="22" />
-        <span>{{ t('startMenu.title') || '开始菜单' }}</span>
+        <span>{{ t('startMenu.title') }}</span>
       </div>
       <el-alert :title="t('startMenu.dragHint')" :closable="false" show-icon type="info" style="margin-bottom: 10px;" />
       <div class="nexus-start-search">
@@ -35,9 +35,6 @@
                   <el-icon class="nexus-start-leaf-pin" :class="{ 'nexus-start-leaf-pinned': shortcutsStore.has(child) }"
                     @click.stop="togglePin(child)"><Star /></el-icon>
                 </el-tooltip>
-                <el-tooltip :content="t('startMenu.dragHint')" placement="left">
-                  <el-icon class="nexus-start-leaf-drag"><Rank /></el-icon>
-                </el-tooltip>
               </template>
             </el-menu-item>
           </el-sub-menu>
@@ -51,9 +48,6 @@
               <el-tooltip :content="t('startMenu.pinToShortcuts')" placement="left">
                 <el-icon class="nexus-start-leaf-pin" :class="{ 'nexus-start-leaf-pinned': shortcutsStore.has(item) }"
                   @click.stop="togglePin(item)"><Star /></el-icon>
-              </el-tooltip>
-              <el-tooltip :content="t('startMenu.dragHint')" placement="left">
-                <el-icon class="nexus-start-leaf-drag"><Rank /></el-icon>
               </el-tooltip>
             </template>
           </el-menu-item>

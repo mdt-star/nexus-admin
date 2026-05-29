@@ -778,6 +778,7 @@ function getIconComponent(iconName) { return iconName ? ElementPlusIconsVue[icon
   border-width: 0px;
   border-top-width: 1px;
   font-size: 24px;
+  border-color: var(--nexus-border-color) !important;
 }
 
 /* 拖拽排序样式（scoped 内用 :deep 穿透 el-menu） */

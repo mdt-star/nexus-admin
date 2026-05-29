@@ -192,14 +192,18 @@ function getIconComponent(iconName) {
   color: var(--nexus-text-color-secondary);
 }
 
-.nexus-icon-picker-item:hover {
+.nexus-icon-picker-item:not(.nexus-icon-picker-active):hover {
   background-color: var(--nexus-bg-color-dark);
   color: var(--nexus-primary-color);
 }
 
 .nexus-icon-picker-active {
-  background-color: var(--nexus-primary-color-light);
-  color: var(--nexus-primary-color);
+  background-color: var(--nexus-primary-color);
+  color: #fff;
+}
+
+.nexus-icon-picker-active .el-icon svg {
+  color: #fff;
 }
 
 .nexus-icon-picker-label {
