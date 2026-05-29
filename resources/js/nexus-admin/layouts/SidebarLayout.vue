@@ -234,6 +234,7 @@ import { useUiSizeStore } from '../stores/size'
 import hookManager from '../utils/hook-manager'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { ArrowLeft, ArrowRight, TrendCharts, Plus, Edit, Delete, FolderAdd, HelpFilled } from '@element-plus/icons-vue'
+import { ElMessageBox } from 'element-plus'
 import GlobeIcon from '../components/GlobeIcon.vue'
 import NotificationBell from '../components/common/NotificationBell.vue'
 import GlobalSearch from '../components/common/GlobalSearch.vue'
@@ -797,11 +798,20 @@ function editSidebarItem() {
   editorVisible.value = true
 }
 
-function deleteSidebarItem() {
+async function deleteSidebarItem() {
   sidebarContextVisible.value = false
   const item = sidebarContextItem.value
   if (!item) return
-  disktopStore.removeItem(item.id)
+  try {
+    await ElMessageBox.confirm(
+      `确定删除「${item.title}」？`,
+      t('common.confirm'),
+      { type: 'warning', confirmButtonText: t('common.confirm'), cancelButtonText: t('common.cancel') }
+    )
+    disktopStore.removeItem(item.id)
+  } catch (_) {
+    // 用户取消
+  }
 }
 
 async function addSidebarFolder() {
