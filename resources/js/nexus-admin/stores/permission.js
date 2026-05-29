@@ -61,8 +61,8 @@ export const usePermissionStore = defineStore('nexus-permission', () => {
    */
   async function loadTags() {
     try {
-      const { getPermissionTags } = await import('../services/api')
-      const response = await getPermissionTags()
+      const { default: permissionsApi } = await import('../services/permissions')
+      const response = await permissionsApi.tags()
       setTags(response.data || [])
     } catch (e) {
       console.warn('[NexusAdmin] 加载权限标签失败，使用空列表:', e)

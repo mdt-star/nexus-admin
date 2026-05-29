@@ -1,8 +1,8 @@
 # 项目进度
 
 ## 总体状态
-- 测试通过率: 121/121 (100%)
-- 测试文件: 14/14 全部通过
+- 测试通过率: 96/96 (100%)
+- 测试文件: 11/11 全部通过
 - Unhandled errors: 0
 
 ## 已完成
@@ -19,3 +19,9 @@
 - [x] 注册 nexus-home 页面组件
 - [x] SidebarLayout 无 Tab 时显示 HomePage
 - [x] DesktopLayout 无窗口时显示 HomePage
+- [x] 将测试 mock 从 `../services/api` 迁移到独立 service 模块
+  - [x] disktop.test.js → `../services/disktops`
+  - [x] menu.test.js → `../services/menus`
+  - [x] notification.test.js → `../services/notifications`
+  - [x] permission.test.js → `../services/permissions`
+  - [x] i18n.test.js → `../services/i18n`

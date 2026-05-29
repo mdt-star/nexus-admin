@@ -5,11 +5,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useNotificationStore } from './notification'
 
-vi.mock('../services/api', () => ({
-  getNotifications: vi.fn(),
-  getUnreadCount: vi.fn(),
-  markAsRead: vi.fn(),
-  markAllAsRead: vi.fn()
+vi.mock('../services/notifications', () => ({
+  default: {
+    list: vi.fn(),
+    unreadCount: vi.fn(),
+    markRead: vi.fn(),
+    markAllRead: vi.fn()
+  }
 }))
 
 describe('NotificationStore', () => {
@@ -33,8 +35,8 @@ describe('NotificationStore', () => {
   })
 
   it('fetchNotifications() 获取通知列表并计算未读数', async () => {
-    const { getNotifications } = await import('../services/api')
-    getNotifications.mockResolvedValue({
+    const { default: notificationsApi } = await import('../services/notifications')
+    notificationsApi.list.mockResolvedValue({
       data: [
         { id: 1, data: { title: '通知1' }, read_at: null },
         { id: 2, data: { title: '通知2' }, read_at: new Date().toISOString() },
@@ -50,9 +52,9 @@ describe('NotificationStore', () => {
   })
 
   it('init() 初始化并启动轮询', async () => {
-    const { getNotifications, getUnreadCount } = await import('../services/api')
-    getNotifications.mockResolvedValue({ data: [] })
-    getUnreadCount.mockResolvedValue({ data: { count: 0 } })
+    const { default: notificationsApi } = await import('../services/notifications')
+    notificationsApi.list.mockResolvedValue({ data: [] })
+    notificationsApi.unreadCount.mockResolvedValue({ data: { count: 0 } })
 
     const store = useNotificationStore()
     await store.init(1000)
@@ -60,23 +62,23 @@ describe('NotificationStore', () => {
 
     // 推进时间，验证轮询触发
     vi.advanceTimersByTime(1000)
-    expect(getUnreadCount).toHaveBeenCalledTimes(1)
+    expect(notificationsApi.unreadCount).toHaveBeenCalledTimes(1)
   })
 
   it('init() 重复调用不重复初始化', async () => {
-    const { getNotifications } = await import('../services/api')
-    getNotifications.mockResolvedValue({ data: [] })
+    const { default: notificationsApi } = await import('../services/notifications')
+    notificationsApi.list.mockResolvedValue({ data: [] })
 
     const store = useNotificationStore()
     await store.init()
     await store.init()
     // init 有 initialized 守卫，第二次调用直接返回
-    expect(getNotifications).toHaveBeenCalledTimes(1)
+    expect(notificationsApi.list).toHaveBeenCalledTimes(1)
   })
 
   it('markAsReadNotification() 标记单条已读', async () => {
-    const { getNotifications, markAsRead } = await import('../services/api')
-    getNotifications.mockResolvedValue({
+    const { default: notificationsApi } = await import('../services/notifications')
+    notificationsApi.list.mockResolvedValue({
       data: [
         { id: 1, data: { title: '通知1' }, read_at: null }
       ]
@@ -87,23 +89,23 @@ describe('NotificationStore', () => {
     expect(store.unreadCount).toBe(1)
 
     await store.markAsReadNotification(store.list[0])
-    expect(markAsRead).toHaveBeenCalledWith(1)
+    expect(notificationsApi.markRead).toHaveBeenCalledWith(1)
     expect(store.list[0].read_at).toBeTruthy()
     expect(store.unreadCount).toBe(0)
   })
 
   it('markAsReadNotification() 已读通知不重复请求', async () => {
-    const { markAsRead } = await import('../services/api')
+    const { default: notificationsApi } = await import('../services/notifications')
 
     const store = useNotificationStore()
     const notification = { id: 1, data: {}, read_at: new Date().toISOString() }
     await store.markAsReadNotification(notification)
-    expect(markAsRead).not.toHaveBeenCalled()
+    expect(notificationsApi.markRead).not.toHaveBeenCalled()
   })
 
   it('markAllAsReadNotification() 全部标记已读', async () => {
-    const { getNotifications, markAllAsRead } = await import('../services/api')
-    getNotifications.mockResolvedValue({
+    const { default: notificationsApi } = await import('../services/notifications')
+    notificationsApi.list.mockResolvedValue({
       data: [
         { id: 1, data: {}, read_at: null },
         { id: 2, data: {}, read_at: null }
@@ -115,14 +117,14 @@ describe('NotificationStore', () => {
     expect(store.unreadCount).toBe(2)
 
     await store.markAllAsReadNotification()
-    expect(markAllAsRead).toHaveBeenCalledOnce()
+    expect(notificationsApi.markAllRead).toHaveBeenCalledOnce()
     expect(store.unreadCount).toBe(0)
     expect(store.list.every(n => n.read_at)).toBe(true)
   })
 
   it('handleNotificationClick() openPage 类型', async () => {
-    const { getNotifications } = await import('../services/api')
-    getNotifications.mockResolvedValue({
+    const { default: notificationsApi } = await import('../services/notifications')
+    notificationsApi.list.mockResolvedValue({
       data: [{
         id: 1,
         data: {
@@ -149,8 +151,8 @@ describe('NotificationStore', () => {
   })
 
   it('handleNotificationClick() openUrl 类型', async () => {
-    const { getNotifications } = await import('../services/api')
-    getNotifications.mockResolvedValue({
+    const { default: notificationsApi } = await import('../services/notifications')
+    notificationsApi.list.mockResolvedValue({
       data: [{
         id: 1,
         data: {
@@ -174,23 +176,23 @@ describe('NotificationStore', () => {
   })
 
   it('stopPolling() 停止轮询', async () => {
-    const { getUnreadCount } = await import('../services/api')
-    getUnreadCount.mockResolvedValue({ data: { count: 0 } })
+    const { default: notificationsApi } = await import('../services/notifications')
+    notificationsApi.unreadCount.mockResolvedValue({ data: { count: 0 } })
 
     const store = useNotificationStore()
     store.startPolling(1000)
     // startPolling 不会立即调用 refreshUnreadCount，只设置定时器
-    expect(getUnreadCount).not.toHaveBeenCalled()
+    expect(notificationsApi.unreadCount).not.toHaveBeenCalled()
 
     store.stopPolling()
     vi.advanceTimersByTime(2000)
     // 停止后不再触发
-    expect(getUnreadCount).not.toHaveBeenCalled()
+    expect(notificationsApi.unreadCount).not.toHaveBeenCalled()
   })
 
   it('destroy() 清理所有状态', async () => {
-    const { getNotifications } = await import('../services/api')
-    getNotifications.mockResolvedValue({ data: [{ id: 1, data: {}, read_at: null }] })
+    const { default: notificationsApi } = await import('../services/notifications')
+    notificationsApi.list.mockResolvedValue({ data: [{ id: 1, data: {}, read_at: null }] })
 
     const store = useNotificationStore()
     await store.init()

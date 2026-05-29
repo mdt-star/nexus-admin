@@ -5,12 +5,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useDisktopStore } from './disktop'
 
-vi.mock('../services/api', () => ({
-  getDisktops: vi.fn(),
-  getDisktopItems: vi.fn(),
-  createDisktopItem: vi.fn(),
-  updateDisktopItem: vi.fn(),
-  deleteDisktopItem: vi.fn()
+vi.mock('../services/disktops', () => ({
+  default: {
+    list: vi.fn(),
+    items: {
+      list: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      remove: vi.fn()
+    }
+  }
 }))
 
 describe('DisktopStore', () => {
@@ -31,8 +35,8 @@ describe('DisktopStore', () => {
   })
 
   it('loadDisktops() 加载桌面列表并选中默认桌面', async () => {
-    const { getDisktops } = await import('../services/api')
-    getDisktops.mockResolvedValue({
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.list.mockResolvedValue({
       data: [
         { id: 1, name: '默认桌面', is_default: true },
         { id: 2, name: '工作桌面', is_default: false }
@@ -47,8 +51,8 @@ describe('DisktopStore', () => {
   })
 
   it('loadDisktops() 无默认桌面时选中第一个', async () => {
-    const { getDisktops } = await import('../services/api')
-    getDisktops.mockResolvedValue({
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.list.mockResolvedValue({
       data: [
         { id: 1, name: '桌面1', is_default: false },
         { id: 2, name: '桌面2', is_default: false }
@@ -61,8 +65,8 @@ describe('DisktopStore', () => {
   })
 
   it('loadDisktops() API 失败时使用空数组', async () => {
-    const { getDisktops } = await import('../services/api')
-    getDisktops.mockRejectedValue(new Error('Network error'))
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.list.mockRejectedValue(new Error('Network error'))
 
     const store = useDisktopStore()
     await store.loadDisktops()
@@ -71,9 +75,9 @@ describe('DisktopStore', () => {
   })
 
   it('loadItems() 加载当前桌面项', async () => {
-    const { getDisktops, getDisktopItems } = await import('../services/api')
-    getDisktops.mockResolvedValue({ data: [{ id: 1, name: '默认桌面', is_default: true }] })
-    getDisktopItems.mockResolvedValue({
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.list.mockResolvedValue({ data: [{ id: 1, name: '默认桌面', is_default: true }] })
+    disktopsApi.items.list.mockResolvedValue({
       data: [
         { id: 1, title: '控制台', icon: 'Monitor', parent_id: null, sort: 0 },
         { id: 2, title: '用户管理', icon: 'User', parent_id: null, sort: 1 }
@@ -88,12 +92,12 @@ describe('DisktopStore', () => {
   })
 
   it('switchDisktop() 切换桌面并加载项', async () => {
-    const { getDisktops, getDisktopItems } = await import('../services/api')
-    getDisktops.mockResolvedValue({ data: [
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.list.mockResolvedValue({ data: [
       { id: 1, name: '桌面1', is_default: true },
       { id: 2, name: '桌面2', is_default: false }
     ]})
-    getDisktopItems.mockResolvedValue({ data: [] })
+    disktopsApi.items.list.mockResolvedValue({ data: [] })
 
     const store = useDisktopStore()
     await store.loadDisktops()
@@ -137,9 +141,9 @@ describe('DisktopStore', () => {
   })
 
   it('addItem() 添加项到当前桌面', async () => {
-    const { getDisktops, createDisktopItem } = await import('../services/api')
-    getDisktops.mockResolvedValue({ data: [{ id: 1, name: '默认桌面', is_default: true }] })
-    createDisktopItem.mockResolvedValue({
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.list.mockResolvedValue({ data: [{ id: 1, name: '默认桌面', is_default: true }] })
+    disktopsApi.items.create.mockResolvedValue({
       data: { id: 100, title: '新项', icon: 'Star', parent_id: null, type: 'menu' }
     })
 
@@ -151,9 +155,9 @@ describe('DisktopStore', () => {
   })
 
   it('addItem() 同级同名自动加副本后缀', async () => {
-    const { getDisktops, createDisktopItem } = await import('../services/api')
-    getDisktops.mockResolvedValue({ data: [{ id: 1, name: '默认桌面', is_default: true }] })
-    createDisktopItem.mockResolvedValue({
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.list.mockResolvedValue({ data: [{ id: 1, name: '默认桌面', is_default: true }] })
+    disktopsApi.items.create.mockResolvedValue({
       data: { id: 101, title: '新项 副本', icon: 'Star', parent_id: null, type: 'menu' }
     })
 
@@ -166,9 +170,9 @@ describe('DisktopStore', () => {
   })
 
   it('addItem() API 失败时使用本地 fallback', async () => {
-    const { getDisktops, createDisktopItem } = await import('../services/api')
-    getDisktops.mockResolvedValue({ data: [{ id: 1, name: '默认桌面', is_default: true }] })
-    createDisktopItem.mockRejectedValue(new Error('Network error'))
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.list.mockResolvedValue({ data: [{ id: 1, name: '默认桌面', is_default: true }] })
+    disktopsApi.items.create.mockRejectedValue(new Error('Network error'))
 
     const store = useDisktopStore()
     await store.loadDisktops()
@@ -179,8 +183,8 @@ describe('DisktopStore', () => {
   })
 
   it('updateItem() 更新项', async () => {
-    const { updateDisktopItem } = await import('../services/api')
-    updateDisktopItem.mockResolvedValue({})
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.items.update.mockResolvedValue({})
 
     const store = useDisktopStore()
     store.items = [{ id: 1, title: '旧标题', icon: 'Star', parent_id: null, sort: 0 }]
@@ -190,8 +194,8 @@ describe('DisktopStore', () => {
   })
 
   it('removeItem() 删除项及子项', async () => {
-    const { deleteDisktopItem } = await import('../services/api')
-    deleteDisktopItem.mockResolvedValue({})
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.items.remove.mockResolvedValue({})
 
     const store = useDisktopStore()
     store.items = [
@@ -206,8 +210,8 @@ describe('DisktopStore', () => {
   })
 
   it('reorderItem() 重新排序', async () => {
-    const { updateDisktopItem } = await import('../services/api')
-    updateDisktopItem.mockResolvedValue({})
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.items.update.mockResolvedValue({})
 
     const store = useDisktopStore()
     store.items = [{ id: 1, title: '项', parent_id: null, sort: 0 }]
@@ -217,8 +221,8 @@ describe('DisktopStore', () => {
   })
 
   it('reorderItem() 支持跨父级移动', async () => {
-    const { updateDisktopItem } = await import('../services/api')
-    updateDisktopItem.mockResolvedValue({})
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.items.update.mockResolvedValue({})
 
     const store = useDisktopStore()
     store.items = [{ id: 1, title: '项', parent_id: null, sort: 0 }]

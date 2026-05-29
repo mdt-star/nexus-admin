@@ -15,7 +15,7 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getNotifications, getUnreadCount, markAsRead, markAllAsRead } from '../services/api'
+import notificationsApi from '../services/notifications'
 
 export const useNotificationStore = defineStore('nexus-notification', () => {
   // 通知列表
@@ -54,7 +54,7 @@ export const useNotificationStore = defineStore('nexus-notification', () => {
   async function fetchNotifications() {
     loading.value = true
     try {
-      const res = await getNotifications()
+      const res = await notificationsApi.list()
       list.value = res.data || []
       unreadCount.value = list.value.filter(n => !n.read_at).length
     } catch (e) {
@@ -69,7 +69,7 @@ export const useNotificationStore = defineStore('nexus-notification', () => {
    */
   async function refreshUnreadCount() {
     try {
-      const res = await getUnreadCount()
+      const res = await notificationsApi.unreadCount()
       unreadCount.value = res.data?.count || 0
     } catch (e) {
       // 静默失败
@@ -84,7 +84,7 @@ export const useNotificationStore = defineStore('nexus-notification', () => {
     if (notification.read_at) return
 
     try {
-      await markAsRead(notification.id)
+      await notificationsApi.markRead(notification.id)
       notification.read_at = new Date().toISOString()
       unreadCount.value = Math.max(0, unreadCount.value - 1)
     } catch (e) {
@@ -97,7 +97,7 @@ export const useNotificationStore = defineStore('nexus-notification', () => {
    */
   async function markAllAsReadNotification() {
     try {
-      await markAllAsRead()
+      await notificationsApi.markAllRead()
       list.value.forEach(n => {
         if (!n.read_at) {
           n.read_at = new Date().toISOString()

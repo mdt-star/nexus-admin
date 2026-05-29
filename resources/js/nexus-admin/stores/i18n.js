@@ -69,8 +69,8 @@ export const useI18nStore = defineStore('nexus-i18n', () => {
    */
   async function loadLocale(lang) {
     try {
-      const { getI18nMessages } = await import('../services/api')
-      const response = await getI18nMessages(lang)
+      const { default: i18nApi } = await import('../services/i18n')
+      const response = await i18nApi.messages(lang)
       messages.value[lang] = response.data || {}
     } catch (e) {
       console.warn(`[NexusAdmin] 加载语言包 "${lang}" 失败:`, e)

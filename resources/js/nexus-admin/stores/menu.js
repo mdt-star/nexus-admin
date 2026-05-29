@@ -27,8 +27,8 @@ export const useMenuStore = defineStore('nexus-menu', () => {
     await hookManager.emit('menu:before-load')
 
     try {
-      const { getMenus } = await import('../services/api')
-      const response = await getMenus()
+      const { default: menusApi } = await import('../services/menus')
+      const response = await menusApi.list()
       let data = response.data || []
 
       // 触发菜单加载钩子，允许插件修改菜单

@@ -5,10 +5,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useUserStore } from './user'
 
-vi.mock('../services/api', () => ({
-  login: vi.fn(),
-  logout: vi.fn(),
-  getCurrentUser: vi.fn()
+vi.mock('../services/auth', () => ({
+  default: {
+    login: vi.fn(),
+    logout: vi.fn(),
+    currentUser: vi.fn()
+  }
 }))
 
 // Mock localStorage
@@ -37,8 +39,8 @@ describe('UserStore', () => {
   })
 
   it('login() 成功', async () => {
-    const { login } = await import('../services/api')
-    login.mockResolvedValue({
+    const { default: authApi } = await import('../services/auth')
+    authApi.login.mockResolvedValue({
       data: {
         token: 'test-token',
         user: { id: 1, username: 'admin', nickname: '管理员' }
@@ -54,8 +56,8 @@ describe('UserStore', () => {
   })
 
   it('login() 失败', async () => {
-    const { login } = await import('../services/api')
-    login.mockRejectedValue(new Error('Invalid credentials'))
+    const { default: authApi } = await import('../services/auth')
+    authApi.login.mockRejectedValue(new Error('Invalid credentials'))
 
     const store = useUserStore()
     await expect(store.login('wrong', 'wrong')).rejects.toThrow('Invalid credentials')
@@ -63,8 +65,8 @@ describe('UserStore', () => {
   })
 
   it('logout() 清除登录状态', async () => {
-    const { login } = await import('../services/api')
-    login.mockResolvedValue({
+    const { default: authApi } = await import('../services/auth')
+    authApi.login.mockResolvedValue({
       data: { token: 'test-token', user: { id: 1, username: 'admin' } }
     })
 
@@ -80,8 +82,8 @@ describe('UserStore', () => {
 
   it('restoreSession() 从 token 恢复会话', async () => {
     localStorageMock.getItem.mockReturnValue('saved-token')
-    const { getCurrentUser } = await import('../services/api')
-    getCurrentUser.mockResolvedValue({
+    const { default: authApi } = await import('../services/auth')
+    authApi.currentUser.mockResolvedValue({
       data: { id: 1, username: 'admin', nickname: '管理员' }
     })
 
@@ -93,8 +95,8 @@ describe('UserStore', () => {
 
   it('restoreSession() token 无效时清除', async () => {
     localStorageMock.getItem.mockReturnValue('invalid-token')
-    const { getCurrentUser } = await import('../services/api')
-    getCurrentUser.mockRejectedValue(new Error('Unauthorized'))
+    const { default: authApi } = await import('../services/auth')
+    authApi.currentUser.mockRejectedValue(new Error('Unauthorized'))
 
     const store = useUserStore()
     const result = await store.restoreSession()

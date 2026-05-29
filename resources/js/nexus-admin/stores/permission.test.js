@@ -11,8 +11,10 @@ vi.mock('../utils/hook-manager', () => ({
   }
 }))
 
-vi.mock('../services/api', () => ({
-  getPermissionTags: vi.fn()
+vi.mock('../services/permissions', () => ({
+  default: {
+    tags: vi.fn()
+  }
 }))
 
 describe('PermissionStore', () => {
@@ -58,8 +60,8 @@ describe('PermissionStore', () => {
   })
 
   it('loadTags() 从 API 加载', async () => {
-    const { getPermissionTags } = await import('../services/api')
-    getPermissionTags.mockResolvedValue({ data: ['admin', 'user:list'] })
+    const { default: permissionsApi } = await import('../services/permissions')
+    permissionsApi.tags.mockResolvedValue({ data: ['admin', 'user:list'] })
 
     const store = usePermissionStore()
     await store.loadTags()
@@ -68,8 +70,8 @@ describe('PermissionStore', () => {
   })
 
   it('loadTags() API 失败时使用空列表', async () => {
-    const { getPermissionTags } = await import('../services/api')
-    getPermissionTags.mockRejectedValue(new Error('Network error'))
+    const { default: permissionsApi } = await import('../services/permissions')
+    permissionsApi.tags.mockRejectedValue(new Error('Network error'))
 
     const store = usePermissionStore()
     await store.loadTags()

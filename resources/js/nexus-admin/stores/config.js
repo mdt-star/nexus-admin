@@ -116,8 +116,8 @@ export const useConfigStore = defineStore('nexus-config', () => {
     await hookManager.emit('config:before-load')
 
     try {
-      const { getConfig } = await import('../services/api')
-      const response = await getConfig()
+      const { default: configApi } = await import('../services/config')
+      const response = await configApi.fetch()
       if (response.data) {
         if (response.data.global) {
           setGlobalConfig(response.data.global)
@@ -136,8 +136,8 @@ export const useConfigStore = defineStore('nexus-config', () => {
    */
   async function saveUserConfig() {
     try {
-      const { saveConfig } = await import('../services/api')
-      await saveConfig(user.value)
+      const { default: configApi } = await import('../services/config')
+      await configApi.save(user.value)
     } catch (e) {
       console.warn('[NexusAdmin] 保存配置失败:', e)
     }

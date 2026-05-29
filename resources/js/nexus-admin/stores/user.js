@@ -3,7 +3,7 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { login as apiLogin, logout as apiLogout, getCurrentUser } from '../services/api'
+import authApi from '../services/auth'
 
 export const useUserStore = defineStore('nexus-user', () => {
   // 当前用户信息
@@ -21,7 +21,7 @@ export const useUserStore = defineStore('nexus-user', () => {
    * @param {string} password
    */
   async function login(username, password) {
-    const response = await apiLogin(username, password)
+    const response = await authApi.login(username, password)
     if (response.data && response.data.token) {
       token.value = response.data.token
       user.value = response.data.user
@@ -37,7 +37,7 @@ export const useUserStore = defineStore('nexus-user', () => {
   async function restoreSession() {
     if (!token.value) return false
     try {
-      const response = await getCurrentUser()
+      const response = await authApi.currentUser()
       if (response.data) {
         user.value = response.data
         return true
@@ -54,7 +54,7 @@ export const useUserStore = defineStore('nexus-user', () => {
    */
   async function logout() {
     try {
-      await apiLogout()
+      await authApi.logout()
     } catch (e) {
       // 忽略退出错误
     }

@@ -1,33 +1,28 @@
 # 当前活动上下文
 
 ## 当前工作
-为 HomePage 添加快捷菜单卡片，允许在开始菜单和侧边栏菜单中点击 ⭐ 添加快捷方式。
+将测试文件的 mock 从 `../services/api` 迁移到各自独立的 service 模块，消除对 `api.js` 的测试依赖。
 
-## 新增功能
+## 迁移内容
 
-### 快捷菜单卡片（HomePage 左侧列顶部，服务器信息卡片上方）
-- 显示已固定的快捷方式列表，每个项目显示图标 + 标题
-- 悬停时显示 × 删除按钮，可单独移除
-- 卡片标题栏右侧有清空按钮（有项目时显示）
-- 空状态显示引导提示："暂无快捷方式，可在开始菜单中点击 ⭐ 添加"
+### 已迁移的测试文件
+- **disktop.test.js** — `../services/api` → `../services/disktops`
+- **menu.test.js** — `../services/api` → `../services/menus`
+- **notification.test.js** — `../services/api` → `../services/notifications`
+- **permission.test.js** — `../services/api` → `../services/permissions`
+- **i18n.test.js** — `../services/api` → `../services/i18n`
 
-### 开始菜单添加快捷按钮
-- 每个叶子菜单项右侧新增 ⭐ 按钮（悬停显示）
-- 已固定的项目 ⭐ 高亮为主色
-- 点击切换固定/取消固定状态
-
-### 侧边栏右键菜单添加快捷选项
-- 侧边栏菜单项右键菜单新增"添加到快捷菜单"选项
-- 点击切换固定/取消固定状态
-
-### 数据持久化
-- 新增 `stores/shortcuts.js` Pinia store
-- 数据持久化到 localStorage，刷新不丢失
-- 去重逻辑：相同 component 或相同 id 不重复添加
-
-### 国际化
-- 新增 `home.shortcuts`、`home.noShortcuts`、`home.clearShortcuts`、`startMenu.pinToShortcuts` 四个 key，中英文均已添加
+### 迁移模式
+每个测试文件使用 `vi.mock` 模拟对应的独立 service 模块，格式统一为：
+```js
+vi.mock('../services/xxx', () => ({
+  default: {
+    methodName: vi.fn()
+  }
+}))
+```
+测试中通过 `const { default: api } = await import('../services/xxx')` 获取 mock 实例。
 
 ## 当前状态
-- 14 个测试文件，121 个测试用例，全部通过
+- 11 个测试文件，96 个测试用例，全部通过
 - 0 unhandled errors

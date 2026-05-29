@@ -342,8 +342,8 @@ const diskColor = computed(() => {
 
 async function loadSystemInfo() {
   try {
-    const { getSystemInfo } = await import('../../services/api')
-    const res = await getSystemInfo()
+    const { default: systemApi } = await import('../../services/system')
+    const res = await systemApi.info()
     if (res.data) {
       serverInfo.value = { ...serverInfo.value, ...res.data.server }
       phpInfo.value = { ...phpInfo.value, ...res.data.php }

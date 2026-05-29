@@ -161,6 +161,11 @@ async function initNexusAdmin(mountSelector = '#app') {
   // 触发 app:init 钩子
   await hookManager.emit('app:init', app)
 
+  // 开发环境加载 Mock.js 拦截
+  if (import.meta.env.VITE_USE_MOCK !== 'false') {
+    await import('./mock/setup')
+  }
+
   // 注册 Pinia
   app.use(pinia)
 

@@ -56,8 +56,8 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
     if (loading.value) return
     loading.value = true
     try {
-      const { getDisktops } = await import('../services/api')
-      const response = await getDisktops()
+      const { default: disktopsApi } = await import('../services/disktops')
+      const response = await disktopsApi.list()
       disktops.value = response.data || []
       // 自动选中默认桌面
       const defaultDisktop = disktops.value.find(d => d.is_default)
@@ -82,8 +82,8 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
   async function loadItems() {
     if (!activeDisktopId.value) return
     try {
-      const { getDisktopItems } = await import('../services/api')
-      const response = await getDisktopItems(activeDisktopId.value)
+      const { default: disktopsApi } = await import('../services/disktops')
+      const response = await disktopsApi.items.list(activeDisktopId.value)
       items.value = response.data || []
     } catch (e) {
       console.warn('[NexusAdmin] 加载桌面项失败:', e)
@@ -137,8 +137,8 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
     const title = data._skipDedup ? data.title : deduplicateTitle(data.title || '未命名', data.parent_id ?? null, copySuffix)
     const dedupedData = { ...data, title }
     try {
-      const { createDisktopItem } = await import('../services/api')
-      const response = await createDisktopItem({
+      const { default: disktopsApi } = await import('../services/disktops')
+      const response = await disktopsApi.items.create({
         disktop_id: activeDisktopId.value,
         ...dedupedData
       })
@@ -172,8 +172,8 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
    */
   async function updateItem(id, data) {
     try {
-      const { updateDisktopItem } = await import('../services/api')
-      await updateDisktopItem(id, data)
+      const { default: disktopsApi } = await import('../services/disktops')
+      await disktopsApi.items.update(id, data)
     } catch (e) {
       console.warn('[NexusAdmin] 更新桌面项失败:', e)
     }
@@ -190,8 +190,8 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
    */
   async function removeItem(id) {
     try {
-      const { deleteDisktopItem } = await import('../services/api')
-      await deleteDisktopItem(id)
+      const { default: disktopsApi } = await import('../services/disktops')
+      await disktopsApi.items.remove(id)
     } catch (e) {
       console.warn('[NexusAdmin] 删除桌面项失败:', e)
     }
@@ -226,8 +226,8 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
       item.parent_id = newParentId
     }
     try {
-      const { updateDisktopItem } = await import('../services/api')
-      await updateDisktopItem(id, { sort: newSort, parent_id: item.parent_id })
+      const { default: disktopsApi } = await import('../services/disktops')
+      await disktopsApi.items.update(id, { sort: newSort, parent_id: item.parent_id })
     } catch (e) {
       console.warn('[NexusAdmin] 排序失败:', e)
     }

@@ -11,9 +11,10 @@ vi.mock('../utils/hook-manager', () => ({
   }
 }))
 
-vi.mock('../services/api', () => ({
-  getI18nMessages: vi.fn(),
-  saveConfig: vi.fn()
+vi.mock('../services/i18n', () => ({
+  default: {
+    messages: vi.fn()
+  }
 }))
 
 // Mock localStorage for config store
@@ -41,8 +42,8 @@ describe('I18nStore', () => {
   })
 
   it('t() 简单键翻译', async () => {
-    const { getI18nMessages } = await import('../services/api')
-    getI18nMessages.mockResolvedValue({ data: { common: { save: '保存' } } })
+    const { default: i18nApi } = await import('../services/i18n')
+    i18nApi.messages.mockResolvedValue({ data: { common: { save: '保存' } } })
 
     const store = useI18nStore()
     await store.init()
@@ -50,8 +51,8 @@ describe('I18nStore', () => {
   })
 
   it('t() 嵌套键翻译', async () => {
-    const { getI18nMessages } = await import('../services/api')
-    getI18nMessages.mockResolvedValue({ data: { menu: { dashboard: '控制台' } } })
+    const { default: i18nApi } = await import('../services/i18n')
+    i18nApi.messages.mockResolvedValue({ data: { menu: { dashboard: '控制台' } } })
 
     const store = useI18nStore()
     await store.init()
@@ -59,8 +60,8 @@ describe('I18nStore', () => {
   })
 
   it('t() 插值替换', async () => {
-    const { getI18nMessages } = await import('../services/api')
-    getI18nMessages.mockResolvedValue({ data: { common: { confirmDelete: '确定删除「{title}」？' } } })
+    const { default: i18nApi } = await import('../services/i18n')
+    i18nApi.messages.mockResolvedValue({ data: { common: { confirmDelete: '确定删除「{title}」？' } } })
 
     const store = useI18nStore()
     await store.init()
@@ -75,8 +76,8 @@ describe('I18nStore', () => {
   })
 
   it('setLocale() 切换语言', async () => {
-    const { getI18nMessages } = await import('../services/api')
-    getI18nMessages.mockResolvedValue({ data: { common: { save: 'Save' } } })
+    const { default: i18nApi } = await import('../services/i18n')
+    i18nApi.messages.mockResolvedValue({ data: { common: { save: 'Save' } } })
 
     const store = useI18nStore()
     await store.setLocale('en')
@@ -85,18 +86,18 @@ describe('I18nStore', () => {
   })
 
   it('setLocale() 切换已加载的语言不重复请求', async () => {
-    const { getI18nMessages } = await import('../services/api')
-    getI18nMessages.mockResolvedValue({ data: {} })
+    const { default: i18nApi } = await import('../services/i18n')
+    i18nApi.messages.mockResolvedValue({ data: {} })
 
     const store = useI18nStore()
     await store.setLocale('en')
     await store.setLocale('en')
-    expect(getI18nMessages).toHaveBeenCalledTimes(1)
+    expect(i18nApi.messages).toHaveBeenCalledTimes(1)
   })
 
   it('loadLocale() API 失败时使用空对象', async () => {
-    const { getI18nMessages } = await import('../services/api')
-    getI18nMessages.mockRejectedValue(new Error('Network error'))
+    const { default: i18nApi } = await import('../services/i18n')
+    i18nApi.messages.mockRejectedValue(new Error('Network error'))
 
     const store = useI18nStore()
     await store.loadLocale('ja')
@@ -104,8 +105,8 @@ describe('I18nStore', () => {
   })
 
   it('init() 加载当前语言包', async () => {
-    const { getI18nMessages } = await import('../services/api')
-    getI18nMessages.mockResolvedValue({ data: { common: { save: '保存' } } })
+    const { default: i18nApi } = await import('../services/i18n')
+    i18nApi.messages.mockResolvedValue({ data: { common: { save: '保存' } } })
 
     const store = useI18nStore()
     await store.init()
