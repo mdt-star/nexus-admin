@@ -390,7 +390,7 @@ let pendingDropIntoFolder = false
 // 文件夹悬停定时器：拖到文件夹上悬停一段时间后切换为"放入文件夹内部"模式
 let folderHoverTimer = null
 let folderHoverTarget = null
-const FOLDER_HOVER_DELAY = 2000 // ms
+const FOLDER_HOVER_DELAY = 1000 // ms
 
 
 function onDragStart(event, item) {
