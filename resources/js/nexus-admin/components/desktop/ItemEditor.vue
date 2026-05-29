@@ -1,16 +1,16 @@
 <template>
-  <el-dialog :model-value="visible" :title="isNew ? '添加项' : '编辑项'" width="390px" 
+  <el-dialog :model-value="visible" :title="isNew ? t('itemEditor.addItem') : t('itemEditor.editItem')" width="390px" 
     :draggable="true" @close="close" @open="onOpen">
     <el-form :model="form">
-      <el-form-item label="标题">
-        <el-input v-model="form.title" placeholder="输入标题" />
+      <el-form-item :label="t('itemEditor.title')">
+        <el-input v-model="form.title" :placeholder="t('itemEditor.titlePlaceholder')" />
       </el-form-item>
 
-      <el-form-item label="图标">
+      <el-form-item :label="t('itemEditor.icon')">
         <div class="nexus-editor-icon-select">
-          <el-popover v-model:visible="iconPopoverVisible" title="选择图标" placement="right-start" :width="335" trigger="click">
+          <el-popover v-model:visible="iconPopoverVisible" :title="t('itemEditor.selectIcon')" placement="bottom-start" :width="335" trigger="click">
                 <template #reference>
-                  <el-input v-model="form.icon" placeholder="选择图标" readonly  suffix-icon="el-icon-date">
+                  <el-input v-model="form.icon" :placeholder="t('itemEditor.iconPlaceholder')" readonly  suffix-icon="el-icon-date">
                     <template #prepend>
                       <el-icon v-if="form.icon" :size="16">
                         <component :is="getIconComponent(form.icon)" />
@@ -19,7 +19,7 @@
                   </el-input>
                 </template>
                 <div class="nexus-icon-picker">
-                  <el-input v-model="iconSearch" placeholder="搜索图标..." style="margin-bottom: 10px; margin-top: 5px;" size="small" clearable @input="onIconSearch" />
+                  <el-input v-model="iconSearch" :placeholder="t('itemEditor.searchIcon')" style="margin-bottom: 10px; margin-top: 5px;" size="small" clearable @input="onIconSearch" />
                   <div class="nexus-icon-picker-grid">
                     <div v-for="icon in filteredIcons" :key="icon" class="nexus-icon-picker-item"
                       :class="{ 'nexus-icon-picker-active': form.icon === icon }" @click="selectIcon(icon)">
@@ -32,12 +32,12 @@
                   <div class="nexus-icon-picker-custom">
                     <el-divider />
                     <el-button size="small" @click="showCustomInput = true" v-if="!showCustomInput">
-                      自定义图标
+                      {{ t('itemEditor.customIcon') }}
                     </el-button>
                     <div v-else class="nexus-icon-picker-custom-input">
-                      <el-input v-model="customIconName" placeholder="输入图标名称..." size="small" />
-                      <el-button size="small" type="primary" @click="confirmCustomIcon">确认</el-button>
-                      <el-button size="small" @click="showCustomInput = false">取消</el-button>
+                      <el-input v-model="customIconName" :placeholder="t('itemEditor.iconNamePlaceholder')" size="small" />
+                      <el-button size="small" type="primary" @click="confirmCustomIcon">{{ t('common.confirm') }}</el-button>
+                      <el-button size="small" @click="showCustomInput = false">{{ t('common.cancel') }}</el-button>
                     </div>
                   </div>
                 </div>
@@ -46,35 +46,38 @@
         </div>
       </el-form-item>
 
-      <el-form-item label="类型">
+      <el-form-item :label="t('itemEditor.type')">
         <el-select v-model="form.type" style="width: 100%">
-          <el-option label="菜单项" value="menu" />
-          <el-option label="文件夹" value="folder" />
-          <el-option label="分隔线" value="divider" />
-          <el-option label="链接" value="link" />
+          <el-option :label="t('itemEditor.typeMenu')" value="menu" />
+          <el-option :label="t('itemEditor.typeFolder')" value="folder" />
+          <el-option :label="t('itemEditor.typeDivider')" value="divider" />
+          <el-option :label="t('itemEditor.typeLink')" value="link" />
         </el-select>
       </el-form-item>
 
-      <el-form-item v-if="form.type === 'menu'" label="组件">
-        <el-input v-model="form.component" placeholder="组件名，如 dashboard" />
+      <el-form-item v-if="form.type === 'menu'" :label="t('itemEditor.component')">
+        <el-input v-model="form.component" :placeholder="t('itemEditor.componentPlaceholder')" />
       </el-form-item>
 
-      <el-form-item v-if="form.type === 'menu' || form.type === 'link'" label="路径">
-        <el-input v-model="form.path" placeholder="路由路径，如 /dashboard" />
+      <el-form-item v-if="form.type === 'menu' || form.type === 'link'" :label="t('itemEditor.path')">
+        <el-input v-model="form.path" :placeholder="t('itemEditor.pathPlaceholder')" />
       </el-form-item>
     </el-form>
 
     <template #footer>
-      <el-button @click="close">取消</el-button>
-      <el-button type="primary" @click="save">保存</el-button>
+      <el-button @click="close">{{ t('common.cancel') }}</el-button>
+      <el-button type="primary" @click="save">{{ t('common.save') }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
+import { useI18nStore } from '../../stores/i18n'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { Search } from '@element-plus/icons-vue'
+
+const { t } = useI18nStore()
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
