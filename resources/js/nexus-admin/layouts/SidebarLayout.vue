@@ -723,6 +723,23 @@ watch(() => windowStore.activeId, (id) => {
   menuActiveId.value = id ? String(id) : ''
 })
 
+// 侧边栏折叠/展开后，el-menu DOM 会重新渲染，需要重新绑定拖拽事件
+watch(() => appStore.sidebarCollapsed, async () => {
+  await nextTick()
+  // 先移除旧监听
+  if (nativeDragOverHandler) {
+    nativeDragOverHandler.removeEventListener('dragover', handleNativeDragOver)
+    nativeDragOverHandler.removeEventListener('dragstart', handleNativeDragStart)
+  }
+  // 重新绑定
+  const menuEl = sidebarMenuRef.value?.$el
+  if (menuEl) {
+    menuEl.addEventListener('dragover', handleNativeDragOver)
+    menuEl.addEventListener('dragstart', handleNativeDragStart)
+    nativeDragOverHandler = menuEl
+  }
+})
+
 onUnmounted(() => {
   tabsWrapperRef.value?.removeEventListener('scroll', updateScrollState)
   document.removeEventListener('click', closeSidebarContext)
