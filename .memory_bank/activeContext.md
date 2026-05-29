@@ -4,12 +4,10 @@
 实现了完整的桌面自定义系统（Disktop），用户可以通过开始菜单拖拽/点击添加桌面项，支持右键编辑、删除、新建文件夹，桌面图标和侧边栏菜单均来自用户自定义的 disktop_items。
 
 ## 最近变更
-- **StartMenu 重构为 el-popover 实现（修复定位问题）**（StartMenu.vue）：
-  - 移除 `virtual-ref` + `virtual-triggering` 方式（无法定位，因为 el-button 的 ref 是组件实例而非 DOM 元素）
-  - 改用 `el-popover` 的 `#reference` slot 方式，父组件将触发按钮放入 slot 中，popover 自动管理定位
-  - 移除 `triggerRef` prop，不再需要父组件传入 DOM 引用
-  - 父组件 DesktopLayout.vue / SidebarLayout.vue 将触发按钮移到 `<StartMenu>` 的 `<template #reference>` 内
-  - 移除父组件中独立的 `<StartMenu>` 调用（已合并到 header 的 slot 中）
+- **修复 Vite 6 构建失败**（vite.config.js）：
+  - Vite 6 新增 `build.copyPublicDir` 配置项（默认 `true`），导致 `outDir`（`public/vendor/nexus-admin`）与 `publicDir`（`public/`）嵌套时产生递归复制
+  - 添加 `copyPublicDir: false` 禁用 publicDir 复制，解决 `ENAMETOOLONG` 递归目录创建错误
+  - 移除无效的 `publicDir: false`（Vite 6 中已忽略此配置）
 - **修复 URL 地址栏不同步**：
   - `app.js` 中已有 `watch(() => windowStore.active, ...)` 监听 active Tab 变化同步 URL（含 params.query）
   - `windows.js` 中移除多余的 `syncUrl()` 手动调用，避免与 `app.js` 的 watch 冲突

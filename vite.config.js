@@ -14,9 +14,11 @@ function nexusAdminPlugin() {
   const registry = {}
 
   function scanVendorPackages() {
-    if (!existsSync(vendorDir)) return
+    // 只扫描 resources/js/nexus-admin/vendor/，排除 public/vendor/ 等构建产物
+    const resolvedVendorDir = resolve(__dirname, 'resources/js/nexus-admin/vendor')
+    if (!existsSync(resolvedVendorDir)) return
 
-    const packages = readdirSync(vendorDir, { withFileTypes: true })
+    const packages = readdirSync(resolvedVendorDir, { withFileTypes: true })
       .filter(dirent => dirent.isDirectory())
       .map(dirent => dirent.name)
 
@@ -225,13 +227,17 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'public/vendor/nexus-admin',
+    outDir: resolve(__dirname, 'public/vendor/nexus-admin'),
     assetsDir: 'assets',
+    copyPublicDir: false,
     rollupOptions: {
       input: resolve(__dirname, 'resources/js/nexus-admin/app.js'),
       output: {
         manualChunks: undefined
       }
     }
+  },
+  server: {
+    port: 5173
   }
 })

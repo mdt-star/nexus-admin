@@ -12,8 +12,8 @@
   <div id="app"></div>
   <script type="module">
     // 开发环境：注入扩展包注册信息
-    import demoRegistry from '/resources/js/nexus-admin/vendor/nexus-demo/registry.js'
-    window.__NEXUS_ADMIN_REGISTRY__ = demoRegistry
+    import pageRegistry from '/resources/js/nexus-admin/pages/registry.js'
+    window.__NEXUS_ADMIN_REGISTRY__ = pageRegistry
 
     // 初始化应用
     import('/resources/js/nexus-admin/app.js')
