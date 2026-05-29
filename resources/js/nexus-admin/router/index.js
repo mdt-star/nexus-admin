@@ -4,16 +4,6 @@
  */
 import { createRouter, createWebHistory } from 'vue-router'
 
-// 页面组件映射表
-const pageComponents = {
-  'dashboard': () => import('../pages/demo/Dashboard.vue'),
-  'content-article': () => import('../pages/demo/ContentArticle.vue'),
-  'content-category': () => import('../pages/demo/ContentCategory.vue'),
-  'system-user': () => import('../pages/system/User.vue'),
-  'system-role': () => import('../pages/system/Role.vue'),
-  'system-config': () => import('../pages/system/Config.vue')
-}
-
 const routes = [
   {
     path: '/:pathMatch(.*)*',
@@ -27,5 +17,4 @@ const router = createRouter({
   routes
 })
 
-export { pageComponents }
 export default router
