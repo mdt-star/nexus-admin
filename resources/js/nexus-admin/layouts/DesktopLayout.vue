@@ -43,13 +43,16 @@
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="profile">{{ t('login.profile') }}</el-dropdown-item>
-              <el-dropdown-item divided command="logout">{{ t('login.logout') }}</el-dropdown-item>
+              <el-dropdown-item command="preferences"><el-icon><Setting /></el-icon> {{ t('preferences.title') }}</el-dropdown-item>
+              <el-dropdown-item command="profile"><el-icon><InfoFilled /></el-icon> {{ t('login.profile') }}</el-dropdown-item>
+              <el-dropdown-item divided command="logout"><el-icon><SwitchButton /></el-icon> {{ t('login.logout') }}</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </div>
     </header>
+
+    <PreferencesPanel ref="preferencesRef" />
 
     <main class="nexus-desktop" @dragover.prevent="onDragOver" @drop.prevent="onDrop">
       <div class="nexus-desktop-icons">
@@ -117,7 +120,8 @@ import { useWindowDrag } from '../composables/useWindowDrag'
 import FolderView from '../components/desktop/FolderView.vue'
 import StartMenu from '../components/desktop/StartMenu.vue'
 import ItemEditor from '../components/desktop/ItemEditor.vue'
-import { TrendCharts, Edit, Delete, FolderAdd } from '@element-plus/icons-vue'
+import { TrendCharts, Edit, Delete, FolderAdd, Setting, InfoFilled, SwitchButton } from '@element-plus/icons-vue'
+import PreferencesPanel from '../components/PreferencesPanel.vue'
 
 const appStore = useAppStore()
 const menuStore = useMenuStore()
@@ -141,6 +145,7 @@ const avatarStyle = computed(() => {
 const { getWindowRect, startDrag } = useWindowDrag()
 const cache = {}
 const currentFolder = ref(null)
+const preferencesRef = ref(null)
 const editorVisible = ref(false)
 const editingItem = ref(null)
 const isNewItem = ref(false)
@@ -194,7 +199,10 @@ async function onEditorSave(data) {
 }
 
 function handleLocaleChange(loc) { i18n.setLocale(loc) }
-function handleUserCommand(cmd) { if (cmd === 'logout') userStore.logout() }
+function handleUserCommand(cmd) {
+  if (cmd === 'preferences') preferencesRef.value?.open()
+  else if (cmd === 'logout') userStore.logout()
+}
 </script>
 
 <style scoped>
