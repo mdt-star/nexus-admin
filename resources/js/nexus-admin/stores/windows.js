@@ -179,6 +179,8 @@ export const useWindowStore = defineStore('nexus-windows', () => {
    */
   function updateSearchParams(id, query) {
     const item = items.value.find(item => item.id === id)
+
+    console.log('Updating search params for', id, query,item,items.value)
     if (item) {
       if (!item.params) item.params = {}
       item.params.query = { ...query }

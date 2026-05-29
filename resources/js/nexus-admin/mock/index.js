@@ -5,7 +5,7 @@
 
 const mockMenus = [
   {
-    id: 'dashboard',
+    id: 1,
     title: '控制台',
     icon: 'Monitor',
     component: 'dashboard',
@@ -14,7 +14,7 @@ const mockMenus = [
     children: []
   },
   {
-    id: 'system',
+    id: 2,
     title: '系统管理',
     icon: 'Setting',
     component: '',
@@ -22,7 +22,7 @@ const mockMenus = [
     tags: ['admin'],
     children: [
       {
-        id: 'system-user',
+        id: 3,
         title: '用户管理',
         icon: 'User',
         component: 'system-user',
@@ -31,7 +31,7 @@ const mockMenus = [
         children: []
       },
       {
-        id: 'system-role',
+        id: 4,
         title: '角色管理',
         icon: 'Avatar',
         component: 'system-role',
@@ -40,7 +40,7 @@ const mockMenus = [
         children: []
       },
       {
-        id: 'system-config',
+        id: 5,
         title: '系统配置',
         icon: 'Tools',
         component: 'system-config',
@@ -51,7 +51,7 @@ const mockMenus = [
     ]
   },
   {
-    id: 'content',
+    id: 6,
     title: '内容管理',
     icon: 'Document',
     component: '',
@@ -59,7 +59,7 @@ const mockMenus = [
     tags: [],
     children: [
       {
-        id: 'content-article',
+        id: 7,
         title: '文章管理',
         icon: 'Notebook',
         component: 'content-article',
@@ -68,7 +68,7 @@ const mockMenus = [
         children: []
       },
       {
-        id: 'content-category',
+        id: 8,
         title: '分类管理',
         icon: 'Collection',
         component: 'content-category',

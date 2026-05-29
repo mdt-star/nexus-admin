@@ -204,14 +204,14 @@ onMounted(() => {
 
 function handleSearch() {
   loading.value = true
-  windowStore.updateSearchParams('system-user', { ...searchForm })
+  windowStore.updateSearchParams(windowStore.activeId, { ...searchForm })
   setTimeout(() => { loading.value = false }, 300)
 }
 
 function handleReset() {
   searchForm.keyword = ''
   searchForm.status = ''
-  windowStore.updateSearchParams('system-user', {})
+  windowStore.updateSearchParams(windowStore.activeId, {})
 }
 
 function handleRefresh() {

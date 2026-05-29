@@ -183,14 +183,14 @@ onMounted(() => {
 })
 
 function handleSearch() {
-  windowStore.updateSearchParams('content-article', { ...searchForm })
+  windowStore.updateSearchParams(windowStore.activeId, { ...searchForm })
   loading.value = true
   setTimeout(() => { loading.value = false }, 300)
 }
 
 function handleReset() {
   searchForm.keyword = ''
-  windowStore.updateSearchParams('content-article', {})
+  windowStore.updateSearchParams(windowStore.activeId, {})
 }
 
 function handleRefresh() {
