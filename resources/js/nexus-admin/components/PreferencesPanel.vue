@@ -6,6 +6,15 @@
     size="320px"
   >
     <div class="preferences-body">
+      <!-- 布局切换 -->
+      <div class="pref-section">
+        <h3 class="pref-section-title">{{ t('layout.toggle') }}</h3>
+        <el-radio-group :model-value="layout" @change="handleLayoutChange">
+          <el-radio-button value="sidebar">{{ t('layout.sidebar') }}</el-radio-button>
+          <el-radio-button value="desktop">{{ t('layout.desktop') }}</el-radio-button>
+        </el-radio-group>
+      </div>
+
       <!-- Tab 栏开关 -->
       <div class="pref-section">
         <h3 class="pref-section-title">{{ t('preferences.tabMode') }}</h3>
@@ -40,16 +49,19 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Check } from '@element-plus/icons-vue'
+import { useAppStore } from '../stores/app'
 import { useConfigStore } from '../stores/config'
 import { useThemeStore } from '../stores/theme'
 import { useI18nStore } from '../stores/i18n'
 
 const { t } = useI18nStore()
+const appStore = useAppStore()
 const configStore = useConfigStore()
 const themeStore = useThemeStore()
 
 const visible = ref(false)
 
+const layout = computed(() => appStore.layout)
 const tabMode = computed(() => configStore.get('tabMode', true))
 const headerColor = computed(() => configStore.get('headerColor', ''))
 
@@ -67,6 +79,10 @@ const headerColors = [
 
 function open() {
   visible.value = true
+}
+
+function handleLayoutChange(val) {
+  appStore.toggleLayout()
 }
 
 function handleTabModeChange(val) {

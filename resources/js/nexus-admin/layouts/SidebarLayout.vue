@@ -87,15 +87,10 @@
         </div>
         <div class="nexus-header-right">
           <NotificationBell />
-          <div style="display: flex; align-items: center; gap: 0;">
-            <el-tooltip :content="t('theme.toggle')" placement="bottom">
-              <el-button :icon="themeStore.theme === 'dark' ? 'Sunny' : 'Moon'" circle
-                @click="themeStore.toggleTheme()" />
-            </el-tooltip>
-            <el-tooltip :content="t('layout.toggle')" placement="bottom">
-              <el-button icon="Grid" circle @click="appStore.toggleLayout()" />
-            </el-tooltip>
-          </div>
+          <el-tooltip :content="t('theme.toggle')" placement="bottom">
+            <el-button :icon="themeStore.theme === 'dark' ? 'Sunny' : 'Moon'" circle
+              @click="themeStore.toggleTheme()" />
+          </el-tooltip>
           <el-dropdown @command="(val) => uiSizeStore.setSize(val)">
             <el-button><span style="font-size:13px;font-weight:600">{{ uiSizeStore.size.charAt(0).toUpperCase()
                 }}</span></el-button>
