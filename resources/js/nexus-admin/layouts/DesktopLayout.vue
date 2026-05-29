@@ -83,6 +83,10 @@
         </div>
       </div>
 
+      <div v-if="windowStore.items.length === 0" class="nexus-desktop-home">
+        <component :is="homePage" />
+      </div>
+
       <FolderView v-if="currentFolder" :folder="currentFolder" @open="(c) => windowStore.open(c)" @close="currentFolder = null" />
     </main>
 
@@ -203,6 +207,11 @@ function handleUserCommand(cmd) {
   if (cmd === 'preferences') preferencesRef.value?.open()
   else if (cmd === 'logout') userStore.logout()
 }
+
+// 默认首页（无窗口打开时显示）
+const homePage = computed(() => {
+  return (window.__NEXUS_ADMIN_PAGES__ || {})['nexus-home'] || null
+})
 </script>
 
 <style scoped>
@@ -226,6 +235,7 @@ function handleUserCommand(cmd) {
 .nexus-desktop-icon-label { font-size: var(--nexus-font-size-sm); text-align: center; word-break: break-all; }
 .nexus-desktop-empty { grid-column: 1 / -1; display: flex; justify-content: center; padding: 60px 0; }
 .nexus-desktop-windows { position: absolute; inset: 0; pointer-events: none; }
+.nexus-desktop-home { position: absolute; inset: 0; overflow: auto; pointer-events: auto; }
 .nexus-window { position: absolute; background: var(--nexus-bg-color-light); border-radius: 8px; box-shadow: var(--nexus-box-shadow); display: flex; flex-direction: column; pointer-events: auto; overflow: hidden; }
 .nexus-window-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--nexus-bg-color); border-bottom: 1px solid var(--nexus-border-color); cursor: move; }
 .nexus-window-title { font-size: var(--nexus-font-size-base); font-weight: 500; }

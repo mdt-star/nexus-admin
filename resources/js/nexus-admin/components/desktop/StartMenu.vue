@@ -5,6 +5,10 @@
       <slot name="reference" />
     </template>
     <div class="nexus-start-panel" @click.stop>
+      <div class="nexus-start-header">
+        <WindowsStartIcon :size="22" />
+        <span>{{ t('startMenu.title') || '开始菜单' }}</span>
+      </div>
       <el-alert :title="t('startMenu.dragHint')" :closable="false" show-icon type="info" style="margin-bottom: 10px;" />
       <div class="nexus-start-search">
         <el-input v-model="searchQuery" :placeholder="t('common.searchPlaceholder')" clearable
@@ -27,6 +31,10 @@
               </el-icon>
               <template #title>
                 <span class="nexus-start-leaf-label">{{ child.title }}</span>
+                <el-tooltip :content="t('startMenu.pinToShortcuts')" placement="left">
+                  <el-icon class="nexus-start-leaf-pin" :class="{ 'nexus-start-leaf-pinned': shortcutsStore.has(child) }"
+                    @click.stop="togglePin(child)"><Star /></el-icon>
+                </el-tooltip>
                 <el-tooltip :content="t('startMenu.dragHint')" placement="left">
                   <el-icon class="nexus-start-leaf-drag"><Rank /></el-icon>
                 </el-tooltip>
@@ -40,6 +48,10 @@
             </el-icon>
             <template #title>
               <span class="nexus-start-leaf-label">{{ item.title }}</span>
+              <el-tooltip :content="t('startMenu.pinToShortcuts')" placement="left">
+                <el-icon class="nexus-start-leaf-pin" :class="{ 'nexus-start-leaf-pinned': shortcutsStore.has(item) }"
+                  @click.stop="togglePin(item)"><Star /></el-icon>
+              </el-tooltip>
               <el-tooltip :content="t('startMenu.dragHint')" placement="left">
                 <el-icon class="nexus-start-leaf-drag"><Rank /></el-icon>
               </el-tooltip>
@@ -58,13 +70,16 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMenuStore } from '../../stores/menu'
 import { useI18nStore } from '../../stores/i18n'
+import { useShortcutsStore } from '../../stores/shortcuts'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import { FolderOpened, Rank } from '@element-plus/icons-vue'
+import { FolderOpened, Rank, Star } from '@element-plus/icons-vue'
+import WindowsStartIcon from './WindowsStartIcon.vue'
 
 const emit = defineEmits(['open-page'])
 
 const menuStore = useMenuStore()
 const i18nStore = useI18nStore()
+const shortcutsStore = useShortcutsStore()
 const { t } = i18nStore
 
 const searchQuery = ref('')
@@ -123,6 +138,14 @@ function findItem(items, id) {
   return null
 }
 
+function togglePin(item) {
+  if (shortcutsStore.has(item)) {
+    shortcutsStore.remove(item.id)
+  } else {
+    shortcutsStore.add(item)
+  }
+}
+
 function onDragStart(event, item) {
   isDragging.value = true
   // 如果是父节点，递归收集所有子节点
@@ -170,6 +193,20 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
   overflow: hidden;
 }
 
+.nexus-start-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  padding-bottom: 12px;
+}
+
+.nexus-start-header .el-icon {
+  font-size: 20px;
+  color: var(--nexus-primary-color);
+}
+
 .nexus-start-search {
   padding: 0 0px 12px;
 }
@@ -208,6 +245,28 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.nexus-start-leaf-pin {
+  font-size: 14px;
+  color: var(--nexus-text-color-placeholder);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  cursor: pointer;
+  margin-right: 2px;
+}
+
+.nexus-start-leaf-pinned {
+  opacity: 1 !important;
+  color: var(--nexus-primary-color, #409eff) !important;
+}
+
+.nexus-start-menu :deep(.el-menu-item:hover .nexus-start-leaf-pin) {
+  opacity: 0.6;
+}
+
+.nexus-start-menu :deep(.el-menu-item:hover .nexus-start-leaf-pin:hover) {
+  opacity: 1;
 }
 
 .nexus-start-leaf-drag {

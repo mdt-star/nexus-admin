@@ -87,7 +87,9 @@
             <component :is="getPageComponent(tab.component)" :key="tab.id" />
           </div>
         </div>
-        <div v-else class="nexus-content-empty"><el-empty :description="t('common.noData')" /></div>
+        <div v-else class="nexus-content-home">
+          <component :is="homePage" />
+        </div>
       </main>
 
       <footer class="nexus-footer"><span>{{ footerText }}</span></footer>
@@ -229,6 +231,11 @@ function getPageComponent(name) {
   if (pageCache[name]) return pageCache[name]
   return pageCache[name] = (window.__NEXUS_ADMIN_PAGES__ || {})[name] || null
 }
+
+// 默认首页（无窗口打开时显示）
+const homePage = computed(() => {
+  return (window.__NEXUS_ADMIN_PAGES__ || {})['nexus-home'] || null
+})
 </script>
 
 <style scoped>
@@ -483,6 +490,11 @@ function getPageComponent(name) {
   align-items: center;
   justify-content: center;
   height: 100%;
+}
+
+.nexus-content-home {
+  height: 100%;
+  overflow: auto;
 }
 
 .nexus-footer {

@@ -14,6 +14,7 @@ import ContentCategory from './demo/ContentCategory.vue'
 import User from './system/User.vue'
 import Role from './system/Role.vue'
 import Config from './system/Config.vue'
+import HomePage from './system/HomePage.vue'
 
 export default {
   pages: {
@@ -22,7 +23,8 @@ export default {
     'content-category': ContentCategory,
     'system-user': User,
     'system-role': Role,
-    'system-config': Config
+    'system-config': Config,
+    'nexus-home': HomePage
   },
   components: {},
   directives: {},

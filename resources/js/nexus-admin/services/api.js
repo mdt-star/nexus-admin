@@ -268,6 +268,44 @@ const mockNotifications = [
 ]
 
 /**
+ * 获取系统信息（服务器状态、PHP 环境、系统版本等）
+ * 服务器实时数据需要配合采集代理使用，不可用时返回基础信息
+ */
+export async function getSystemInfo() {
+  await delay(300)
+  return mockResponse({
+    server: {
+      cpu: 23,
+      memory: 45,
+      disk: 62,
+      os: 'Linux 6.1.0 (x86_64)',
+      uptime: '15 天 8 小时 32 分钟',
+      load: '1.02 / 0.85 / 0.67',
+      processes: '186'
+    },
+    php: {
+      version: '8.2.12',
+      sapi: 'fpm-fcgi',
+      memoryLimit: '256M',
+      maxExecTime: '30s',
+      uploadMax: '64M',
+      postMax: '128M'
+    },
+    system: {
+      appName: 'Nexus Admin',
+      version: '1.0.0',
+      website: 'https://nexus-admin.com',
+      docs: 'https://nexus-admin.com/docs',
+      github: 'https://github.com/nexus-admin/nexus-admin',
+      updates: [
+        { version: 'v1.1.0-beta', title: '新增插件系统与权限管理增强', date: '2026-05-20', type: 'info' },
+        { version: 'v1.0.1', title: '安全更新：修复 XSS 漏洞', date: '2026-05-10', type: 'security' }
+      ]
+    }
+  })
+}
+
+/**
  * 获取通知列表
  */
 export async function getNotifications() {

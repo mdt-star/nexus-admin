@@ -49,7 +49,7 @@ export const useWindowStore = defineStore('nexus-windows', () => {
   // 自动持久化
   watch([items, activeId], ([newItems, newActiveId]) => {
     saveToStorage(newItems, newActiveId)
-    if(newItems.length === 0) {
+    if(newItems.length === 0 && router) {
       router.replace({ path: '/' }).catch(() => {})
     }
   }, { deep: true })

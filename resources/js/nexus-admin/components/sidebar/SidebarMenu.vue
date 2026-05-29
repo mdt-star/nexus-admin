@@ -81,6 +81,11 @@
           <el-icon><Delete /></el-icon><span>{{ t('common.delete') }}</span>
         </div>
         <div class="nexus-context-divider" />
+        <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': sidebarContextIsFolder }"
+          @click="!sidebarContextIsFolder && pinToShortcuts()">
+          <el-icon><Star /></el-icon><span>{{ t('startMenu.pinToShortcuts') }}</span>
+        </div>
+        <div class="nexus-context-divider" />
         <div class="nexus-context-item" @click="addSidebarFolder">
           <el-icon><FolderAdd /></el-icon><span>{{ t('startMenu.newProject') }}</span>
         </div>
@@ -98,6 +103,7 @@ import { useWindowStore } from '../../stores/windows'
 import { useI18nStore } from '../../stores/i18n'
 import { useConfigStore } from '../../stores/config'
 import { useUiSizeStore } from '../../stores/size'
+import { useShortcutsStore } from '../../stores/shortcuts'
 import hookManager from '../../utils/hook-manager'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { TrendCharts, Edit, Delete, FolderAdd } from '@element-plus/icons-vue'
@@ -115,6 +121,7 @@ const windowStore = useWindowStore()
 const i18nStore = useI18nStore()
 const configStore = useConfigStore()
 const uiSizeStore = useUiSizeStore()
+const shortcutsStore = useShortcutsStore()
 const { t } = i18nStore
 
 // ==================== 计算属性 ====================
@@ -497,6 +504,10 @@ const sidebarContextVisible = ref(false)
 const sidebarContextItem = ref(null)
 const sidebarContextStyle = ref({})
 const sidebarContextHasItem = computed(() => sidebarContextItem.value !== null)
+const sidebarContextIsFolder = computed(() => {
+  const item = sidebarContextItem.value
+  return !item || (item.children && item.children.length > 0) || item.type === 'folder'
+})
 
 function openSidebarContextMenu(event, item) {
   sidebarContextVisible.value = true
@@ -527,6 +538,17 @@ async function deleteSidebarItem() {
     )
     disktopStore.removeItem(item.id)
   } catch (_) {}
+}
+
+function pinToShortcuts() {
+  sidebarContextVisible.value = false
+  const item = sidebarContextItem.value
+  if (!item) return
+  if (shortcutsStore.has(item)) {
+    shortcutsStore.remove(item.id)
+  } else {
+    shortcutsStore.add(item)
+  }
 }
 
 async function addSidebarFolder() {
