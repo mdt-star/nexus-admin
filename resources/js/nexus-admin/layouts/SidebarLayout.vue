@@ -312,28 +312,39 @@ async function onSidebarDrop(event) {
   // 使用 handleNativeDragOver 缓存的拖拽目标信息（不依赖 DOM class）
   const target = pendingDropTarget
   const insertAfter = pendingDropAfter
+  const intoFolder = pendingDropIntoFolder
   pendingDropTarget = null
   pendingDropAfter = false
+  pendingDropIntoFolder = false
   let parentId = null
   let newSort
   if (target) {
-    parentId = target.parent_id
-    const siblings = disktopStore.items
-      .filter(i => i.parent_id === parentId)
-      .sort((a, b) => (a.sort || 0) - (b.sort || 0))
-    const targetIdx = siblings.findIndex(i => i.id === target.id)
-    if (targetIdx !== -1) {
-      if (insertAfter) {
-        if (targetIdx + 1 < siblings.length) {
-          newSort = ((siblings[targetIdx].sort || 0) + (siblings[targetIdx + 1].sort || 0)) / 2
+    if (intoFolder) {
+      // 放入文件夹内部：parent_id 设为文件夹 id，追加到子节点末尾
+      parentId = target.id
+      const children = disktopStore.items
+        .filter(i => i.parent_id === parentId)
+        .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+      newSort = children.length > 0 ? (children[children.length - 1].sort || 0) + 1 : 0
+    } else {
+      parentId = target.parent_id
+      const siblings = disktopStore.items
+        .filter(i => i.parent_id === parentId)
+        .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+      const targetIdx = siblings.findIndex(i => i.id === target.id)
+      if (targetIdx !== -1) {
+        if (insertAfter) {
+          if (targetIdx + 1 < siblings.length) {
+            newSort = ((siblings[targetIdx].sort || 0) + (siblings[targetIdx + 1].sort || 0)) / 2
+          } else {
+            newSort = (siblings[targetIdx].sort || 0) + 1
+          }
         } else {
-          newSort = (siblings[targetIdx].sort || 0) + 1
-        }
-      } else {
-        if (targetIdx > 0) {
-          newSort = ((siblings[targetIdx - 1].sort || 0) + (siblings[targetIdx].sort || 0)) / 2
-        } else {
-          newSort = (siblings[0].sort || 0) - 1
+          if (targetIdx > 0) {
+            newSort = ((siblings[targetIdx - 1].sort || 0) + (siblings[targetIdx].sort || 0)) / 2
+          } else {
+            newSort = (siblings[0].sort || 0) - 1
+          }
         }
       }
     }
@@ -375,6 +386,7 @@ let pendingStartMenuData = null
 // 缓存当前拖拽目标节点和插入方向（drop 时直接使用，不依赖 DOM class）
 let pendingDropTarget = null
 let pendingDropAfter = false
+let pendingDropIntoFolder = false
 
 function onDragStart(event, item) {
   console.log('开始拖动:', item)
@@ -463,11 +475,23 @@ function handleNativeDragOver(event) {
     }
   } else {
     // el-menu-item：根据上下半区分 before/after
-    dragInsertAfter.value = y >= rect.height / 2
-    highlightEl.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
-    highlightEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
-    pendingDropTarget = target
-    pendingDropAfter = dragInsertAfter.value
+    // 如果是文件夹类型，下半部分表示"放入文件夹内部"（作为子节点）
+    const isFolder = target.type === 'folder'
+    const isLowerHalf = y >= rect.height / 2
+    if (isFolder && isLowerHalf) {
+      // 文件夹下半部分 → 放入文件夹内部（追加到子节点末尾）
+      pendingDropIntoFolder = true
+      highlightEl.classList.add('nexus-drag-after')
+      pendingDropTarget = target
+      pendingDropAfter = true
+    } else {
+      pendingDropIntoFolder = false
+      dragInsertAfter.value = isLowerHalf
+      highlightEl.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
+      highlightEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
+      pendingDropTarget = target
+      pendingDropAfter = dragInsertAfter.value
+    }
   }
 }
 
@@ -495,34 +519,47 @@ function handleNativeDragEnd(event) {
 
   const source = dragItem.value
   const target = dragTarget.value
+  const intoFolder = pendingDropIntoFolder
   dragItem.value = null
   dragTarget.value = null
+  pendingDropIntoFolder = false
 
   if (!target) return
 
-  // 计算插入位置的 sort 值
-  const newParentId = target.parent_id
-  const siblings = disktopStore.items
-    .filter(i => i.parent_id === newParentId)
-    .sort((a, b) => (a.sort || 0) - (b.sort || 0))
-
-  const targetIdx = siblings.findIndex(i => i.id === target.id)
-  if (targetIdx === -1) return
-
+  let newParentId
   let newSort
-  if (dragInsertAfter.value) {
-    if (targetIdx + 1 < siblings.length) {
-      const next = siblings[targetIdx + 1]
-      newSort = ((siblings[targetIdx].sort || 0) + (next.sort || 0)) / 2
-    } else {
-      newSort = (siblings[targetIdx].sort || 0) + 1
-    }
+
+  if (intoFolder) {
+    // 放入文件夹内部：parent_id 设为文件夹 id，追加到子节点末尾
+    newParentId = target.id
+    const children = disktopStore.items
+      .filter(i => i.parent_id === newParentId)
+      .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+    newSort = children.length > 0 ? (children[children.length - 1].sort || 0) + 1 : 0
   } else {
-    if (targetIdx > 0) {
-      const prev = siblings[targetIdx - 1]
-      newSort = ((prev.sort || 0) + (siblings[targetIdx].sort || 0)) / 2
+    // 同级插入 before/after
+    newParentId = target.parent_id
+    const siblings = disktopStore.items
+      .filter(i => i.parent_id === newParentId)
+      .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+
+    const targetIdx = siblings.findIndex(i => i.id === target.id)
+    if (targetIdx === -1) return
+
+    if (dragInsertAfter.value) {
+      if (targetIdx + 1 < siblings.length) {
+        const next = siblings[targetIdx + 1]
+        newSort = ((siblings[targetIdx].sort || 0) + (next.sort || 0)) / 2
+      } else {
+        newSort = (siblings[targetIdx].sort || 0) + 1
+      }
     } else {
-      newSort = (siblings[0].sort || 0) - 1
+      if (targetIdx > 0) {
+        const prev = siblings[targetIdx - 1]
+        newSort = ((prev.sort || 0) + (siblings[targetIdx].sort || 0)) / 2
+      } else {
+        newSort = (siblings[0].sort || 0) - 1
+      }
     }
   }
 
