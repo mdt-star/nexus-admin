@@ -387,6 +387,11 @@ let pendingStartMenuData = null
 let pendingDropTarget = null
 let pendingDropAfter = false
 let pendingDropIntoFolder = false
+// 文件夹悬停定时器：拖到文件夹上悬停一段时间后切换为"放入文件夹内部"模式
+let folderHoverTimer = null
+let folderHoverTarget = null
+const FOLDER_HOVER_DELAY = 500 // ms
+
 
 function onDragStart(event, item) {
   console.log('开始拖动:', item)
@@ -425,18 +430,20 @@ function handleNativeDragOver(event) {
   }
   if (!itemEl) {
     // 鼠标在空白区域 → 高亮最后一个根级菜单项（追加到末尾）
+    clearFolderHoverTimer()
     const rootItems = disktopStore.rootItems
     if (rootItems.length > 0) {
       const lastRoot = rootItems[rootItems.length - 1]
       const lastEl = sidebarMenuRef.value?.$el?.querySelector(`[data-item-id="${lastRoot.id}"]`)
       if (lastEl) {
         // 清除其他高亮
-        document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
-          .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
+        document.querySelectorAll('.nexus-drag-before, .nexus-drag-after, .nexus-drag-into')
+          .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after', 'nexus-drag-into'))
         lastEl.classList.add('nexus-drag-after')
         // 缓存拖拽目标信息
         pendingDropTarget = lastRoot
         pendingDropAfter = true
+        pendingDropIntoFolder = false
       }
     }
     return
@@ -453,46 +460,89 @@ function handleNativeDragOver(event) {
   if (!highlightEl) return
   const rect = highlightEl.getBoundingClientRect()
   const y = event.clientY - rect.top
+
+  // 判断当前目标是否为文件夹（el-sub-menu 或 type === 'folder' 的 el-menu-item）
+  const isFolder = isSubMenu || target.type === 'folder'
+
+  // 如果当前已经有"放入文件夹"定时器且目标没变，保持状态不重置
+  if (pendingDropIntoFolder && folderHoverTarget === targetId) {
+    // 已经处于"放入文件夹"模式，只更新高亮位置
+    document.querySelectorAll('.nexus-drag-before, .nexus-drag-after, .nexus-drag-into')
+      .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after', 'nexus-drag-into'))
+    highlightEl.classList.add('nexus-drag-into')
+    return
+  }
+
   // 清除其他高亮
-  document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
-    .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
-  if (isSubMenu) {
-    // el-sub-menu：鼠标在标题区域上半部分 → 插入到之前（before）
-    // 鼠标在标题区域下半部分或子菜单区域 → 插入到内部（after on title）
+  document.querySelectorAll('.nexus-drag-before, .nexus-drag-after, .nexus-drag-into')
+    .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after', 'nexus-drag-into'))
+
+  if (isFolder) {
+    // 文件夹：根据上下半区分 before/after，同时启动悬停定时器
     const isInTitleArea = y >= 0 && y <= rect.height
-    if (isInTitleArea && y < rect.height / 2) {
-      // 标题上半部分 → 插入到该父节点之前
+    const isUpperHalf = isInTitleArea && y < rect.height / 2
+
+    if (isUpperHalf) {
+      // 上半部分 → 插入到该文件夹之前
+      pendingDropIntoFolder = false
       dragInsertAfter.value = false
       highlightEl.classList.add('nexus-drag-before')
       pendingDropTarget = target
       pendingDropAfter = false
     } else {
-      // 标题下半部分或子菜单区域 → 插入到该父节点内部（作为子节点）
+      // 下半部分或子菜单区域 → 先显示"插入到同级之后"，启动定时器
+      pendingDropIntoFolder = false
       dragInsertAfter.value = true
       highlightEl.classList.add('nexus-drag-after')
       pendingDropTarget = target
       pendingDropAfter = true
     }
+
+    // 启动/重置悬停定时器：悬停一段时间后切换为"放入文件夹内部"
+    startFolderHoverTimer(targetId, highlightEl)
   } else {
-    // el-menu-item：根据上下半区分 before/after
-    // 如果是文件夹类型，下半部分表示"放入文件夹内部"（作为子节点）
-    const isFolder = target.type === 'folder'
+    // 非文件夹：根据上下半区分 before/after
+    clearFolderHoverTimer()
+    pendingDropIntoFolder = false
     const isLowerHalf = y >= rect.height / 2
-    if (isFolder && isLowerHalf) {
-      // 文件夹下半部分 → 放入文件夹内部（追加到子节点末尾）
-      pendingDropIntoFolder = true
-      highlightEl.classList.add('nexus-drag-after')
-      pendingDropTarget = target
-      pendingDropAfter = true
-    } else {
-      pendingDropIntoFolder = false
-      dragInsertAfter.value = isLowerHalf
-      highlightEl.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
-      highlightEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
-      pendingDropTarget = target
-      pendingDropAfter = dragInsertAfter.value
-    }
+    dragInsertAfter.value = isLowerHalf
+    highlightEl.classList.toggle('nexus-drag-before', !dragInsertAfter.value)
+    highlightEl.classList.toggle('nexus-drag-after', dragInsertAfter.value)
+    pendingDropTarget = target
+    pendingDropAfter = dragInsertAfter.value
   }
+}
+
+/**
+ * 启动文件夹悬停定时器：悬停一段时间后切换为"放入文件夹内部"模式
+ */
+function startFolderHoverTimer(targetId, highlightEl) {
+  // 如果定时器已存在且目标相同，不重置（让用户持续悬停即可触发）
+  if (folderHoverTimer && folderHoverTarget === targetId) return
+  clearFolderHoverTimer()
+  folderHoverTarget = targetId
+  folderHoverTimer = setTimeout(() => {
+    // 切换为"放入文件夹内部"模式
+    pendingDropIntoFolder = true
+    // 清除 before/after 高亮，改为"放入"高亮（上下都亮）
+    document.querySelectorAll('.nexus-drag-before, .nexus-drag-after, .nexus-drag-into')
+      .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after', 'nexus-drag-into'))
+    if (highlightEl) {
+      highlightEl.classList.add('nexus-drag-into')
+    }
+    folderHoverTimer = null
+  }, FOLDER_HOVER_DELAY)
+}
+
+/**
+ * 清除文件夹悬停定时器
+ */
+function clearFolderHoverTimer() {
+  if (folderHoverTimer) {
+    clearTimeout(folderHoverTimer)
+    folderHoverTimer = null
+  }
+  folderHoverTarget = null
 }
 
 function handleNativeDragStart(event) {
@@ -513,9 +563,10 @@ function handleNativeDragStart(event) {
 }
 
 function handleNativeDragEnd(event) {
-  // 清除样式
-  document.querySelectorAll('.nexus-dragging, .nexus-drag-before, .nexus-drag-after')
-    .forEach(el => el.classList.remove('nexus-dragging', 'nexus-drag-before', 'nexus-drag-after'))
+  // 清除样式和定时器
+  clearFolderHoverTimer()
+  document.querySelectorAll('.nexus-dragging, .nexus-drag-before, .nexus-drag-after, .nexus-drag-into')
+    .forEach(el => el.classList.remove('nexus-dragging', 'nexus-drag-before', 'nexus-drag-after', 'nexus-drag-into'))
 
   const source = dragItem.value
   const target = dragTarget.value
@@ -1277,6 +1328,11 @@ function handleUserCommand(cmd) {
 
 :deep(.nexus-drag-after) {
   box-shadow: inset 0 -2px 0 0 var(--nexus-primary-color) !important;
+}
+
+:deep(.nexus-drag-into) {
+  box-shadow: inset 0 2px 0 0 var(--nexus-primary-color), inset 0 -2px 0 0 var(--nexus-primary-color) !important;
+  background-color: color-mix(in srgb, var(--nexus-primary-color) 8%, transparent) !important;
 }
 </style>
 
