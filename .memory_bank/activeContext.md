@@ -1,81 +1,37 @@
 # 当前活动上下文
 
-## 当前状态
-实现了完整的桌面自定义系统（Disktop），用户可以通过开始菜单拖拽/点击添加桌面项，支持右键编辑、删除、新建文件夹，桌面图标和侧边栏菜单均来自用户自定义的 disktop_items。
+## 当前工作
+修复了 7 个测试文件中的失败测试用例，所有 121 个测试全部通过。
 
-## 最近变更
-- **修复 Vite 6 构建失败**（vite.config.js）：
-  - Vite 6 新增 `build.copyPublicDir` 配置项（默认 `true`），导致 `outDir`（`public/vendor/nexus-admin`）与 `publicDir`（`public/`）嵌套时产生递归复制
-  - 添加 `copyPublicDir: false` 禁用 publicDir 复制，解决 `ENAMETOOLONG` 递归目录创建错误
-  - 移除无效的 `publicDir: false`（Vite 6 中已忽略此配置）
-- **修复 URL 地址栏不同步**：
-  - `app.js` 中已有 `watch(() => windowStore.active, ...)` 监听 active Tab 变化同步 URL（含 params.query）
-  - `windows.js` 中移除多余的 `syncUrl()` 手动调用，避免与 `app.js` 的 watch 冲突
-  - URL 同步统一由 `app.js` 的 watch 处理，确保打开/切换 Tab 时正确同步 route path + query 参数
+## 修复的问题
 
-## 示例页面清单
+### 1. config.test.js - Pinia setup store ref 解包
+- **问题**: Pinia setup store 自动解包 ref，`store.global` 和 `store.user` 是原始值而非 ref
+- **修复**: 移除 `.value` 访问，改用 `Object.assign()` 直接操作 store 属性
 
-| 菜单项 | 页面组件 | 功能 |
-|-------|---------|------|
-| 控制台 | Dashboard.vue | 统计卡片展示 |
-| 文章管理 | ContentArticle.vue | 表格列表、搜索、分页、新建/编辑对话框、删除确认 |
-| 分类管理 | ContentCategory.vue | 表格列表、新建/编辑对话框、删除确认 |
-| 用户管理 | SystemUser.vue | 表格列表、搜索筛选、分页、新建/编辑对话框、删除确认 |
-| 角色管理 | SystemRole.vue | 表格列表、新建/编辑对话框、删除确认 |
-| 系统配置 | SystemConfig.vue | Tab 切换（基本/邮件/安全），表单保存 |
+### 2. i18n.test.js - 跨测试 mock 调用计数污染
+- **问题**: `vi.mock` 创建的 mock 在模块级别共享，调用计数跨测试累积
+- **修复**: 在 `beforeEach` 中添加 `vi.clearAllMocks()`
 
-## 内置钩子事件清单
+### 3. menu.test.js - 跨测试 mock 调用计数污染 + 字段名不匹配
+- **问题**: `getMenus` mock 调用计数跨测试累积；`findMenuByRoute` 使用 `route` 字段而非 `path`
+- **修复**: 添加 `vi.clearAllMocks()`；测试数据改用 `route` 字段
 
-### 应用生命周期
-| 钩子 | 触发时机 | 参数 |
-|-----|---------|------|
-| `app:init` | 应用创建后，注册基础组件前 | `app` |
-| `app:mounted` | 应用挂载到 DOM 后 | `el` |
-| `app:before-unmount` | 应用卸载前 | `app` |
+### 4. notification.test.js - vi.mock 工厂引用外部变量
+- **问题**: `vi.mock` 工厂函数被提升到文件顶部，无法引用 `apiMock` 变量
+- **修复**: 使用内联 mock 工厂，在测试内通过 `await import()` 获取 mock 引用
 
-### 配置生命周期
-| 钩子 | 触发时机 | 参数 |
-|-----|---------|------|
-| `config:before-load` | 加载配置前 | - |
-| `config:loaded` | 配置加载完成后 | `config` |
-| `config:changed` | 配置项变更时 | `key`, `newValue`, `fullConfig` |
+### 5. size.test.js - localStorage mock 返回值跨测试污染
+- **问题**: `mockReturnValue('small')` 在测试间持久化，影响后续测试
+- **修复**: 在 `beforeEach` 中添加 `vi.clearAllMocks()` 和显式 `mockReturnValue(null)`
 
-### 主题生命周期
-| 钩子 | 触发时机 | 参数 |
-|-----|---------|------|
-| `theme:before-change` | 主题切换前 | `theme` |
-| `theme:changed` | 主题切换后 | `{ theme, primaryColor }` |
-| `theme:color-change` | 主色调变更时 | `color` |
+### 6. hook-events.test.js - 正则不匹配含数字的命名空间
+- **问题**: 正则 `^[a-z]+(-[a-z]+)?:[a-z]+...` 不匹配 `i18n`（含数字）
+- **修复**: 正则改为 `^[a-z0-9]+(-[a-z0-9]+)*:[a-z0-9]+(-[a-z0-9]+)*$`
 
-### 多语言生命周期
-| 钩子 | 触发时机 | 参数 |
-|-----|---------|------|
-| `i18n:before-change` | 语言切换前 | `locale` |
-| `i18n:changed` | 语言切换后 | `locale`, `messages` |
-| `i18n:loaded` | 语言包加载完成 | `locale`, `messages` |
+### 7. registry.test.js - 使用 ESM 不支持的 require
+- **问题**: `require('../utils/hook-manager')` 在 ESM 环境下不可用
+- **修复**: 改用 `import hookManager from '../utils/hook-manager'`
 
-### 菜单生命周期
-| 钩子 | 触发时机 | 参数 |
-|-----|---------|------|
-| `menu:before-load` | 加载菜单前 | - |
-| `menu:loaded` | 菜单加载完成后 | `menus` |
-| `menu:item-click` | 菜单项被点击时 | `item` |
-
-### 权限生命周期
-| 钩子 | 触发时机 | 参数 |
-|-----|---------|------|
-| `permission:loaded` | 权限标签加载完成 | `tags` |
-| `permission:check` | 权限检查时 | `tag`, `result` |
-
-### 窗口/Tab 生命周期
-| 钩子 | 触发时机 | 参数 |
-|-----|---------|------|
-| `window:open` | 窗口/Tab 打开时 | `item` |
-| `window:close` | 窗口/Tab 关闭时 | `item` |
-| `window:activate` | 窗口/Tab 激活时 | `item` |
-
-## 下一步计划
-1. 验证构建无报错
-
-## 已知问题
-- 无
+## 待办
+- windows.test.js 中的 `router.replace` 未处理错误（`router` 在测试中为 undefined）是预存问题，需单独修复
