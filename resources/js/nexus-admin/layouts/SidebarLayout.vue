@@ -478,7 +478,7 @@ function handleNativeDragOver(event) {
     .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after', 'nexus-drag-into'))
 
   if (isFolder) {
-    // 文件夹：根据上下半区分 before/after，同时启动悬停定时器
+    // 文件夹：根据上下半区分 before/after，同时显示📂标记并启动悬停定时器
     const isInTitleArea = y >= 0 && y <= rect.height
     const isUpperHalf = isInTitleArea && y < rect.height / 2
 
@@ -489,19 +489,17 @@ function handleNativeDragOver(event) {
       highlightEl.classList.add('nexus-drag-before')
       pendingDropTarget = target
       pendingDropAfter = false
-      // 清除"放入文件夹"标记
-      removeFolderDropMark(highlightEl)
     } else {
-      // 下半部分或子菜单区域 → 先显示"插入到同级之后"，启动定时器
+      // 下半部分或子菜单区域 → 插入到该文件夹之后
       pendingDropIntoFolder = false
       dragInsertAfter.value = true
       highlightEl.classList.add('nexus-drag-after')
       pendingDropTarget = target
       pendingDropAfter = true
-      // 显示"悬停放入文件夹"标记
-      showFolderDropMark(highlightEl)
     }
 
+    // 显示"悬停放入文件夹"标记（跟上下高亮一起显示）
+    showFolderDropMark(highlightEl)
     // 启动/重置悬停定时器：悬停一段时间后切换为"放入文件夹内部"
     startFolderHoverTimer(targetId, highlightEl)
   } else {
