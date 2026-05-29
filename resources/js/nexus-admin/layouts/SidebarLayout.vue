@@ -654,8 +654,8 @@ const isNewItem = ref(false)
 
 function onEditorSave(data) {
   if (isNewItem.value) {
-    // 合并 editingItem 中的额外字段（如 parent_id, sort）
-    disktopStore.addItem({ ...editingItem.value, ...data })
+    // 新建项目：title 已在 addSidebarFolder 中计算好，不需要副本逻辑
+    disktopStore.addItem({ ...editingItem.value, ...data, _skipDedup: true })
   } else if (editingItem.value) {
     disktopStore.updateItem(editingItem.value.id, data)
   }

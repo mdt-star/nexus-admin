@@ -236,6 +236,7 @@ const cn = {
     pathPlaceholder: '路由路径，如 /dashboard'
   },
   startMenu: {
+    title: '开始菜单',
     dragHint: '可以拖动菜单到桌面或侧边栏',
     newProject: '新建项目',
     unnamed: '未命名',
@@ -397,6 +398,7 @@ const en = {
     pathPlaceholder: 'Route path, e.g. /dashboard'
   },
   startMenu: {
+    title: 'Start Menu',
     dragHint: 'Drag menus to desktop or sidebar',
     newProject: 'New Project',
     unnamed: 'Untitled',

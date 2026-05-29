@@ -27,7 +27,7 @@
               </el-icon>
               <template #title>
                 <span class="nexus-start-leaf-label">{{ child.title }}</span>
-                <el-tooltip content="拖拽到桌面或侧边栏添加" placement="left">
+                <el-tooltip :content="t('startMenu.dragHint')" placement="left">
                   <el-icon class="nexus-start-leaf-drag"><Rank /></el-icon>
                 </el-tooltip>
               </template>
@@ -40,7 +40,7 @@
             </el-icon>
             <template #title>
               <span class="nexus-start-leaf-label">{{ item.title }}</span>
-              <el-tooltip content="拖拽到桌面或侧边栏添加" placement="left">
+              <el-tooltip :content="t('startMenu.dragHint')" placement="left">
                 <el-icon class="nexus-start-leaf-drag"><Rank /></el-icon>
               </el-tooltip>
             </template>

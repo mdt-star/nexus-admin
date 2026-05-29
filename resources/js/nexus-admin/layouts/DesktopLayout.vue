@@ -4,7 +4,7 @@
       <div class="nexus-header-left">
         <StartMenu @open-page="onMenuOpen">
           <template #reference>
-            <el-tooltip content="开始菜单" placement="bottom">
+            <el-tooltip :content="t('startMenu.title')" placement="bottom">
               <el-button class="nexus-start-btn" :icon="TrendCharts" circle />
             </el-tooltip>
           </template>
@@ -71,7 +71,7 @@
           <span class="nexus-desktop-icon-label">{{ item.title }}</span>
         </div>
         <div v-if="disktopStore.rootItems.length === 0" class="nexus-desktop-empty">
-          <el-empty description="从开始菜单拖拽或点击添加桌面项" :image-size="80" />
+          <el-empty :description="t('startMenu.dragHint')" :image-size="80" />
         </div>
       </div>
 
@@ -181,7 +181,7 @@ async function onDrop(e) {
     const item = JSON.parse(data)
     const el = document.elementFromPoint(e.clientX, e.clientY)
     const folder = el?.closest('[data-folder-id]')
-    await disktopStore.addItem({ title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu', parent_id: folder ? Number(folder.dataset.folderId) || null : null })
+    await disktopStore.addItem({ title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu', parent_id: folder ? Number(folder.dataset.folderId) || null : null, _copySuffix: ` ${t('startMenu.copy')}` })
   } catch (ex) { console.warn('drop fail', ex) }
 }
 
@@ -190,11 +190,11 @@ function editItem(item) { ctxVisible.value = false; editingItem.value = item; is
 function deleteItem(item) { ctxVisible.value = false; disktopStore.removeItem(item.id) }
 async function addFolder() {
   ctxVisible.value = false
-  const item = await disktopStore.addItem({ title: '新建文件夹', icon: 'FolderOpened', type: 'folder' })
+  const item = await disktopStore.addItem({ title: t('startMenu.newProject'), icon: 'FolderOpened', type: 'folder' })
   editingItem.value = item; isNewItem.value = false; editorPos.value = { x: 200, y: 100 }; editorVisible.value = true
 }
 async function onEditorSave(data) {
-  if (isNewItem.value) await disktopStore.addItem(data)
+  if (isNewItem.value) await disktopStore.addItem({ ...data, _skipDedup: true })
   else if (editingItem.value) await disktopStore.updateItem(editingItem.value.id, data)
 }
 

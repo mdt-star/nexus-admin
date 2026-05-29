@@ -132,9 +132,9 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
   }
 
   async function addItem(data) {
-    // 同级同名自动重命名
+    // 同级同名自动重命名（_skipDedup 时跳过，用于新建项目等已计算好标题的场景）
     const copySuffix = data._copySuffix || ' 副本'
-    const title = deduplicateTitle(data.title || '未命名', data.parent_id ?? null, copySuffix)
+    const title = data._skipDedup ? data.title : deduplicateTitle(data.title || '未命名', data.parent_id ?? null, copySuffix)
     const dedupedData = { ...data, title }
     try {
       const { createDisktopItem } = await import('../services/api')
