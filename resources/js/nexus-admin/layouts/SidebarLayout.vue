@@ -489,6 +489,8 @@ function handleNativeDragOver(event) {
       highlightEl.classList.add('nexus-drag-before')
       pendingDropTarget = target
       pendingDropAfter = false
+      // 清除"放入文件夹"标记
+      removeFolderDropMark(highlightEl)
     } else {
       // 下半部分或子菜单区域 → 先显示"插入到同级之后"，启动定时器
       pendingDropIntoFolder = false
@@ -496,6 +498,8 @@ function handleNativeDragOver(event) {
       highlightEl.classList.add('nexus-drag-after')
       pendingDropTarget = target
       pendingDropAfter = true
+      // 显示"悬停放入文件夹"标记
+      showFolderDropMark(highlightEl)
     }
 
     // 启动/重置悬停定时器：悬停一段时间后切换为"放入文件夹内部"
@@ -535,6 +539,25 @@ function startFolderHoverTimer(targetId, highlightEl) {
 }
 
 /**
+ * 显示"悬停放入文件夹"标记
+ */
+function showFolderDropMark(highlightEl) {
+  removeFolderDropMark(highlightEl)
+  const mark = document.createElement('span')
+  mark.className = 'nexus-folder-drop-mark'
+  mark.textContent = '📂'
+  mark.title = '悬停1秒放入文件夹内部'
+  highlightEl.appendChild(mark)
+}
+
+/**
+ * 清除"悬停放入文件夹"标记
+ */
+function removeFolderDropMark(highlightEl) {
+  highlightEl?.querySelector('.nexus-folder-drop-mark')?.remove()
+}
+
+/**
  * 清除文件夹悬停定时器
  */
 function clearFolderHoverTimer() {
@@ -543,6 +566,8 @@ function clearFolderHoverTimer() {
     folderHoverTimer = null
   }
   folderHoverTarget = null
+  // 清除所有"放入文件夹"标记
+  document.querySelectorAll('.nexus-folder-drop-mark').forEach(el => el.remove())
 }
 
 function handleNativeDragStart(event) {
@@ -1333,6 +1358,24 @@ function handleUserCommand(cmd) {
 :deep(.nexus-drag-into) {
   box-shadow: inset 0 2px 0 0 var(--nexus-primary-color), inset 0 -2px 0 0 var(--nexus-primary-color) !important;
   background-color: color-mix(in srgb, var(--nexus-primary-color) 8%, transparent) !important;
+}
+
+/* 文件夹悬停放入标记 */
+:deep(.nexus-folder-drop-mark) {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.7;
+  pointer-events: none;
+  animation: nexus-folder-mark-pulse 1s ease-in-out infinite;
+}
+
+@keyframes nexus-folder-mark-pulse {
+  0%, 100% { opacity: 0.5; transform: translateY(-50%) scale(1); }
+  50% { opacity: 1; transform: translateY(-50%) scale(1.15); }
 }
 </style>
 
