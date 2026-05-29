@@ -296,6 +296,10 @@ function onSidebarDragLeave() {
 async function onSidebarDrop(event) {
   isDragOver.value = false
   dragEnterCounter = 0
+  // 清除定时器和拖拽高亮
+  clearFolderHoverTimer()
+  document.querySelectorAll('.nexus-drag-before, .nexus-drag-after, .nexus-drag-into')
+    .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after', 'nexus-drag-into'))
   // 优先使用 dragover 时缓存的数据（包含 sort 信息）
   let item = pendingStartMenuData
   pendingStartMenuData = null
@@ -306,9 +310,6 @@ async function onSidebarDrop(event) {
     } catch (_) {}
   }
   if (!item) return
-  // 清除拖拽高亮
-  document.querySelectorAll('.nexus-drag-before, .nexus-drag-after')
-    .forEach(el => el.classList.remove('nexus-drag-before', 'nexus-drag-after'))
   // 使用 handleNativeDragOver 缓存的拖拽目标信息（不依赖 DOM class）
   const target = pendingDropTarget
   const insertAfter = pendingDropAfter
