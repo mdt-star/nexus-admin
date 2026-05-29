@@ -804,7 +804,7 @@ async function deleteSidebarItem() {
   if (!item) return
   try {
     await ElMessageBox.confirm(
-      `确定删除「${item.title}」？`,
+      t('common.confirmDelete', { title: item.title }),
       t('common.confirm'),
       { type: 'warning', confirmButtonText: t('common.confirm'), cancelButtonText: t('common.cancel') }
     )
