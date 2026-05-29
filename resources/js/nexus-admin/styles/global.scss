@@ -191,7 +191,7 @@ a {
   margin: 2px 8px !important;
   width: auto !important;
 }
-.el-menu-item:hover { background-color: var(--nexus-bg-color-dark) !important; }
+.el-menu-item:hover,.el-sub-menu__title:hover { background-color: color-mix(in srgb, var(--nexus-primary-color) 3%, transparent) !important ; }
 .el-menu-item.is-active {
   color: var(--el-menu-active-color) !important;
   background-color: rgba(20, 184, 166, 0.08) !important;
@@ -210,7 +210,6 @@ a {
   display: flex !important;
   align-items: center !important;
 }
-.el-sub-menu__title:hover { background-color: var(--nexus-bg-color-dark) !important; }
 .el-sub-menu__title .el-icon {
   align-self: center !important;
 }

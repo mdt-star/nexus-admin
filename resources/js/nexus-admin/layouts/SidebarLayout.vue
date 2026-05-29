@@ -263,7 +263,7 @@ const menuActiveId = ref('')
 let dragEnterCounter = 0
 
 function onStartMenuOpenPage(item) {
-  windowStore.open({ id: item.id, title: item.title, icon: item.icon, component: item.component, route: item.route })
+  windowStore.open({ id: item.id, title: item.title, icon: item.icon, component: item.component, path: item.path })
 }
 
 async function onStartMenuAddItem(item) {

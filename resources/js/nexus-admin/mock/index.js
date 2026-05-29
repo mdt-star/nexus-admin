@@ -9,7 +9,7 @@ const mockMenus = [
     title: '控制台',
     icon: 'Monitor',
     component: 'dashboard',
-    route: '/dashboard',
+    path: '/dashboard',
     tags: [],
     children: []
   },
@@ -18,7 +18,7 @@ const mockMenus = [
     title: '系统管理',
     icon: 'Setting',
     component: '',
-    route: '',
+    path: '',
     tags: ['admin'],
     children: [
       {
@@ -26,7 +26,7 @@ const mockMenus = [
         title: '用户管理',
         icon: 'User',
         component: 'system-user',
-        route: '/system/user',
+        path: '/system/user',
         tags: ['admin'],
         children: []
       },
@@ -35,7 +35,7 @@ const mockMenus = [
         title: '角色管理',
         icon: 'Avatar',
         component: 'system-role',
-        route: '/system/role',
+        path: '/system/role',
         tags: ['admin'],
         children: []
       },
@@ -44,7 +44,7 @@ const mockMenus = [
         title: '系统配置',
         icon: 'Tools',
         component: 'system-config',
-        route: '/system/config',
+        path: '/system/config',
         tags: ['admin'],
         children: []
       }
@@ -55,7 +55,7 @@ const mockMenus = [
     title: '内容管理',
     icon: 'Document',
     component: '',
-    route: '',
+    path: '',
     tags: [],
     children: [
       {
@@ -63,7 +63,7 @@ const mockMenus = [
         title: '文章管理',
         icon: 'Notebook',
         component: 'content-article',
-        route: '/content/article',
+        path: '/content/article',
         tags: [],
         children: []
       },
@@ -72,7 +72,7 @@ const mockMenus = [
         title: '分类管理',
         icon: 'Collection',
         component: 'content-category',
-        route: '/content/category',
+        path: '/content/category',
         tags: [],
         children: []
       }

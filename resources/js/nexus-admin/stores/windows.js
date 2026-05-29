@@ -17,10 +17,13 @@ function loadFromStorage() {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved) {
       const parsed = JSON.parse(saved)
-      return {
-        items: parsed.items || [],
-        activeId: parsed.activeId || null
-      }
+      // 数据迁移：旧版使用 route 字段，新版统一使用 path
+      const items = (parsed.items || []).map(item => ({
+        ...item,
+        path: item.path || item.route || '',
+        route: undefined // 清除旧字段
+      }))
+      return { items, activeId: parsed.activeId || null }
     }
   } catch (e) { /* ignore */ }
   return { items: [], activeId: null }
@@ -59,6 +62,7 @@ export const useWindowStore = defineStore('nexus-windows', () => {
     return items.value.find(item => item.id === activeId.value) || null
   })
 
+
   /**
    * 打开窗口/Tab
    * @param {object} menuItem - 菜单项数据
@@ -75,7 +79,7 @@ export const useWindowStore = defineStore('nexus-windows', () => {
         title: menuItem.title,
         icon: menuItem.icon,
         component: menuItem.component,
-        route: menuItem.route,
+        path: menuItem.path,
         params: menuItem.params || {},
         tags: menuItem.tags || [],
         meta: menuItem.meta || {},
@@ -89,6 +93,7 @@ export const useWindowStore = defineStore('nexus-windows', () => {
       // 触发窗口打开钩子
       await hookManager.emit('window:open', newItem)
     }
+
 
     // 记录历史
     history.value.push(activeId.value)
@@ -179,8 +184,8 @@ export const useWindowStore = defineStore('nexus-windows', () => {
       item.params.query = { ...query }
     }
     // 如果更新的是当前激活的 Tab，同步到 URL
-    if (id === activeId.value && item?.route) {
-      router.replace({ path: item.route, query: { ...query } }).catch(() => {})
+    if (id === activeId.value && item?.path) {
+      router.replace({ path: item.path, query: { ...query } }).catch(() => {})
     } 
 
   }

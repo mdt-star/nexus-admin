@@ -128,11 +128,11 @@ function onDragStart(event, item) {
   // 如果是父节点，递归收集所有子节点
   const children = item.children?.length
     ? item.children.map(c => ({
-        title: c.title, icon: c.icon, component: c.component, path: c.route, type: 'menu'
+        title: c.title, icon: c.icon, component: c.component, path: c.path, type: 'menu'
       }))
     : []
   const data = JSON.stringify({
-    title: item.title, icon: item.icon, component: item.component, path: item.route, type: 'menu',
+    title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu',
     children  // 携带子节点信息
   })
   event.dataTransfer.setData('application/json', data)

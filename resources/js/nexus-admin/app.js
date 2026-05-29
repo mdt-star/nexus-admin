@@ -267,8 +267,8 @@ async function initNexusAdmin(mountSelector = '#app') {
   const { useWindowStore } = await import('./stores/windows')
   const windowStore = useWindowStore()
   watch(() => windowStore.active, (active) => {
-    if (active && active.route) {
-      router.push({ path: active.route, query: active.params?.query || {} }).catch(() => {})
+    if (active && active.path) {
+      router.push({ path: active.path, query: active.params?.query || {} }).catch(() => {})
 
     }
   }, { immediate: true })

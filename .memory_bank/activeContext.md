@@ -10,6 +10,10 @@
   - 移除 `triggerRef` prop，不再需要父组件传入 DOM 引用
   - 父组件 DesktopLayout.vue / SidebarLayout.vue 将触发按钮移到 `<StartMenu>` 的 `<template #reference>` 内
   - 移除父组件中独立的 `<StartMenu>` 调用（已合并到 header 的 slot 中）
+- **修复 URL 地址栏不同步**：
+  - `app.js` 中已有 `watch(() => windowStore.active, ...)` 监听 active Tab 变化同步 URL（含 params.query）
+  - `windows.js` 中移除多余的 `syncUrl()` 手动调用，避免与 `app.js` 的 watch 冲突
+  - URL 同步统一由 `app.js` 的 watch 处理，确保打开/切换 Tab 时正确同步 route path + query 参数
 
 ## 示例页面清单
 
