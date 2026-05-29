@@ -192,10 +192,28 @@ a {
   width: auto !important;
 }
 .el-menu-item:hover,.el-sub-menu__title:hover { background-color: color-mix(in srgb, var(--nexus-primary-color) 3%, transparent) !important ; }
-.el-menu-item.is-active {
+/*.el-menu-item.is-active {
   color: var(--el-menu-active-color) !important;
   background-color: rgba(20, 184, 166, 0.08) !important;
+}*/
+.el-menu-item.is-active,.el-menu--collapse .el-sub-menu.is-active .el-sub-menu__title ,
+.el-menu--collapse .el-sub-menu.is-active .el-sub-menu__title  [class^=el-icon] {
+  background-color: color-mix(in srgb, var(--el-menu-active-color) 6%, transparent) !important;
+  color: var(--nexus-primary-color) !important;
 }
+
+/*
+.el-menu--collapse >.el-menu-item.is-active
+,.el-menu--collapse >.el-sub-menu.is-active .el-sub-menu__title {
+  background-color: color-mix(in srgb, var(--el-menu-active-color) 100%, transparent) !important;
+}
+.el-menu--collapse >.el-sub-menu.is-active .el-sub-menu__title  [class^=el-icon]
+,.el-menu--collapse >.el-menu-item.is-active  [class^=el-icon]{
+  
+  color: #fff !important;
+}
+*/
+
 .el-menu-item.is-active .el-icon {
   color: var(--el-menu-active-color) !important;
 }

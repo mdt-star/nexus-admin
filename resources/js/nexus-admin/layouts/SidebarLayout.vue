@@ -1044,10 +1044,7 @@ function handleUserCommand(cmd) {
   width: calc(var(--nexus-font-size-base) + 2px) !important;
 }
 
-:deep(.el-menu-item.is-active) {
-  background-color: color-mix(in srgb, var(--nexus-primary-color) 6%, transparent) !important;
-  color: var(--nexus-primary-color) !important;
-}
+
 
 :deep(.el-menu-item.is-active .el-icon) {
   color: var(--nexus-primary-color) !important;
