@@ -1,25 +1,31 @@
 <template>
   <div class="nexus-login">
-    <!-- 粒子星空背景 -->
+    <!-- 科技感粒子背景 -->
     <div class="nexus-login-particles">
       <div
-        v-for="i in 40"
+        v-for="i in 50"
         :key="i"
         class="nexus-login-particle"
         :style="{
-          '--x': i * 2.5 + '%',
-          '--d': (i % 5 + 1) + 's',
-          '--s': (i % 3 + 1) * 2 + 'px',
-          '--delay': (i * 0.3) + 's',
-          '--op': (i % 4 + 1) * 0.12 + 0.08,
+          '--x': ((i * 7 + 3) % 100) + '%',
+          '--d': (i % 6 + 3) + 's',
+          '--s': (i % 3 + 1) * 1.5 + 1 + 'px',
+          '--delay': (i * 0.25) + 's',
+          '--op': (i % 5 + 2) * 0.1,
         }"
       ></div>
     </div>
 
+    <!-- 科技感扫描线网格 -->
+    <div class="nexus-login-grid">
+      <div class="nexus-login-grid-h" v-for="i in 20" :key="'h' + i" :style="{ '--p': i * 5 + '%' }"></div>
+      <div class="nexus-login-grid-v" v-for="i in 20" :key="'v' + i" :style="{ '--p': i * 5 + '%' }"></div>
+    </div>
+
     <!-- 渐变光晕 -->
-    <div class="nexus-login-bg">
-      <div class="nexus-login-orb nexus-login-orb-1"></div>
-      <div class="nexus-login-orb nexus-login-orb-2"></div>
+    <div class="nexus-login-glow">
+      <div class="nexus-login-glow-orb nexus-login-glow-1"></div>
+      <div class="nexus-login-glow-orb nexus-login-glow-2"></div>
     </div>
 
     <!-- 登录卡片 -->
@@ -124,7 +130,7 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-/* ========== 容器 ========== */
+/* ========== 页面容器 ========== */
 .nexus-login {
   position: relative;
   display: flex;
@@ -132,99 +138,142 @@ async function handleLogin() {
   justify-content: center;
   min-height: 100vh;
   overflow: hidden;
-  background: var(--nexus-bg-color);
+  background: #0b0f1a;
 }
 
-/* ========== 粒子星空 ========== */
+/* ========== 暗色背景覆盖（亮色模式下也保持科技感） ========== */
+:root:not(.dark) .nexus-login {
+  background: #0b0f1a;
+}
+
+/* ========== 粒子系统 ========== */
 .nexus-login-particles {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
 }
 
 .nexus-login-particle {
   position: absolute;
-  bottom: -10px;
+  bottom: -8px;
   left: var(--x);
   width: var(--s);
   height: var(--s);
   border-radius: 50%;
-  background: var(--nexus-primary-color);
+  background: #5eead4;
+  box-shadow: 0 0 6px #5eead4, 0 0 12px rgba(94, 234, 212, 0.3);
   opacity: var(--op);
-  animation: nexus-particle-rise var(--d) ease-in infinite;
+  animation: nexus-rise var(--d) ease-in infinite;
   animation-delay: var(--delay);
 }
 
-@keyframes nexus-particle-rise {
+@keyframes nexus-rise {
   0% {
     transform: translateY(0) scale(1);
     opacity: var(--op);
   }
-  50% {
-    opacity: calc(var(--op) * 2.5);
+  60% {
+    opacity: calc(var(--op) * 3);
   }
   100% {
-    transform: translateY(-105vh) scale(0.5);
+    transform: translateY(-110vh) scale(0.3);
     opacity: 0;
   }
 }
 
-/* ========== 渐变光晕 ========== */
-.nexus-login-bg {
+/* ========== 科技网格 ========== */
+.nexus-login-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.nexus-login-grid-h {
+  position: absolute;
+  left: 0; right: 0;
+  top: var(--p);
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(94, 234, 212, 0.15), transparent);
+  animation: nexus-grid-pulse 4s ease-in-out infinite;
+  animation-delay: calc(var(--p) * 0.1s);
+}
+
+.nexus-login-grid-v {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: var(--p);
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(94, 234, 212, 0.08), transparent);
+  animation: nexus-grid-pulse 5s ease-in-out infinite reverse;
+  animation-delay: calc(var(--p) * 0.08s);
+}
+
+@keyframes nexus-grid-pulse {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* ========== 光晕 ========== */
+.nexus-login-glow {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
 }
 
-.nexus-login-orb {
+.nexus-login-glow-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(100px);
+  filter: blur(120px);
 }
 
-.nexus-login-orb-1 {
+.nexus-login-glow-1 {
+  width: 600px; height: 600px;
+  top: -20%; right: -10%;
+  background: #14b8a6;
+  opacity: 0.12;
+  animation: nexus-glow-drift 14s ease-in-out infinite;
+}
+
+.nexus-login-glow-2 {
   width: 500px; height: 500px;
-  top: -10%; left: -5%;
-  background: var(--nexus-primary-color);
-  opacity: 0.06;
-  animation: nexus-orb-float 10s ease-in-out infinite;
+  bottom: -15%; left: -8%;
+  background: #0d9488;
+  opacity: 0.1;
+  animation: nexus-glow-drift 18s ease-in-out infinite reverse;
 }
 
-.nexus-login-orb-2 {
-  width: 400px; height: 400px;
-  bottom: -10%; right: -5%;
-  background: var(--nexus-primary-color-dark);
-  opacity: 0.05;
-  animation: nexus-orb-float 13s ease-in-out infinite reverse;
-}
-
-@keyframes nexus-orb-float {
+@keyframes nexus-glow-drift {
   0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(30px, -20px); }
-  66% { transform: translate(-20px, 30px); }
+  33% { transform: translate(40px, -30px); }
+  66% { transform: translate(-30px, 40px); }
 }
 
 /* ========== 登录卡片 ========== */
 .nexus-login-card {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: 400px;
   padding: 48px 40px 40px;
-  background: var(--nexus-bg-color-light);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 20px;
+  border: 1px solid rgba(94, 234, 212, 0.08);
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.02),
-    0 4px 24px rgba(0, 0, 0, 0.04),
-    0 20px 60px rgba(0, 0, 0, 0.04);
+    0 0 40px rgba(20, 184, 166, 0.06),
+    0 4px 24px rgba(0, 0, 0, 0.2),
+    0 20px 60px rgba(0, 0, 0, 0.3);
   animation: nexus-card-in 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes nexus-card-in {
   from {
     opacity: 0;
-    transform: translateY(24px) scale(0.97);
+    transform: translateY(30px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -243,22 +292,23 @@ async function handleLogin() {
   justify-content: center;
   width: 56px; height: 56px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--nexus-primary-color) 8%, transparent);
-  color: var(--nexus-primary-color);
+  background: rgba(94, 234, 212, 0.1);
+  color: #5eead4;
   margin-bottom: 20px;
+  box-shadow: 0 0 20px rgba(94, 234, 212, 0.15);
 }
 
 .nexus-login-title {
   font-size: 24px;
   font-weight: 700;
-  color: var(--nexus-text-color);
+  color: #f1f5f9;
   margin: 0 0 8px;
   letter-spacing: -0.3px;
 }
 
 .nexus-login-desc {
   font-size: 14px;
-  color: var(--nexus-text-color-secondary);
+  color: rgba(148, 163, 184, 0.9);
   margin: 0;
   line-height: 1.6;
 }
@@ -280,29 +330,29 @@ async function handleLogin() {
   padding: 2px 16px;
   height: 48px;
   border-radius: 12px;
-  box-shadow: 0 0 0 1px var(--nexus-border-color);
-  background: var(--nexus-bg-color);
+  background: rgba(30, 41, 59, 0.6);
+  box-shadow: 0 0 0 1px rgba(94, 234, 212, 0.1);
   transition: all 0.25s ease;
 }
 
 .nexus-login-input :deep(.el-input__wrapper:hover) {
-  box-shadow: 0 0 0 1px var(--nexus-primary-color);
-  background: var(--nexus-bg-color-light);
+  box-shadow: 0 0 0 1px rgba(94, 234, 212, 0.3);
+  background: rgba(30, 41, 59, 0.8);
 }
 
 .nexus-login-input :deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 2px var(--nexus-primary-color);
-  background: var(--nexus-bg-color-light);
+  box-shadow: 0 0 0 2px #14b8a6, 0 0 20px rgba(20, 184, 166, 0.15);
+  background: rgba(30, 41, 59, 0.9);
 }
 
 .nexus-login-input :deep(.el-input__inner) {
   height: 44px;
   font-size: 14px;
-  color: var(--nexus-text-color);
+  color: #f1f5f9;
 }
 
 .nexus-login-input :deep(.el-input__inner::placeholder) {
-  color: var(--nexus-text-color-placeholder);
+  color: rgba(148, 163, 184, 0.5);
 }
 
 .nexus-login-input :deep(.el-input__prefix) {
@@ -311,22 +361,22 @@ async function handleLogin() {
 
 .nexus-login-input :deep(.el-input__prefix-inner .el-icon) {
   font-size: 18px;
-  color: var(--nexus-text-color-placeholder);
+  color: rgba(148, 163, 184, 0.6);
   transition: color 0.25s ease;
 }
 
 .nexus-login-input :deep(.el-input__wrapper.is-focus .el-input__prefix-inner .el-icon) {
-  color: var(--nexus-primary-color);
+  color: #5eead4;
 }
 
 .nexus-login-form :deep(.el-input__suffix-inner .el-icon) {
   font-size: 16px;
-  color: var(--nexus-text-color-placeholder);
+  color: rgba(148, 163, 184, 0.6);
   transition: color 0.2s ease;
 }
 
 .nexus-login-form :deep(.el-input__suffix-inner .el-icon:hover) {
-  color: var(--nexus-text-color-secondary);
+  color: rgba(148, 163, 184, 0.8);
 }
 
 /* ========== 提交按钮 ========== */
@@ -338,14 +388,15 @@ async function handleLogin() {
   font-weight: 600;
   border: none;
   margin-top: 4px;
+  background: linear-gradient(135deg, #14b8a6, #0d9488) !important;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--nexus-primary-color) 20%, transparent);
+  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.25);
 }
 
 .nexus-login-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--nexus-primary-color) 30%, transparent);
-  filter: brightness(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(20, 184, 166, 0.4);
+  filter: brightness(1.1);
 }
 
 .nexus-login-btn:active {
@@ -357,18 +408,18 @@ async function handleLogin() {
   margin-top: 24px;
   text-align: center;
   font-size: 13px;
-  color: var(--nexus-text-color-placeholder);
+  color: rgba(148, 163, 184, 0.5);
 }
 
 /* ========== 校验错误 ========== */
 .nexus-login-form :deep(.el-form-item.is-error .el-input__wrapper) {
-  box-shadow: 0 0 0 2px var(--el-color-danger) !important;
+  box-shadow: 0 0 0 2px #ef4444 !important;
 }
 
 .nexus-login-form :deep(.el-form-item__error) {
   padding-top: 6px;
   font-size: 12px;
-  color: var(--el-color-danger);
+  color: #ef4444;
 }
 
 /* ========== 响应式 ========== */
