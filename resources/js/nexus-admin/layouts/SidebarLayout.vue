@@ -64,7 +64,7 @@
         @contextmenu.prevent="openTabContextMenu($event, null)">
         <div class="nexus-tabs-wrapper" ref="tabsWrapperRef">
           <div v-for="tab in windowStore.items" :key="tab.id" class="nexus-tab"
-            :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="windowStore.activate(tab.id)"
+            :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="onTabClick(tab.id)"
             @contextmenu.prevent.stop="openTabContextMenu($event, tab)">
             <span class="nexus-tab-label">{{ tab.title }}</span>
             <el-icon class="nexus-tab-close" size="12" @click.stop="windowStore.close(tab.id)">
@@ -162,6 +162,15 @@ const preferencesRef = ref(null)
 // ==================== StartMenu 打开页面 ====================
 function onStartMenuOpenPage(item) {
   windowStore.open({ id: item.id, title: item.title, icon: item.icon, component: item.component, path: item.path })
+}
+
+// ==================== Tab 点击切换（支持同 Tab 取消激活） ====================
+function onTabClick(id) {
+  if (id === windowStore.activeId) {
+    windowStore.deactivate()
+  } else {
+    windowStore.activate(id)
+  }
 }
 
 // ==================== Tab 滚动 ====================
@@ -357,8 +366,8 @@ const homePage = computed(() => {
   margin-top: 0px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 14px 0 28px;
+  gap: 4px;
+  padding: 0 8px 0 12px;
   font-size: var(--nexus-font-size-sm);
   cursor: pointer;
   white-space: nowrap;
@@ -404,12 +413,17 @@ const homePage = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 2px;
-  padding: 1px;
+  border-radius: 3px;
+  padding: 2px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .nexus-tab-close:hover {
   background-color: var(--nexus-bg-color-dark);
+  color: var(--nexus-text-color);
 }
 
 .nexus-tab-active .nexus-tab-close {

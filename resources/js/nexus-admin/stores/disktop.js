@@ -190,20 +190,18 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
    * @param {number} id
    */
   async function removeItem(id) {
+    // 先本地删除（即时反馈），再异步 API
+    const childIds = items.value
+      .filter(item => item.parent_id === id)
+      .map(item => item.id)
+    childIds.forEach(cid => removeItemFromLocal(cid))
+    removeItemFromLocal(id)
     try {
       const { default: disktopsApi } = await import('../services/disktops')
       await disktopsApi.items.remove(id)
     } catch (e) {
       console.warn('[NexusAdmin] 删除桌面项失败:', e)
     }
-    // 递归删除子项
-    const childIds = items.value
-      .filter(item => item.parent_id === id)
-      .map(item => item.id)
-    childIds.forEach(cid => {
-      removeItemFromLocal(cid)
-    })
-    removeItemFromLocal(id)
   }
 
   function removeItemFromLocal(id) {

@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useWindowStore } from '../../stores/windows'
 import * as Icons from '@element-plus/icons-vue'
 import { Minus, CopyDocument, Close } from '@element-plus/icons-vue'
@@ -62,6 +62,8 @@ function onActivate() { emit('activate', props.win.id) }
 
 function onMinimize() {
   minimized.value = true
+  // 取消激活，同步隐藏任务栏指示器/Tab 底部横线
+  windowStore.deactivate()
   emit('minimize', props.win.id)
 }
 
@@ -129,6 +131,27 @@ onUnmounted(() => {
 // 被激活时自动还原（取消最小化）
 watch(() => props.isActive, (val) => {
   if (val && minimized.value) minimized.value = false
+})
+
+// 收到 taskbar 切换事件：最小化 ↔ 恢复（当前窗口已激活的场景）
+function onToggleRequest(e) {
+  if (e.detail.id === props.win.id) {
+    minimized.value = !minimized.value
+  }
+}
+// 收到恢复事件（从桌面图标重新打开时）
+function onRestoreRequest(e) {
+  if (e.detail.id === props.win.id && minimized.value) {
+    minimized.value = false
+  }
+}
+onMounted(() => {
+  window.addEventListener('nexus-toggle-window', onToggleRequest)
+  window.addEventListener('nexus-restore-window', onRestoreRequest)
+})
+onUnmounted(() => {
+  window.removeEventListener('nexus-toggle-window', onToggleRequest)
+  window.removeEventListener('nexus-restore-window', onRestoreRequest)
 })
 
 const windowStyle = computed(() => {

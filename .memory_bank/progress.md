@@ -46,3 +46,12 @@
 - [x] 修复欢迎页在侧边栏/桌面模式下的展示异常（HomePage.vue）
   - [x] 侧边栏模式：系统信息卡片在右侧，CSS Grid 双列布局
   - [x] 桌面模式：保持原有单列样式，隐藏侧边容器
+- [x] 桌面端交互优化（完整迭代）
+  - [x] FolderView.vue：原生 HTML5 拖拽、空文件夹提示、返回上级图标、拖拽悬浮动效、右键菜单、视图实时刷新
+  - [x] DesktopLayout.vue：原生拖放处理、parent_id 缓存传递、编辑/删除后实时刷新、删除确认弹窗、悬停 500ms
+  - [x] windows.js：deactivate() 方法、nexus-restore-window 事件
+  - [x] DesktopWindow.vue：最小化时 deactivate、自定义事件监听
+  - [x] TaskBar.vue：同 id deactivate+ toggle、预览框关闭按钮
+  - [x] SidebarLayout.vue：onTabClick 同 Tab 取消激活、关闭按钮增大
+  - [x] disktop.js：removeItem 本地优先、delete 实时刷新
+  - [x] 编译修复：deleteItem 缺闭合大括号导致 build 失败

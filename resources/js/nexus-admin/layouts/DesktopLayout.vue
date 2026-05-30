@@ -12,7 +12,7 @@
 <div class="nexus-desktop-icon-img"><el-icon :size="28"><component :is="item.type==='folder'?'FolderOpened':getIconComponent(item.icon)" /></el-icon></div><span class="nexus-desktop-icon-label">{{ item.title }}</span></div></template>
 <div v-if="!ds.loading && !ds.rootItems.length" class="nexus-desktop-empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><el-empty :description="t('startMenu.dragHint')" :image-size="80" /></div></div>
 <div class="nexus-desktop-windows"><DesktopWindow v-for="(win,idx) in ws.items" :key="win.id" :win="win" :is-active="win.id===ws.activeId" :rect="getWindowRect(win.id,idx)" :z-index="win.id===ws.activeId?100:10+idx" @activate="onActivateWindow" /></div>
-<FolderView v-if="currentFolder" :folder="currentFolder" @open="(c)=>ws.open(c)" @close="currentFolder=null" @drag-start="onFolderDragStart" />
+<FolderView v-if="currentFolder" :folder="currentFolder" :folder-path="folderHistory" @open="onFolderChildOpen" @close="onFolderClose" @back="goBackFolder" @drag-start="onFolderDragStart" @context-menu="onFolderChildContextMenu" @children-changed="refreshFolderChildren" />
 
 
 
@@ -32,7 +32,7 @@
 <div v-if="ctxItem" class="nexus-ctx-item" @click.stop="editItem(ctxItem)"><el-icon><Edit /></el-icon>编辑</div>
 <div v-if="ctxItem" class="nexus-ctx-item" @click.stop="deleteItem(ctxItem)"><el-icon><Delete /></el-icon>删除</div>
 <div v-if="ctxItem" class="nexus-ctx-divider" />
-<div class="nexus-ctx-item" @click.stop="addFolder"><el-icon><FolderAdd /></el-icon>新建文件夹</div>
+<div class="nexus-ctx-item" @click.stop="addFolder"><el-icon><FolderAdd /></el-icon>{{ ctxItem && ctxItem.type === 'folder' ? '在此新增文件夹' : '新建文件夹' }}</div>
 <div class="nexus-ctx-divider" />
 <div class="nexus-ctx-item" @click.stop="arrangeIcons"><el-icon><Grid /></el-icon>排列图标</div>
 <div class="nexus-ctx-item" @click.stop="toggleSnap"><el-icon><Select /></el-icon>{{ snapToGrid?'取消紧贴网格':'紧贴网格' }}</div>
@@ -54,16 +54,73 @@ import GlobalSearch from '../components/common/GlobalSearch.vue'
 const ds=useDisktopStore(),ws=useWindowStore(),i18n=useI18nStore(),cfg=useConfigStore(),{t}=i18n
 const activeWindow=computed(()=>ws.items.find(w=>w.id===ws.activeId)||null)
 const bgStyle=computed(()=>{const m=cfg.get('backgroundMode','color');if(m==='image'){const img=cfg.get('backgroundImage',null),f=cfg.get('backgroundFit','fill'),fm={fill:'fill',contain:'contain',cover:'cover',center:'center'};if(img)return{backgroundImage:`url(${img})`,backgroundSize:fm[f]||'fill',backgroundRepeat:'no-repeat',backgroundPosition:'center'}}return{background:'linear-gradient(135deg, var(--nexus-primary-color), var(--nexus-primary-color-dark))'}})
-const currentFolder=ref(null),preferencesRef=ref(null),searchVisible=ref(false),editorVisible=ref(false),editingItem=ref(null),isNewItem=ref(false),editorPos=ref({x:200,y:100}),ctxVisible=ref(false),ctxItem=ref(null),ctxStyle=ref({}),homeVisible=ref(false),dragOverId=ref(null)
+const currentFolder=ref(null),folderHistory=ref([]),preferencesRef=ref(null),searchVisible=ref(false),editorVisible=ref(false),editingItem=ref(null),isNewItem=ref(false),editorPos=ref({x:200,y:100}),ctxVisible=ref(false),ctxItem=ref(null),ctxStyle=ref({}),homeVisible=ref(false),dragOverId=ref(null)
 const wp={};function getWindowRect(id,idx){if(!wp[id]){const vw=window.innerWidth,vh=window.innerHeight,w=Math.min(Math.round(vw*.7),vw-40),h=Math.min(Math.round(vh*.8),vh-80);wp[id]={left:Math.round((vw-w)/2)+idx*30,top:Math.round((vh-h)/2*.3)+idx*30,width:w,height:h}}return wp[id]}
 onMounted(async()=>{if(!ds.loaded)await ds.loadDisktops();if(ds.activeDisktopId)await ds.loadItems();document.addEventListener('click',()=>ctxVisible.value=false);document.addEventListener('contextmenu',(e)=>{if(!e.target.closest('.nexus-ctx,.nexus-desktop,.nexus-desktop-icon,.nexus-desktop-window'))ctxVisible.value=false})})
 function getIconComponent(n){return n?I[n]||null:null}
-function handleItemClick(item){if(item.type==='folder')currentFolder.value={...item,children:ds.getChildren(item.id)};else if(item.component)ws.open(item)}
+function handleItemClick(item){
+  if(item.type==='folder'){
+    folderHistory.value=[]
+    currentFolder.value={...item,children:ds.getChildren(item.id)}
+  }else if(item.component){
+    ws.open(item)
+  }
+}
+// 文件夹子项点击：文件夹类型在当前视图内导航，menu 类型打开新窗口
+function onFolderChildOpen(item){
+  if(item.type==='folder'){
+    folderHistory.value.push({...currentFolder.value})
+    currentFolder.value={...item,children:ds.getChildren(item.id)}
+  }else if(item.component){
+    ws.open(item)
+    currentFolder.value=null
+  }
+}
+// 关闭文件夹视图
+function onFolderClose(){currentFolder.value=null;folderHistory.value=[]}
+// 文件夹内部子项右键菜单
+function onFolderChildContextMenu({event,item}){
+  event.preventDefault()
+  ctxItem.value=item
+  ctxStyle.value={left:event.clientX+'px',top:event.clientY+'px'}
+  ctxVisible.value=true
+}
+// 刷新当前文件夹子项列表（拖移入子文件夹后实时同步视图）
+function refreshFolderChildren(){
+  if(currentFolder.value){
+    currentFolder.value = {...currentFolder.value, children: ds.getChildren(currentFolder.value.id)}
+  }
+}
+// 返回上级目录
+function goBackFolder(){
+  if(folderHistory.value.length>0){
+    const prev=folderHistory.value.pop()
+    // 重新获取子项（数据可能已变化）
+    currentFolder.value={...prev,children:ds.getChildren(prev.id)}
+  }else{
+    currentFolder.value=null
+  }
+}
 function onMenuOpen(item){ws.open(item)}
 function onOpenPreferences(){preferencesRef.value?.open()}
 function onActivateWindow(id){ws.activate(id)}
 function onDragOver(e){e.dataTransfer.dropEffect='copy'}
-async function onDrop(e){const d=e.dataTransfer.getData('application/json');if(!d)return;try{const item=JSON.parse(d),el=document.elementFromPoint(e.clientX,e.clientY),folder=el?.closest('[data-folder-id]');await ds.addItem({title:item.title,icon:item.icon,component:item.component,path:item.path,type:'menu',parent_id:folder?Number(folder.dataset.folderId)||null:null,_copySuffix:` ${t('startMenu.copy')}`})}catch(ex){console.warn('drop fail',ex)}}
+async function onDrop(e){
+  // 处理从文件夹拖出的图标原生拖拽
+  const folderDrop=window.__folderDropData
+  window.__folderDropData=null
+  if(folderDrop&&folderDrop._fromFolder){
+    const existing=ds.items.find(i=>i.id===folderDrop.id)
+    if(existing){
+      existing.parent_id=null
+      const dropX=typeof folderDrop._dropX==='number'?folderDrop._dropX:e.clientX
+      const dropY=typeof folderDrop._dropY==='number'?folderDrop._dropY:e.clientY
+      await ds.updateItem(folderDrop.id,{parent_id:null,custom:{x:Math.max(0,dropX-40),y:Math.max(0,dropY-45)}})
+      currentFolder.value=null
+    }
+    return
+  }
+  const d=e.dataTransfer.getData('application/json');if(!d)return;try{const item=JSON.parse(d),el=document.elementFromPoint(e.clientX,e.clientY),folder=el?.closest('[data-folder-id]');await ds.addItem({title:item.title,icon:item.icon,component:item.component,path:item.path,type:'menu',parent_id:folder?Number(folder.dataset.folderId)||null:null,_copySuffix:` ${t('startMenu.copy')}`})}catch(ex){console.warn('drop fail',ex)}}
 function onDesktopContext(e){
   // 桌面右键 → 显示新建文件夹菜单
   ctxItem.value=null
@@ -76,15 +133,60 @@ function openContextMenu(e,item){
   ctxVisible.value=true;ctxItem.value=item;ctxStyle.value={left:e.clientX+'px',top:e.clientY+'px'}
 }
 function editItem(item){ctxVisible.value=false;editingItem.value=item;isNewItem.value=false;editorPos.value={x:200,y:100};editorVisible.value=true}
-function deleteItem(item){ctxVisible.value=false;ds.removeItem(item.id)}
-async function addFolder(){ctxVisible.value=false;const item=await ds.addItem({title:t('startMenu.newProject'),icon:'FolderOpened',type:'folder'});editingItem.value=item;isNewItem.value=false;editorPos.value={x:200,y:100};editorVisible.value=true}
+async function deleteItem(item){
+  ctxVisible.value=false
+  const {ElMessageBox}=await import('element-plus')
+  try {
+    const msg = (t('common.confirmDelete') || '确定删除「{title}」？').replace('{title}', item.title || '')
+    await ElMessageBox.confirm(msg, '提示', { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' })
+    ds.removeItem(item.id)
+    refreshFolderChildren()
+  }catch(ex){/* cancel */}
+}
+// 缓存新建文件夹的 parent_id（防止编辑过程中 editingItem 被意外覆盖）
+let _pendingParentId = null
 
-async function onEditorSave(data){if(isNewItem.value)await ds.addItem({...data,_skipDedup:true});else if(editingItem.value)await ds.updateItem(editingItem.value.id,data)}
+async function addFolder(){
+  ctxVisible.value=false
+  const ctxX=parseInt(ctxStyle.value.left)||200
+  const ctxY=parseInt(ctxStyle.value.top)||100
+  // 在已有文件夹上右键时，新文件夹创建到该文件夹内部
+  _pendingParentId = ctxItem && ctxItem.type === 'folder' ? ctxItem.id : null
+  editingItem.value={
+    title:t('startMenu.newProject'),icon:'FolderOpened',type:'folder',
+    parent_id:_pendingParentId, _ctxX:ctxX, _ctxY:ctxY
+  }
+  isNewItem.value=true
+  editorPos.value={x:Math.min(ctxX,window.innerWidth-400),y:Math.min(ctxY,window.innerHeight-300)}
+  editorVisible.value=true
+}
+
+async function onEditorSave(data){
+  if(isNewItem.value){
+    const ctxX=editingItem.value?._ctxX, ctxY=editingItem.value?._ctxY
+    // 优先使用缓存 parent_id，确保创建到正确父级
+    const parentId = _pendingParentId !== null ? _pendingParentId : (editingItem.value?.parent_id ?? null)
+    _pendingParentId = null  // 使用后立即清除
+    const maxSort=ds.items.reduce((max,i)=>Math.max(max,i.sort||0),0)
+    const itemData={...data, parent_id: parentId, _skipDedup: true, sort: maxSort + 1}
+    if(!snapToGrid.value && ctxX!=null && ctxY!=null){
+      itemData.custom={x:ctxX, y:ctxY}
+    }
+    await ds.addItem(itemData)
+    // 新建后刷新当前文件夹视图（如果当前打开的是目标父级文件夹）
+    if(currentFolder.value && parentId === currentFolder.value.id){
+      currentFolder.value = {...currentFolder.value, children: ds.getChildren(parentId)}
+    }
+  }else if(editingItem.value){
+    await ds.updateItem(editingItem.value.id, data)
+    refreshFolderChildren()
+  }
+}
 // 桌面图标自由拖拽
 const iconsRef=ref(null)
 const snapToGrid=ref(false) // 默认关闭紧贴网格，拖拽后保持自由位置
 const lastDragItem=ref(null) // 正在拖拽或最近拖拽的图标，保持较高层级
-const dragOverFolder=ref(null) // 悬停1秒后允许放入的文件夹 id
+const dragOverFolder=ref(null) // 悬停500ms后允许放入的文件夹 id
 let folderHoverTimer=null // 文件夹悬停计时器
 let folderHoverId=null    // 正在计时的文件夹 id
 const iconPos={}
@@ -106,23 +208,11 @@ function iconStyle(item){
   return{position:'absolute',left:p.x+'px',top:p.y+'px',zIndex:lastDragItem.value===item.id?2:1}
 }
 
-// 从文件夹拖出图标
+// 从文件夹拖出图标（使用原生 HTML5 拖拽，FolderView 中的 dragstart 负责图像）
 function onFolderDragStart({item,offsetX,offsetY,clientX,clientY}){
   lastDragItem.value=item.id
-  const p=getItemBasePos(item)
-  // 在桌面创建一个临时拖拽元素（用 iconPos 保持位置）
+  // 在桌面创建一个临时位置占位（用 iconPos 保持位置）
   iconPos[item.id]={x:clientX-offsetX,y:clientY-offsetY}
-  // 生成一个临时 DOM 元素用于拖拽
-  const div=document.createElement('div')
-  div.className='nexus-desktop-icon'
-  div.style.position='fixed';div.style.left=(clientX-offsetX)+'px';div.style.top=(clientY-offsetY)+'px'
-  div.style.zIndex='999';div.style.pointerEvents='none'
-  div.dataset.itemId=String(item.id)
-  div._dragOffset={ox:offsetX,oy:offsetY,startX:clientX,startY:clientY,baseX:clientX-offsetX,baseY:clientY-offsetY}
-  document.body.appendChild(div)
-  // 使用 document 级事件
-  document.addEventListener('mousemove',onIconDragMove)
-  document.addEventListener('mouseup',onIconDragUp)
 }
 
 function onIconMouseDown(e,item){
@@ -144,11 +234,16 @@ function onIconDragMove(e){
   if(!off)return
   const dx=e.clientX-off.startX
   const dy=e.clientY-off.startY
-  // 用 transform 偏移，不和 Vue 的 :style 冲突
-  el.style.transform=`translate(${dx}px,${dy}px)`
-  // 如果拖拽来自文件夹且鼠标移出文件夹遮罩，关闭文件夹视图
-  if(currentFolder.value && !e.target.closest('.nexus-folder-overlay')){
-    currentFolder.value=null
+  // 用 transform 偏移，保留缩放拖拽效果
+  el.style.transform=`translate(${dx}px,${dy}px) scale(0.95)`
+  // 如果拖拽来自文件夹，用坐标检测鼠标是否移出文件夹遮罩（避免临时拖拽元素导致 e.target 不匹配）
+  if(currentFolder.value){
+    const folderOverlay=document.querySelector('.nexus-folder-overlay')
+    if(folderOverlay){
+      const rect=folderOverlay.getBoundingClientRect()
+      const isInside=e.clientX>=rect.left&&e.clientX<=rect.right&&e.clientY>=rect.top&&e.clientY<=rect.bottom
+      if(!isInside)currentFolder.value=null
+    }
   }
   // 检测拖拽图标下方是否有文件夹
   const oldPointer=el.style.pointerEvents
@@ -159,12 +254,12 @@ function onIconDragMove(e){
   const tid=target?Number(target.dataset.itemId):null
   const t=tid?ds.items.find(i=>i.id===tid):null
   const isFolder=t&&t.type==='folder'&&tid!==lastDragItem.value
-  // 悬停1秒后才允许放入文件夹
+  // 悬停500ms后才允许放入文件夹
   if(isFolder){
     if(folderHoverId!==tid){
       folderHoverId=tid
       clearTimeout(folderHoverTimer)
-      folderHoverTimer=setTimeout(()=>{dragOverFolder.value=tid},1000)
+      folderHoverTimer=setTimeout(()=>{dragOverFolder.value=tid},500)
     }
   }else{
     clearTimeout(folderHoverTimer)
@@ -191,6 +286,19 @@ async function onIconDragUp(e){
     return
   }
   el.style.transform=''
+  // 检测鼠标释放位置是否仍在文件夹遮罩内——如果是，放弃本次拖拽操作（不移出文件夹）
+  if(currentFolder.value){
+    const folderOverlay=document.querySelector('.nexus-folder-overlay')
+    if(folderOverlay){
+      const rect=folderOverlay.getBoundingClientRect()
+      const isInside=e.clientX>=rect.left&&e.clientX<=rect.right&&e.clientY>=rect.top&&e.clientY<=rect.bottom
+      if(isInside){
+        // 在文件夹内释放，不移动图标，不关闭文件夹
+        if(!document.querySelector('.nexus-desktop-icons')?.contains(el))el.remove()
+        return
+      }
+    }
+  }
   const x=Math.max(0,off.baseX+dx),y=Math.max(0,off.baseY+dy)
   const item=ds.items.find(i=>i.id===id)
   if(!item)return
@@ -240,7 +348,7 @@ async function arrangeIcons(){ctxVisible.value=false
 }
 
 function toggleSnap(){ctxVisible.value=false;snapToGrid.value=!snapToGrid.value;if(snapToGrid.value)arrangeIcons()}
-const homePage=computed(()=>(window.__NEXUS_ADMIN_PAGES__||{})['nexus-home']||null)
+const homePage = computed(() => (window.__NEXUS_ADMIN_PAGES__ || {})['nexus-home'] || null)
 </script>
 
 <style scoped>

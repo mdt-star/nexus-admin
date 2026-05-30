@@ -24,7 +24,7 @@
       <div class="nexus-taskbar-clock"><div class="nexus-taskbar-clock-time">{{ clockTime }}</div><div class="nexus-taskbar-clock-date">{{ clockDate }}</div></div>
     </div>
     <Teleport to="body"><div v-if="previewVisible" class="nexus-taskbar-preview" :style="previewStyle" @mouseenter="previewKeep = true" @mouseleave="previewKeep = false; hidePreview()" @click="switchToWindow(previewWinId)">
-        <div class="nexus-taskbar-preview-header"><el-icon v-if="previewWin?.icon" :size="14"><component :is="getIconComponent(previewWin.icon)" /></el-icon><span>{{ previewWin?.title }}</span></div>
+        <div class="nexus-taskbar-preview-header"><el-icon v-if="previewWin?.icon" :size="14"><component :is="getIconComponent(previewWin.icon)" /></el-icon><span>{{ previewWin?.title }}</span><el-button class="nexus-taskbar-preview-close" :icon="Close" size="small" text @click.stop="closePreviewWindow" /></div>
         <div class="nexus-taskbar-preview-thumb"><el-icon :size="48" color="var(--nexus-text-color-placeholder)"><component :is="previewWin ? getIconComponent(previewWin.icon) : 'Monitor'" /></el-icon></div>
       </div></Teleport>
   </div></template>
@@ -35,7 +35,7 @@ import { useThemeStore } from '../../stores/theme'
 import { useI18nStore } from '../../stores/i18n'
 import { useUserStore } from '../../stores/user'
 import * as Icons from '@element-plus/icons-vue'
-import { Search, Setting, SwitchButton, Monitor } from '@element-plus/icons-vue'
+import { Search, Setting, SwitchButton, Monitor, Close } from '@element-plus/icons-vue'
 import GlobeIcon from '../GlobeIcon.vue'
 import NotificationBell from '../common/NotificationBell.vue'
 import WindowsStartIcon from './WindowsStartIcon.vue'
@@ -58,7 +58,17 @@ function updateClock() {
 }
 onMounted(() => { updateClock(); clockTimer = setInterval(updateClock, 30000) })
 onUnmounted(() => { if (clockTimer) clearInterval(clockTimer) })
-function switchToWindow(id) { windowStore.activate(id); hidePreview() }
+function switchToWindow(id) {
+  if (id === windowStore.activeId) {
+    // 已激活：取消激活（隐藏指示器/下划线）+ 切换最小化/恢复
+    windowStore.deactivate()
+    window.dispatchEvent(new CustomEvent('nexus-toggle-window', { detail: { id } }))
+  } else {
+    // 从最小化/非激活状态恢复：激活窗口，同时 DesktopWindow 的 watch(isActive) 自动恢复
+    windowStore.activate(id)
+  }
+  hidePreview()
+}
 function onMenuOpen(item) { emit('open-page', item) }
 function openSearch() { emit('open-search') }
 function openHome() { emit('open-home') }
@@ -83,6 +93,14 @@ function showPreview(id, event) {
 function hidePreview() {
   clearTimeout(previewTimer)
   setTimeout(() => { if (!previewKeep.value) previewVisible.value = false }, 100)
+}
+// 预览中关闭对应窗口/Tab（立即移除预览，不使用延时 hidePreview）
+function closePreviewWindow() {
+  const id = previewWinId.value
+  if (id) windowStore.close(id)
+  clearTimeout(previewTimer)
+  previewVisible.value = false
+  previewKeep.value = false
 }
 function onLocaleChange(loc) { i18nStore.setLocale(loc) }
 function onUserCommand(cmd) {
@@ -143,9 +161,18 @@ function getIconComponent(n) { return n ? Icons[n] || null : null }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .nexus-taskbar-preview-header {
-  display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+  display: flex; align-items: center; gap: 6px; padding: 4px 4px 4px 12px;
   font-size: 12px; font-weight: 500; color: var(--nexus-text-color);
   border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.nexus-taskbar-preview-close {
+  margin-left: auto !important; flex-shrink: 0;
+  --el-button-size: 22px !important;
+  width: 22px; height: 22px; padding: 0 !important;
+  border: none !important; color: var(--nexus-text-color-secondary) !important;
+}
+.nexus-taskbar-preview-close:hover {
+  color: #ef4444 !important; background: rgba(239,68,68,0.15) !important;
 }
 .nexus-taskbar-preview-thumb { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; min-height: 100px; }
 html.dark .nexus-taskbar-preview { border-color: rgba(255,255,255,0.08); }

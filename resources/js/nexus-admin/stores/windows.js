@@ -70,7 +70,10 @@ export const useWindowStore = defineStore('nexus-windows', () => {
   async function open(menuItem) {
     const existing = items.value.find(item => item.id === menuItem.id)
     if (existing) {
-      // 已存在，切换到它
+      // 已存在，切换到它；若已在激活状态则发送恢复事件（桌面窗口从最小化恢复）
+      if (activeId.value === menuItem.id) {
+        window.dispatchEvent(new CustomEvent('nexus-restore-window', { detail: { id: menuItem.id } }))
+      }
       activeId.value = menuItem.id
     } else {
       // 新建窗口/Tab
@@ -147,7 +150,6 @@ export const useWindowStore = defineStore('nexus-windows', () => {
    * @param {string} id
    */
   async function activate(id) {
-    const prevId = activeId.value
     activeId.value = id
     history.value.push(id)
 
@@ -155,7 +157,11 @@ export const useWindowStore = defineStore('nexus-windows', () => {
     if (item) {
       await hookManager.emit('window:activate', item)
     }
+  }
 
+  /** 取消激活当前窗口/Tab（回到无激活状态，显示首页） */
+  function deactivate() {
+    activeId.value = null
   }
 
 
@@ -215,6 +221,7 @@ export const useWindowStore = defineStore('nexus-windows', () => {
     closeOthers,
     closeAll,
     activate,
+    deactivate,
     update,
     updateSearchParams,
     getSearchParams
