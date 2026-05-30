@@ -16,6 +16,7 @@
       width="560px"
       top="15vh"
       :close-on-click-modal="true"
+      append-to-body
       class="nexus-search-dialog"
       @opened="onOpened"
       @closed="onClosed"
@@ -90,7 +91,18 @@ const { t } = useI18nStore()
 const menuStore = useMenuStore()
 const windowStore = useWindowStore()
 
-const visible = ref(false)
+const props = defineProps({
+  visible: { type: Boolean, default: false }
+})
+const emit = defineEmits(['update:visible'])
+const localVisible = ref(false)
+const visible = computed({
+  get: () => props.visible,
+  set: (val) => {
+    localVisible.value = val
+    emit('update:visible', val)
+  }
+})
 const query = ref('')
 const activeIndex = ref(0)
 const inputRef = ref(null)

@@ -1,6 +1,6 @@
 <template>
   <el-dialog :model-value="visible" :title="isNew ? t('itemEditor.addItem') : t('itemEditor.editItem')" width="390px" 
-    :draggable="true" @close="close" @open="onOpen">
+    :draggable="true" append-to-body @close="close" @open="onOpen">
     <el-form :model="form">
       <el-form-item :label="t('itemEditor.title')">
         <el-input v-model="form.title" :placeholder="t('itemEditor.titlePlaceholder')" />

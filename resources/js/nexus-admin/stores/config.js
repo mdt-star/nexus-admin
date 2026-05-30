@@ -23,7 +23,10 @@ export const useConfigStore = defineStore('nexus-config', () => {
     tabs: [],                 // 已打开的 Tab 列表
     tabMode: true,            // 是否显示 Tab 栏（false=单页模式）
     headerColor: '',          // 顶部背景色（空=默认）
-    uiSize: 'medium'          // UI 控件尺寸: small | medium | large
+    uiSize: 'medium',          // UI 控件尺寸: small | medium | large
+    backgroundMode: 'color',   // 桌面背景模式: color | image
+    backgroundImage: null,     // 桌面背景图片（Base64或URL）
+    backgroundFit: 'fill'      // 背景图片填充模式: fill | contain | cover | center
   })
 
   // 全局配置（管理员设置）

@@ -59,6 +59,21 @@
   --nexus-box-shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08);
   --nexus-box-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.06);
   --nexus-box-shadow-glow: 0 0 20px rgba(20, 184, 166, 0.25);
+
+  /* ===== Win11 任务栏 ===== */
+  --nexus-taskbar-height: 48px;
+  --nexus-taskbar-bg: rgba(248, 250, 252, 0.72);
+  --nexus-taskbar-blur: 16px;
+  --nexus-taskbar-icon-size: 20px;
+  --nexus-taskbar-item-radius: 6px;
+  --nexus-taskbar-item-gap: 4px;
+
+  /* ===== 桌面窗口（毛玻璃） ===== */
+  --nexus-window-bg: rgba(255, 255, 255, 0.55);
+  --nexus-window-blur: 20px;
+  --nexus-window-radius: 14px;
+  --nexus-window-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --nexus-window-header-height: 40px;
 }
 
 /* ===== 暗色主题（!important 确保覆盖 EP dark/css-vars.css） ===== */
@@ -107,4 +122,8 @@ html.dark {
   --nexus-box-shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
   --nexus-box-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
   --nexus-box-shadow-glow: 0 0 20px rgba(20, 184, 166, 0.4) !important;
+
+  --nexus-taskbar-bg: rgba(15, 23, 42, 0.78) !important;
+  --nexus-window-bg: rgba(30, 41, 59, 0.6) !important;
+  --nexus-window-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }

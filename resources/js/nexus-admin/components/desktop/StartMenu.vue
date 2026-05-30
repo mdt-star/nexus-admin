@@ -1,6 +1,6 @@
 <template>
   <el-popover ref="popoverRef" trigger="click" :width="360" :popper-class="'nexus-start-popper'"
-    :show-arrow="false" placement="right-start" :offset="0">
+    :show-arrow="false" placement="top-start" :offset="8">
     <template #reference>
       <slot name="reference" />
     </template>

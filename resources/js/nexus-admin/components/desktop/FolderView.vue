@@ -8,7 +8,9 @@
             v-for="child in folder.children"
             :key="child.id"
             class="nexus-folder-item"
-            @click="openChild(child)"
+            :data-folder-child-id="child.id"
+            @mousedown="onChildMouseDown($event,child)"
+            @dblclick="openChild(child)"
           >
             <div class="nexus-folder-item-icon">
               <el-icon :size="32">
@@ -35,7 +37,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['open', 'close'])
+const emit = defineEmits(['open', 'close', 'drag-start'])
 
 const entering = ref(true)
 const leaving = ref(false)
@@ -96,6 +98,15 @@ function openChild(item) {
 function getIconComponent(iconName) {
   if (!iconName) return null
   return ElementPlusIconsVue[iconName] || null
+}
+
+// 从文件夹拖出图标
+function onChildMouseDown(e,child){
+  if(e.button!==0)return
+  const rect=e.currentTarget.getBoundingClientRect()
+  // 通知父组件开始拖拽
+  emit('drag-start',{item:child,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top,clientX:e.clientX,clientY:e.clientY})
+  // 点击也可打开，但如果有拖拽则由父组件处理
 }
 </script>
 

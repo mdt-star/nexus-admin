@@ -1,9 +1,6 @@
 <template>
   <div class="nexus-home-page">
-    <!-- 系统信息卡片 -->
-    <el-row :gutter="16">
-      <el-col :span="16">
-        <!-- 快捷菜单卡片 -->
+    <!-- 快捷菜单卡片 -->
         <el-card shadow="never" class="nexus-home-card nexus-home-shortcuts-card">
           <template #header>
             <div class="nexus-home-card-header">
@@ -143,10 +140,8 @@
             <el-descriptions-item :label="t('home.phpPostMax')">{{ phpInfo.postMax }}</el-descriptions-item>
           </el-descriptions>
         </el-card>
-      </el-col>
 
-      <el-col :span="8">
-        <el-card shadow="never" class="nexus-home-card">
+        <el-card shadow="never" class="nexus-home-card" style="margin-top: 16px;">
           <template #header>
             <div class="nexus-home-card-header">
               <div class="nexus-home-card-header-left">
@@ -194,8 +189,6 @@
             </div>
           </div>
         </el-card>
-      </el-col>
-    </el-row>
 
     <!-- 实时趋势弹窗 -->
     <el-dialog v-model="trendVisible" :title="t('home.trendTitle')" width="520px" destroy-on-close>

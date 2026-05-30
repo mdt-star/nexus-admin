@@ -42,13 +42,49 @@
           </div>
         </div>
       </div>
+
+      <!-- 桌面背景设置 -->
+      <div class="pref-section">
+        <h3 class="pref-section-title">{{ t('preferences.background') || '桌面背景' }}</h3>
+        <div class="pref-bg-row">
+          <el-radio-group :model-value="backgroundMode" @change="handleBgModeChange" size="small">
+            <el-radio-button value="color">纯色</el-radio-button>
+            <el-radio-button value="image">图片</el-radio-button>
+          </el-radio-group>
+        </div>
+        <div v-if="backgroundMode === 'image'" class="pref-bg-row">
+          <div class="pref-bg-upload">
+            <el-upload
+              :show-file-list="false"
+              :auto-upload="false"
+              accept="image/*"
+              @change="handleBgUpload"
+            >
+              <el-button size="small" :icon="Picture">上传图片</el-button>
+            </el-upload>
+            <el-button v-if="bgPreviewUrl" size="small" type="danger" :icon="Delete" @click="clearBgImage">清除</el-button>
+          </div>
+          <div v-if="bgPreviewUrl" class="pref-bg-preview">
+            <img :src="bgPreviewUrl" alt="背景预览" />
+          </div>
+          <div class="pref-bg-fit" v-if="bgPreviewUrl">
+            <span class="pref-label">显示模式</span>
+            <el-radio-group :model-value="backgroundFit" @change="handleBgFitChange" size="small">
+              <el-radio-button value="fill">填充</el-radio-button>
+              <el-radio-button value="contain">适应</el-radio-button>
+              <el-radio-button value="cover">拉伸</el-radio-button>
+              <el-radio-button value="center">居中</el-radio-button>
+            </el-radio-group>
+          </div>
+        </div>
+      </div>
     </div>
   </el-drawer>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Check } from '@element-plus/icons-vue'
+import { Check, Picture, Delete } from '@element-plus/icons-vue'
 import { useAppStore } from '../stores/app'
 import { useConfigStore } from '../stores/config'
 import { useThemeStore } from '../stores/theme'
@@ -64,6 +100,9 @@ const visible = ref(false)
 const layout = computed(() => appStore.layout)
 const tabMode = computed(() => configStore.get('tabMode', true))
 const headerColor = computed(() => configStore.get('headerColor', ''))
+const backgroundMode = computed(() => configStore.get('backgroundMode', 'color'))
+const backgroundFit = computed(() => configStore.get('backgroundFit', 'fill'))
+const bgPreviewUrl = computed(() => configStore.get('backgroundImage', null))
 
 const headerColors = [
   { value: '', label: '默认', primary: '#14b8a6' },
@@ -96,6 +135,29 @@ function handleHeaderColorChange(val) {
   if (match) {
     themeStore.setPrimaryColor(match.primary)
   }
+}
+
+// 背景设置处理
+function handleBgModeChange(val) {
+  configStore.setUserConfig('backgroundMode', val)
+}
+
+function handleBgUpload(uploadFile) {
+  const file = uploadFile.raw
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    configStore.setUserConfig('backgroundImage', e.target.result)
+  }
+  reader.readAsDataURL(file)
+}
+
+function clearBgImage() {
+  configStore.setUserConfig('backgroundImage', null)
+}
+
+function handleBgFitChange(val) {
+  configStore.setUserConfig('backgroundFit', val)
 }
 
 defineExpose({ open })
@@ -152,4 +214,15 @@ defineExpose({ open })
   font-weight: 700;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
+
+/* ===== 背景设置样式 ===== */
+.pref-bg-row { margin-bottom: 12px; }
+.pref-bg-upload { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pref-bg-preview {
+  margin-top: 8px; border-radius: 6px; overflow: hidden;
+  max-width: 100%; max-height: 120px; border: 1px solid var(--nexus-border-color);
+}
+.pref-bg-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pref-bg-fit { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.pref-label { font-size: 12px; color: var(--nexus-text-color-secondary); }
 </style>

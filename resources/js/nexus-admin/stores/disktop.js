@@ -171,16 +171,17 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
    * @param {object} data
    */
   async function updateItem(id, data) {
+    // 先本地更新（即时反馈）
+    const index = items.value.findIndex(item => item.id === id)
+    if (index !== -1) {
+      items.value[index] = { ...items.value[index], ...data }
+    }
     try {
       const { default: disktopsApi } = await import('../services/disktops')
       await disktopsApi.items.update(id, data)
     } catch (e) {
-      console.warn('[NexusAdmin] 更新桌面项失败:', e)
-    }
-    // 本地更新：替换整个对象以触发响应式
-    const index = items.value.findIndex(item => item.id === id)
-    if (index !== -1) {
-      items.value[index] = { ...items.value[index], ...data }
+      console.warn('[NexusAdmin] 更新桌面项失败，重新加载:', e)
+      if (activeDisktopId.value) await loadItems()
     }
   }
 
