@@ -1,8 +1,8 @@
 # 项目进度
 
 ## 总体状态
-- 测试通过率: 98/98 (100%)
-- 测试文件: 11/11 全部通过
+- 测试通过率: 123/123 (100%)
+- 测试文件: 14/14 全部通过
 - Unhandled errors: 0
 
 ## 已完成
@@ -30,3 +30,10 @@
   - [x] config store defaults 新增 `uiSize: 'medium'`
   - [x] app.js 初始化顺序调整
   - [x] 更新 size.test.js 测试
+- [x] 修复登录页 Logo 显示问题，统一登录框主色调与系统一致
+  - [x] 用品牌 SVG Logo 替换通用 Monitor 图标（增大色块、提高透明度使图标清晰）
+  - [x] 所有硬编码主色调替换为 CSS 变量（`var(--el-color-primary)` 等）
+  - [x] 移除未使用的 `Monitor` 图标导入
+  - [x] 输入框图标（User/Lock）从 18px→20px，提高对比度至 `var(--nexus-text-color-secondary)`
+  - [x] 登录页支持系统亮/暗主题切换（移除强制暗色背景，使用 `var(--nexus-bg-color)` 等系统变量）
+  - [x] 亮色模式下粒子效果淡化（opacity * 0.3）
