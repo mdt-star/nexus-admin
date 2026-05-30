@@ -1,42 +1,27 @@
 # 当前活动上下文
 
 ## 当前工作
-修复登录页 Logo 显示问题，统一登录框主色调与系统 CSS 变量一致。
+修复搜索弹窗输入时自动关闭的 Bug，修复欢迎页在侧边栏/桌面模式下的展示异常。
 
 ## 改动内容
 
-### size store (`stores/size.js`)
-- 移除 localStorage 读写（`getItem('nexus-admin-ui-size')` / `setItem('nexus-admin-ui-size')`）
-- 新增 `syncFromConfig(configStore)` 方法，从 ConfigStore 读取 `uiSize` 配置
-- `setSize()` 改为通过 `configStore.setUserConfig('uiSize', val)` 持久化，自动同步到后端
-- 保留 `elementSize`、`toggleSize`、`applySize`、`init` 等接口不变
+### GlobalSearch.vue (`components/common/GlobalSearch.vue`)
+- **Bug 修复（精准修复）**：`filteredResults` 计算属性中 `item.id.toLowerCase()` 报错导致弹窗关闭
+- **根本原因**：菜单/页面数据的 `id` 字段可能为数字（非字符串），`item.id.toLowerCase()` 抛 `TypeError: item.id.toLowerCase is not a function`，计算属性异常导致 Vue 渲染崩溃，弹窗随之关闭
+- **触发链**：输入 → `query` 变化 → `filteredResults` 重算 → `item.id.toLowerCase()` 在数字 id 上抛异常 → Vue 渲染崩溃 → 弹窗关闭
+- **方案**：将 4 处 `xxx.toLowerCase()` 改为 `String(xxx ?? '').toLowerCase()`，安全处理非字符串/undefined/null 值
+- **还原**：移除此前所有无效改动（dialogVisible ref、watchers、isInputActive、@mousedown.stop、display:none 移除等），仅保留上述 4 行核心修复
+- **影响范围**：仅改 GlobalSearch.vue 的 `filteredResults` 计算属性（4 行），DesktopLayout.vue 完全还原
 
-### config store (`stores/config.js`)
-- `defaults` 中新增 `uiSize: 'medium'` 默认值
-
-### app.js
-- 初始化顺序调整：size 初始化移到 config 加载之后
-- `uiSizeStore.init()` → `uiSizeStore.syncFromConfig(configStore)`
-
-### 数据流
-```
-用户切换尺寸 → setSize() → configStore.setUserConfig('uiSize', val)
-                                    ↕
-                            localStorage + 后端 API
-```
-
-## 改动内容
-
-### LoginPage.vue (`components/LoginPage.vue`)
-- **Logo 修复**：将通用的 `Monitor` 图标替换为品牌风格 SVG Logo（Nexus 四象限菱形图标），使用 `currentColor` 跟随主题色；增大 SVG 渲染尺寸（32→36px）和色块面积（11→13），提高透明度使图标更清晰
-- **颜色统一**：将登录页所有硬编码的主色调（`#14b8a6`、`#5eead4`、`#0d9488`、`rgba(94,234,212,...)`）全部替换为 CSS 变量：
-  - `#14b8a6` → `var(--el-color-primary)`
-  - `#5eead4` → `var(--el-color-primary-light-3)`
-  - `#0d9488` → `var(--el-color-primary-dark-2)`
-  - 各种透明度色值 → `color-mix(in srgb, var(--el-color-primary) X%, transparent)`
-- **主题自适应**：移除强制暗色背景，改用 `var(--nexus-bg-color)` 跟随系统亮/暗主题；卡片背景、输入框背景、文本颜色全部替换为系统 CSS 变量
-- **图标清晰度**：输入框前缀图标（User/Lock）从 18px→20px，颜色从 `rgba(148,163,184,0.6)` 提高到 `var(--nexus-text-color-secondary)`
-- **影响范围**：粒子背景、扫描线网格、渐变光晕、登录卡片边框/阴影/背景、Logo、标题、描述、输入框、前缀图标、密码切换图标、提交按钮、底部提示
+### HomePage.vue (`pages/system/HomePage.vue`)
+- **问题**：欢迎页在侧边栏和桌面模式下展示相同，缺少布局差异
+- **需求**：侧边栏模式系统信息在右侧；桌面模式保持单列
+- **方案**：
+  - 导入 `useAppStore`，通过 `appStore.layout` 判断布局模式
+  - 新增 `isSidebar` 计算属性，根元素动态添加 `.nexus-home-sidebar` 类
+  - 模板重构为双容器结构：`.nexus-home-main`（快捷菜单+服务器信息+PHP环境）和 `.nexus-home-side`（系统信息卡片）
+  - CSS：侧边栏模式使用 `display: grid; grid-template-columns: 1fr 360px`；桌面模式 `.nexus-home-side { display: none }` 隐藏侧栏
+  - 侧边栏模式下系统信息卡片 `position: sticky` 随滚动固定
 
 ## 当前状态
 - 14 个测试文件，123 个测试用例，全部通过

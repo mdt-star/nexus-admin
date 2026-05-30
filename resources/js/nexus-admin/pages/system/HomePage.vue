@@ -1,7 +1,9 @@
 <template>
-  <div class="nexus-home-page">
-    <!-- 快捷菜单卡片 -->
-        <el-card shadow="never" class="nexus-home-card nexus-home-shortcuts-card">
+  <div class="nexus-home-page" :class="{ 'nexus-home-sidebar': isSidebar }">
+    <!-- 侧边栏模式：双列布局；桌面模式：单列 -->
+    <div class="nexus-home-main">
+      <!-- 快捷菜单卡片 -->
+      <el-card shadow="never" class="nexus-home-card nexus-home-shortcuts-card">
           <template #header>
             <div class="nexus-home-card-header">
               <div class="nexus-home-card-header-left">
@@ -139,56 +141,60 @@
             <el-descriptions-item :label="t('home.phpUploadMax')">{{ phpInfo.uploadMax }}</el-descriptions-item>
             <el-descriptions-item :label="t('home.phpPostMax')">{{ phpInfo.postMax }}</el-descriptions-item>
           </el-descriptions>
-        </el-card>
+      </el-card>
+    </div>
 
-        <el-card shadow="never" class="nexus-home-card" style="margin-top: 16px;">
-          <template #header>
-            <div class="nexus-home-card-header">
-              <div class="nexus-home-card-header-left">
-                <el-icon><Connection /></el-icon>
-                <span>{{ t('home.systemInfo') }}</span>
-              </div>
-            </div>
-          </template>
-          <div class="nexus-home-system">
-            <div class="nexus-home-logo">
-              <el-icon :size="48" color="var(--nexus-primary-color)"><Monitor /></el-icon>
-            </div>
-            <div class="nexus-home-app-name">{{ systemInfo.appName }}</div>
-            <div class="nexus-home-version">{{ t('home.version') }}: {{ systemInfo.version }}</div>
-            <el-divider />
-            <div class="nexus-home-links">
-              <el-link :href="systemInfo.website" target="_blank" :icon="Link">
-                {{ t('home.website') }}
-              </el-link>
-              <span class="nexus-home-links-divider" />
-              <el-link :href="systemInfo.docs" target="_blank" :icon="Document">
-                {{ t('home.documentation') }}
-              </el-link>
-              <span class="nexus-home-links-divider" />
-              <el-link :href="systemInfo.github" target="_blank" :icon="Star">
-                {{ t('home.github') }}
-              </el-link>
-            </div>
-            <el-divider />
-            <div class="nexus-home-updates">
-              <div class="nexus-home-updates-title">
-                <el-icon><Bell /></el-icon>
-                <span>{{ t('home.updateAnnouncements') }}</span>
-              </div>
-              <div v-if="systemInfo.updates.length === 0" class="nexus-home-updates-empty">
-                {{ t('home.noUpdates') }}
-              </div>
-              <div v-for="update in systemInfo.updates" :key="update.date" class="nexus-home-update-item">
-                <el-tag size="small" :type="update.type === 'security' ? 'danger' : 'info'">
-                  {{ update.version }}
-                </el-tag>
-                <span class="nexus-home-update-text">{{ update.title }}</span>
-                <span class="nexus-home-update-date">{{ update.date }}</span>
-              </div>
+    <!-- 侧边栏模式：系统信息卡片展示在右侧 -->
+    <div class="nexus-home-side">
+      <el-card shadow="never" class="nexus-home-card">
+        <template #header>
+          <div class="nexus-home-card-header">
+            <div class="nexus-home-card-header-left">
+              <el-icon><Connection /></el-icon>
+              <span>{{ t('home.systemInfo') }}</span>
             </div>
           </div>
-        </el-card>
+        </template>
+        <div class="nexus-home-system">
+          <div class="nexus-home-logo">
+            <el-icon :size="48" color="var(--nexus-primary-color)"><Monitor /></el-icon>
+          </div>
+          <div class="nexus-home-app-name">{{ systemInfo.appName }}</div>
+          <div class="nexus-home-version">{{ t('home.version') }}: {{ systemInfo.version }}</div>
+          <el-divider />
+          <div class="nexus-home-links">
+            <el-link :href="systemInfo.website" target="_blank" :icon="Link">
+              {{ t('home.website') }}
+            </el-link>
+            <span class="nexus-home-links-divider" />
+            <el-link :href="systemInfo.docs" target="_blank" :icon="Document">
+              {{ t('home.documentation') }}
+            </el-link>
+            <span class="nexus-home-links-divider" />
+            <el-link :href="systemInfo.github" target="_blank" :icon="Star">
+              {{ t('home.github') }}
+            </el-link>
+          </div>
+          <el-divider />
+          <div class="nexus-home-updates">
+            <div class="nexus-home-updates-title">
+              <el-icon><Bell /></el-icon>
+              <span>{{ t('home.updateAnnouncements') }}</span>
+            </div>
+            <div v-if="systemInfo.updates.length === 0" class="nexus-home-updates-empty">
+              {{ t('home.noUpdates') }}
+            </div>
+            <div v-for="update in systemInfo.updates" :key="update.date" class="nexus-home-update-item">
+              <el-tag size="small" :type="update.type === 'security' ? 'danger' : 'info'">
+                {{ update.version }}
+              </el-tag>
+              <span class="nexus-home-update-text">{{ update.title }}</span>
+              <span class="nexus-home-update-date">{{ update.date }}</span>
+            </div>
+          </div>
+        </div>
+      </el-card>
+    </div>
 
     <!-- 实时趋势弹窗 -->
     <el-dialog v-model="trendVisible" :title="t('home.trendTitle')" width="520px" destroy-on-close>
@@ -242,6 +248,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useAppStore } from '../../stores/app'
 import { useI18nStore } from '../../stores/i18n'
 import { useConfigStore } from '../../stores/config'
 import { useShortcutsStore } from '../../stores/shortcuts'
@@ -251,10 +258,14 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { Monitor, InfoFilled, Connection, Link, Document, Star, Bell, Refresh, DataAnalysis, WarningFilled, Delete, Close } from '@element-plus/icons-vue'
 
 const { t } = useI18nStore()
+const appStore = useAppStore()
 const configStore = useConfigStore()
 const shortcutsStore = useShortcutsStore()
 const windowStore = useWindowStore()
 const menuStore = useMenuStore()
+
+// 是否为侧边栏模式（侧边栏模式使用双列布局，系统信息在右侧）
+const isSidebar = computed(() => appStore.layout === 'sidebar')
 
 const refreshing = ref(false)
 const trendVisible = ref(false)
@@ -396,6 +407,34 @@ onMounted(() => {
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* 侧边栏模式：双列网格布局，系统信息在右侧 */
+.nexus-home-sidebar {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 16px;
+  align-items: start;
+  max-width: 1400px;
+}
+
+.nexus-home-sidebar .nexus-home-main {
+  min-width: 0;
+}
+
+.nexus-home-sidebar .nexus-home-side {
+  min-width: 0;
+  position: sticky;
+  top: 16px;
+}
+
+/* 桌面模式单列，隐藏侧边容器 */
+.nexus-home-side {
+  display: none;
+}
+
+.nexus-home-sidebar .nexus-home-side {
+  display: block;
 }
 
 .nexus-home-card-header {

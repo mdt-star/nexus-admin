@@ -97,12 +97,16 @@ const props = defineProps({
 const emit = defineEmits(['update:visible'])
 const localVisible = ref(false)
 const visible = computed({
-  get: () => props.visible,
+  get: () => localVisible.value,
   set: (val) => {
     localVisible.value = val
     emit('update:visible', val)
   }
 })
+// 父组件 prop → 本地状态同步（桌面模式由 TaskBar 控制弹窗开关）
+watch(() => props.visible, (val) => {
+  localVisible.value = val
+}, { immediate: true })
 const query = ref('')
 const activeIndex = ref(0)
 const inputRef = ref(null)
@@ -148,13 +152,13 @@ const filteredResults = computed(() => {
   const q = query.value.toLowerCase().trim()
 
   const menus = allMenuItems.value.filter(item =>
-    item.title.toLowerCase().includes(q) ||
-    item.id.toLowerCase().includes(q)
+    String(item.title ?? '').toLowerCase().includes(q) ||
+    String(item.id ?? '').toLowerCase().includes(q)
   )
 
   const pages = pageResults.value.filter(item =>
-    item.title.toLowerCase().includes(q) ||
-    item.id.toLowerCase().includes(q)
+    String(item.title ?? '').toLowerCase().includes(q) ||
+    String(item.id ?? '').toLowerCase().includes(q)
   )
 
   // 合并，菜单优先
