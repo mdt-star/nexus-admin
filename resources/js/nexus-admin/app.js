@@ -162,8 +162,13 @@ async function initNexusAdmin(mountSelector = '#app') {
   await hookManager.emit('app:init', app)
 
   // 开发环境加载 Mock.js 拦截
+  // mockjs 为 devDependencies，生产环境可能未安装，加 try/catch 兜底
   if (import.meta.env.VITE_USE_MOCK !== 'false') {
-    await import('./mock/setup')
+    try {
+      await import('./mock/setup')
+    } catch (e) {
+      console.warn('[NexusAdmin] Mock 加载失败（生产环境可忽略）:', e.message)
+    }
   }
 
   // 注册 Pinia
