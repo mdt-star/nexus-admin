@@ -283,7 +283,7 @@ html.dark .nexus-desktop-window {
 }
 
 html.dark .nexus-window-titlebar {
-  background: rgba(0, 0, 0, 0.15);
-  border-bottom-color: rgba(255, 255, 255, 0.04);
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02));
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 </style>
