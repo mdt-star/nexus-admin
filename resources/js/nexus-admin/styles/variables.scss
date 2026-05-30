@@ -61,6 +61,8 @@
   --nexus-box-shadow-glow: 0 0 20px rgba(20, 184, 166, 0.25);
 
   /* ===== 桌面背景视觉增强 ===== */
+  --nexus-desktop-bg-start: #14b8a6;
+  --nexus-desktop-bg-end: #0d9488;
   --nexus-desktop-grid-color: rgba(255, 255, 255, 0.20);
   --nexus-desktop-glow: rgba(255, 255, 255, 0.18);
 
@@ -127,6 +129,8 @@ html.dark {
   --nexus-box-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
   --nexus-box-shadow-glow: 0 0 20px rgba(20, 184, 166, 0.4) !important;
 
+  --nexus-desktop-bg-start: #1e293b !important;
+  --nexus-desktop-bg-end: #0f172a !important;
   --nexus-desktop-grid-color: rgba(255, 255, 255, 0.18) !important;
   --nexus-desktop-glow: rgba(255, 255, 255, 0.16) !important;
 
