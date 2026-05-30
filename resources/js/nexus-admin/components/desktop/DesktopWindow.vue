@@ -22,6 +22,12 @@
     <div class="nexus-window-content">
       <component :is="getPage(win.component)" />
     </div>
+    <!-- 缩放手柄 -->
+    <div v-if="!maximized" class="nexus-resize-handle nexus-resize-r" @mousedown.prevent.stop="onResizeStart($event,'r')" />
+    <div v-if="!maximized" class="nexus-resize-handle nexus-resize-b" @mousedown.prevent.stop="onResizeStart($event,'b')" />
+    <div v-if="!maximized" class="nexus-resize-handle nexus-resize-br" @mousedown.prevent.stop="onResizeStart($event,'br')">
+      <div class="nexus-resize-grip" />
+    </div>
   </div>
 </template>
 
@@ -126,6 +132,12 @@ onUnmounted(() => {
     document.body.style.cursor = ''
     window.__nexusDrag = null
   }
+  if (window.__nexusResize) {
+    document.removeEventListener('mousemove', onResizeMove)
+    document.removeEventListener('mouseup', onResizeEnd)
+    document.body.classList.remove('nexus-dragging')
+    window.__nexusResize = null
+  }
 })
 
 // 被激活时自动还原（取消最小化）
@@ -153,6 +165,34 @@ onUnmounted(() => {
   window.removeEventListener('nexus-toggle-window', onToggleRequest)
   window.removeEventListener('nexus-restore-window', onRestoreRequest)
 })
+
+// ===== 尺寸缩放（Resize） =====
+const MIN_W = 300, MIN_H = 200
+function onResizeStart(event, mode) {
+  if (maximized.value) return
+  const rect = elRef.value?.getBoundingClientRect()
+  window.__nexusResize = { startX: event.clientX, startY: event.clientY, baseWidth: size.value.width || rect?.width || MIN_W, baseHeight: size.value.height || rect?.height || MIN_H, mode }
+  document.addEventListener('mousemove', onResizeMove)
+  document.addEventListener('mouseup', onResizeEnd)
+  document.body.classList.add('nexus-dragging')
+  if (elRef.value) elRef.value.style.backdropFilter = 'none'
+}
+function onResizeMove(event) {
+  const r = window.__nexusResize
+  if (!r) return
+  const dx = event.clientX - r.startX, dy = event.clientY - r.startY
+  let w = r.baseWidth, h = r.baseHeight
+  if (r.mode === 'r' || r.mode === 'br') w = Math.max(MIN_W, r.baseWidth + dx)
+  if (r.mode === 'b' || r.mode === 'br') h = Math.max(MIN_H, r.baseHeight + dy)
+  size.value = { width: w, height: h }
+}
+function onResizeEnd() {
+  window.__nexusResize = null
+  document.removeEventListener('mousemove', onResizeMove)
+  document.removeEventListener('mouseup', onResizeEnd)
+  document.body.classList.remove('nexus-dragging')
+  if (elRef.value) elRef.value.style.backdropFilter = ''
+}
 
 const windowStyle = computed(() => {
   if (maximized.value) {
@@ -286,4 +326,13 @@ html.dark .nexus-window-titlebar {
   background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02));
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
+
+/* ===== 缩放手柄 ===== */
+.nexus-resize-handle{position:absolute;z-index:10}
+.nexus-resize-r{right:0;top:0;width:6px;height:100%;cursor:e-resize}
+.nexus-resize-b{left:0;bottom:0;width:100%;height:6px;cursor:s-resize}
+.nexus-resize-br{right:0;bottom:0;width:20px;height:20px;cursor:se-resize;z-index:11}
+/* 右下角拖拽角标 */
+.nexus-resize-grip{position:absolute;right:4px;bottom:4px;width:8px;height:8px}
+.nexus-resize-grip::after{content:'';position:absolute;right:0;bottom:0;width:7px;height:7px;border-right:2px solid rgba(255,255,255,0.35);border-bottom:2px solid rgba(255,255,255,0.35);border-radius:1px}
 </style>
