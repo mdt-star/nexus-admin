@@ -258,10 +258,10 @@ async function initNexusAdmin(mountSelector = '#app') {
   const userStore = useUserStore()
   await userStore.restoreSession()
 
-  // 初始化 UI 尺寸
+  // 初始化 UI 尺寸（从 ConfigStore 读取 uiSize）
   const { useUiSizeStore } = await import('./stores/size')
   const uiSizeStore = useUiSizeStore()
-  uiSizeStore.init()
+  uiSizeStore.syncFromConfig(configStore)
 
   // 初始化响应式
   const { useAppStore } = await import('./stores/app')

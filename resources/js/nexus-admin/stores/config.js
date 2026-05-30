@@ -22,8 +22,8 @@ export const useConfigStore = defineStore('nexus-config', () => {
     windowMaximized: false,   // 窗口是否最大化
     tabs: [],                 // 已打开的 Tab 列表
     tabMode: true,            // 是否显示 Tab 栏（false=单页模式）
-    headerColor: ''           // 顶部背景色（空=默认）
-
+    headerColor: '',          // 顶部背景色（空=默认）
+    uiSize: 'medium'          // UI 控件尺寸: small | medium | large
   })
 
   // 全局配置（管理员设置）

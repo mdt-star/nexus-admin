@@ -4,8 +4,16 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useUiSizeStore } from './size'
+import { useConfigStore } from './config'
 
-// Mock localStorage
+// Mock hookManager (used by config store)
+vi.mock('../utils/hook-manager', () => ({
+  default: {
+    emit: vi.fn(() => Promise.resolve())
+  }
+}))
+
+// Mock localStorage (used by config store)
 const localStorageMock = (() => {
   let store = {}
   return {
@@ -21,13 +29,6 @@ describe('UiSizeStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.clear()
-    // 重置 getItem 的 mock 返回值，避免跨测试污染
-    localStorageMock.getItem.mockReset()
-    localStorageMock.getItem.mockImplementation(key => {
-      const store = localStorageMock.mockClear ? {} : {}
-      return null
-    })
-    // 简单方式：清除所有 mock 状态
     vi.clearAllMocks()
     document.documentElement.removeAttribute('data-ui-size')
   })
@@ -37,42 +38,66 @@ describe('UiSizeStore', () => {
     expect(store.size).toBe('medium')
   })
 
-  it('从 localStorage 恢复尺寸', () => {
-    localStorageMock.getItem.mockReturnValue('small')
+  it('syncFromConfig() 从 ConfigStore 读取尺寸', () => {
+    const configStore = useConfigStore()
+    // 设置用户配置中的 uiSize
+    configStore.user.uiSize = 'small'
+
     const store = useUiSizeStore()
+    store.syncFromConfig(configStore)
     expect(store.size).toBe('small')
+    expect(document.documentElement.getAttribute('data-ui-size')).toBe('small')
+  })
+
+  it('syncFromConfig() 无效值回退到 medium', () => {
+    const configStore = useConfigStore()
+    configStore.user.uiSize = 'invalid'
+
+    const store = useUiSizeStore()
+    store.syncFromConfig(configStore)
+    expect(store.size).toBe('medium')
+  })
+
+  it('syncFromConfig() 无配置时使用 medium', () => {
+    const configStore = useConfigStore()
+    // 不设置 uiSize，使用默认值
+
+    const store = useUiSizeStore()
+    store.syncFromConfig(configStore)
+    expect(store.size).toBe('medium')
   })
 
   it('elementSize 映射 large → large', () => {
-    localStorageMock.getItem.mockReturnValue('large')
+    const configStore = useConfigStore()
+    configStore.user.uiSize = 'large'
+
     const store = useUiSizeStore()
+    store.syncFromConfig(configStore)
     expect(store.elementSize).toBe('large')
   })
 
   it('elementSize 映射 small → small', () => {
-    localStorageMock.getItem.mockReturnValue('small')
+    const configStore = useConfigStore()
+    configStore.user.uiSize = 'small'
+
     const store = useUiSizeStore()
+    store.syncFromConfig(configStore)
     expect(store.elementSize).toBe('small')
   })
 
   it('elementSize 映射 medium → default', () => {
-    // 确保没有 localStorage 值干扰
-    localStorageMock.getItem.mockReturnValue(null)
     const store = useUiSizeStore()
     expect(store.elementSize).toBe('default')
   })
 
-  it('setSize() 设置尺寸并持久化', () => {
-    localStorageMock.getItem.mockReturnValue(null)
+  it('setSize() 设置尺寸并应用到 DOM', () => {
     const store = useUiSizeStore()
     store.setSize('large')
     expect(store.size).toBe('large')
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('nexus-admin-ui-size', 'large')
     expect(document.documentElement.getAttribute('data-ui-size')).toBe('large')
   })
 
   it('toggleSize() 循环切换 small → medium → large → small', () => {
-    localStorageMock.getItem.mockReturnValue(null)
     const store = useUiSizeStore()
     expect(store.size).toBe('medium')
 
@@ -87,7 +112,6 @@ describe('UiSizeStore', () => {
   })
 
   it('init() 应用尺寸到 DOM', () => {
-    localStorageMock.getItem.mockReturnValue(null)
     const store = useUiSizeStore()
     store.init()
     expect(document.documentElement.getAttribute('data-ui-size')).toBe('medium')

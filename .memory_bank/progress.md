@@ -1,7 +1,7 @@
 # 项目进度
 
 ## 总体状态
-- 测试通过率: 96/96 (100%)
+- 测试通过率: 98/98 (100%)
 - 测试文件: 11/11 全部通过
 - Unhandled errors: 0
 
@@ -25,3 +25,8 @@
   - [x] notification.test.js → `../services/notifications`
   - [x] permission.test.js → `../services/permissions`
   - [x] i18n.test.js → `../services/i18n`
+- [x] UI 尺寸改为通过 ConfigStore 统一管理（随用户配置持久化到后端）
+  - [x] size store 移除 localStorage，改为从 ConfigStore 读取/写入
+  - [x] config store defaults 新增 `uiSize: 'medium'`
+  - [x] app.js 初始化顺序调整
+  - [x] 更新 size.test.js 测试

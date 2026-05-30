@@ -1,28 +1,30 @@
 # 当前活动上下文
 
 ## 当前工作
-将测试文件的 mock 从 `../services/api` 迁移到各自独立的 service 模块，消除对 `api.js` 的测试依赖。
+将 UI 尺寸（size store）从独立 localStorage 持久化改为通过 ConfigStore 统一管理，数据随用户配置一起保存到后端。
 
-## 迁移内容
+## 改动内容
 
-### 已迁移的测试文件
-- **disktop.test.js** — `../services/api` → `../services/disktops`
-- **menu.test.js** — `../services/api` → `../services/menus`
-- **notification.test.js** — `../services/api` → `../services/notifications`
-- **permission.test.js** — `../services/api` → `../services/permissions`
-- **i18n.test.js** — `../services/api` → `../services/i18n`
+### size store (`stores/size.js`)
+- 移除 localStorage 读写（`getItem('nexus-admin-ui-size')` / `setItem('nexus-admin-ui-size')`）
+- 新增 `syncFromConfig(configStore)` 方法，从 ConfigStore 读取 `uiSize` 配置
+- `setSize()` 改为通过 `configStore.setUserConfig('uiSize', val)` 持久化，自动同步到后端
+- 保留 `elementSize`、`toggleSize`、`applySize`、`init` 等接口不变
 
-### 迁移模式
-每个测试文件使用 `vi.mock` 模拟对应的独立 service 模块，格式统一为：
-```js
-vi.mock('../services/xxx', () => ({
-  default: {
-    methodName: vi.fn()
-  }
-}))
+### config store (`stores/config.js`)
+- `defaults` 中新增 `uiSize: 'medium'` 默认值
+
+### app.js
+- 初始化顺序调整：size 初始化移到 config 加载之后
+- `uiSizeStore.init()` → `uiSizeStore.syncFromConfig(configStore)`
+
+### 数据流
 ```
-测试中通过 `const { default: api } = await import('../services/xxx')` 获取 mock 实例。
+用户切换尺寸 → setSize() → configStore.setUserConfig('uiSize', val)
+                                    ↕
+                            localStorage + 后端 API
+```
 
 ## 当前状态
-- 11 个测试文件，96 个测试用例，全部通过
+- 11 个测试文件，98 个测试用例，全部通过
 - 0 unhandled errors
