@@ -22,10 +22,15 @@ class NexusAdminServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // 发布前端资源
+        // 发布构建产物（宿主应用部署时使用）
+        $this->publishes([
+            __DIR__ . '/../dist' => public_path('vendor/nexus-admin'),
+        ], 'nexus-admin-assets');
+
+        // 发布前端源文件（开发使用）
         $this->publishes([
             __DIR__ . '/../resources/js' => resource_path('js/nexus-admin'),
-        ], 'nexus-admin-assets');
+        ], 'nexus-admin-source');
 
         // 发布配置文件
         $this->publishes([

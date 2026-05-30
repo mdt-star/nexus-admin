@@ -227,7 +227,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: resolve(__dirname, 'public/vendor/nexus-admin'),
+    outDir: resolve(__dirname, 'dist'),
     assetsDir: 'assets',
     copyPublicDir: false,
     rollupOptions: {
