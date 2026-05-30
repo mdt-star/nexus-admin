@@ -60,6 +60,10 @@
   --nexus-box-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.06);
   --nexus-box-shadow-glow: 0 0 20px rgba(20, 184, 166, 0.25);
 
+  /* ===== 桌面背景视觉增强 ===== */
+  --nexus-desktop-grid-color: rgba(255, 255, 255, 0.20);
+  --nexus-desktop-glow: rgba(255, 255, 255, 0.18);
+
   /* ===== Win11 任务栏 ===== */
   --nexus-taskbar-height: 48px;
   --nexus-taskbar-bg: rgba(248, 250, 252, 0.72);
@@ -122,6 +126,9 @@ html.dark {
   --nexus-box-shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
   --nexus-box-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
   --nexus-box-shadow-glow: 0 0 20px rgba(20, 184, 166, 0.4) !important;
+
+  --nexus-desktop-grid-color: rgba(255, 255, 255, 0.18) !important;
+  --nexus-desktop-glow: rgba(255, 255, 255, 0.16) !important;
 
   --nexus-taskbar-bg: rgba(15, 23, 42, 0.78) !important;
   --nexus-window-bg: rgba(30, 41, 59, 0.6) !important;

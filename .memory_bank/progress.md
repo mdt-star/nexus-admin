@@ -46,6 +46,24 @@
 - [x] 修复欢迎页在侧边栏/桌面模式下的展示异常（HomePage.vue）
   - [x] 侧边栏模式：系统信息卡片在右侧，CSS Grid 双列布局
   - [x] 桌面模式：保持原有单列样式，隐藏侧边容器
+- [x] 图标颜色动态主题联动 + 质感提升
+  - [x] theme.js：`applyTheme()` 和 `applyPrimaryColor()` 补上 `--nexus-primary-color-dark` 动态更新（此前被遗漏，导致该变量永不跟随主题变化）
+  - [x] DesktopLayout.vue：图标颜色改用 `--el-color-primary`（动态主色），新增 `drop-shadow` 微投影
+  - [x] 图标容器背景从纯色改为对角渐变 `linear-gradient(145deg, ...)`，增强光泽层次感
+  - [x] 暗色模式同步适配渐变背景
+  - [x] 构建通过，全部 123 测试用例通过，零回归
+- [x] 桌面图标视觉对比度优化
+  - [x] `.nexus-desktop-icon-img`：背景不透明度提升至 22%，增加 1px 半透白边框，投影增强至 4px/12px，毛玻璃 blur 6px
+  - [x] `.nexus-desktop-icon-label`：文字纯白 #fff，双重文字阴影（6px 深投影 + 4px 柔光晕），网点纹理上依然清晰
+  - [x] `html.dark`：移除对渐变背景不合适的黑色覆盖，统一使用白色系背景
+  - [x] 构建通过，全部 123 测试用例通过，零回归
+- [x] 桌面背景视觉优化
+  - [x] variables.scss：更新 `--nexus-desktop-grid-color`、`--nexus-desktop-glow` CSS 变量透明度（提升至 18%-20%，确保可见）
+  - [x] DesktopLayout.vue：改用 CSS `::before`/`::after` 伪元素叠加层（光泽 + 点阵纹理），`bgStyle` 回归单层渐变
+  - [x] 新增 `bgIsColor` 计算属性 + `.nexus-bg-enhanced` 条件 class，图片背景时禁用视觉增强
+  - [x] `pointer-events: none` 确保叠加层零交互干扰
+  - [x] 构建通过，测试全部通过（123/123），零回归
+  - [x] docs/README.md 同步更新文档
 - [x] 桌面端交互优化（完整迭代）
   - [x] FolderView.vue：原生 HTML5 拖拽、空文件夹提示、返回上级图标、拖拽悬浮动效、右键菜单、视图实时刷新
   - [x] DesktopLayout.vue：原生拖放处理、parent_id 缓存传递、编辑/删除后实时刷新、删除确认弹窗、悬停 500ms

@@ -80,6 +80,7 @@ export const useThemeStore = defineStore('nexus-theme', () => {
     } else {
       document.documentElement.classList.remove('dark')
     }
+    document.documentElement.style.setProperty('--nexus-primary-color-dark', darken(c, 0.2))
     document.documentElement.style.setProperty('--el-color-primary', c)
     document.documentElement.style.setProperty('--el-color-primary-dark-2', darken(c, 0.2))
     document.documentElement.style.setProperty('--el-color-primary-light-3', lighten(c, 0.3))
@@ -94,7 +95,7 @@ export const useThemeStore = defineStore('nexus-theme', () => {
     const c = primaryColor.value
     const root = document.documentElement
     root.style.setProperty('--nexus-primary-color', c)
-    root.style.setProperty('--el-color-primary', c)
+    root.style.setProperty('--nexus-primary-color-dark', darken(c, 0.2))
     root.style.setProperty('--el-color-primary', c)
     root.style.setProperty('--el-color-primary-dark-2', darken(c, 0.2))
     root.style.setProperty('--el-color-primary-light-3', lighten(c, 0.3))

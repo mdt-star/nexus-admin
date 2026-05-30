@@ -142,18 +142,22 @@ vendor/my-package/
 
 支持亮/暗两种主题，CSS 变量驱动全界面配色。
 
-```css
-:root {
-  --nexus-primary-color: #409EFF;
-  --nexus-bg-color: #f5f7fa;
-  --nexus-text-color: #303133;
-}
+### 核心颜色变量
 
-[data-theme="dark"] {
-  --nexus-bg-color: #1a1a2e;
-  --nexus-text-color: #e0e0e0;
-}
-```
+| 变量 | 用途 | 亮色值 | 暗色值 |
+|------|------|--------|--------|
+| `--nexus-primary-color` | 主色调 | #14b8a6 | #14b8a6 |
+| `--nexus-primary-color-dark` | 主色调深色 | #0d9488 | #0d9488 |
+| `--nexus-bg-color` | 页面背景 | #f8fafc | #0f172a |
+| `--nexus-bg-color-light` | 卡片/浮层背景 | #ffffff | #1e293b |
+| `--nexus-text-color` | 主文字色 | #1e293b | #f1f5f9 |
+
+### 桌面背景视觉变量
+
+| 变量 | 用途 | 亮色值 | 暗色值 |
+|------|------|--------|--------|
+| `--nexus-desktop-grid-color` | 桌面点阵网格色 | rgba(255,255,255,0.20) | rgba(255,255,255,0.18) |
+| `--nexus-desktop-glow` | 桌面顶部光泽色 | rgba(255,255,255,0.18) | rgba(255,255,255,0.16) |
 
 ## 测试
 

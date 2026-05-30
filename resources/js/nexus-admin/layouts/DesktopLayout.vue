@@ -1,5 +1,5 @@
 <template><div class="nexus-desktop-layout">
-<div class="nexus-desktop-bg" :style="bgStyle" />
+<div class="nexus-desktop-bg" :class="{ 'nexus-bg-enhanced': bgIsColor }" :style="bgStyle" />
 <div class="nexus-desktop-body">
 <main class="nexus-desktop" @dragover.prevent="onDragOver" @drop.prevent="onDrop">
 <!-- 加载遮罩（进度条样式） -->
@@ -53,7 +53,8 @@ import PreferencesPanel from '../components/PreferencesPanel.vue'
 import GlobalSearch from '../components/common/GlobalSearch.vue'
 const ds=useDisktopStore(),ws=useWindowStore(),i18n=useI18nStore(),cfg=useConfigStore(),{t}=i18n
 const activeWindow=computed(()=>ws.items.find(w=>w.id===ws.activeId)||null)
-const bgStyle=computed(()=>{const m=cfg.get('backgroundMode','color');if(m==='image'){const img=cfg.get('backgroundImage',null),f=cfg.get('backgroundFit','fill'),fm={fill:'fill',contain:'contain',cover:'cover',center:'center'};if(img)return{backgroundImage:`url(${img})`,backgroundSize:fm[f]||'fill',backgroundRepeat:'no-repeat',backgroundPosition:'center'}}return{background:'linear-gradient(135deg, var(--nexus-primary-color), var(--nexus-primary-color-dark))'}})
+const bgIsColor=computed(()=>cfg.get('backgroundMode','color')!=='image')
+const bgStyle=computed(()=>{const m=cfg.get('backgroundMode','color');if(m==='image'){const img=cfg.get('backgroundImage',null),f=cfg.get('backgroundFit','fill'),fm={fill:'fill',contain:'contain',cover:'cover',center:'center'};if(img)return{backgroundImage:`url(${img})`,backgroundSize:fm[f]||'fill',backgroundRepeat:'no-repeat',backgroundPosition:'center'}}return{background:'linear-gradient(135deg,var(--nexus-primary-color),var(--nexus-primary-color-dark))'}})
 const currentFolder=ref(null),folderHistory=ref([]),preferencesRef=ref(null),searchVisible=ref(false),editorVisible=ref(false),editingItem=ref(null),isNewItem=ref(false),editorPos=ref({x:200,y:100}),ctxVisible=ref(false),ctxItem=ref(null),ctxStyle=ref({}),homeVisible=ref(false),dragOverId=ref(null)
 const wp={};function getWindowRect(id,idx){if(!wp[id]){const vw=window.innerWidth,vh=window.innerHeight,w=Math.min(Math.round(vw*.7),vw-40),h=Math.min(Math.round(vh*.8),vh-80);wp[id]={left:Math.round((vw-w)/2)+idx*30,top:Math.round((vh-h)/2*.3)+idx*30,width:w,height:h}}return wp[id]}
 onMounted(async()=>{if(!ds.loaded)await ds.loadDisktops();if(ds.activeDisktopId)await ds.loadItems();document.addEventListener('click',()=>ctxVisible.value=false);document.addEventListener('contextmenu',(e)=>{if(!e.target.closest('.nexus-ctx,.nexus-desktop,.nexus-desktop-icon,.nexus-desktop-window'))ctxVisible.value=false})})
@@ -355,6 +356,12 @@ const homePage = computed(() => (window.__NEXUS_ADMIN_PAGES__ || {})['nexus-home
 .nexus-desktop-layout{display:flex;flex-direction:column;height:100vh;position:relative;overflow:hidden;background:var(--nexus-bg-color)}
 .nexus-desktop-body{display:flex;flex-direction:column;flex:1;min-height:0;position:relative;z-index:1}
 .nexus-desktop-bg{position:absolute;inset:0;z-index:0;transition:background 0.5s ease}
+/* 桌面背景视觉增强：伪元素叠加层 */
+.nexus-bg-enhanced::before,.nexus-bg-enhanced::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1}
+/* 光泽层：顶部径向渐变，营造柔和光晕 */
+.nexus-bg-enhanced::before{background:radial-gradient(ellipse 80% 40% at 50% 0%,var(--nexus-desktop-glow),transparent 70%)}
+/* 纹理层：浅淡点阵网格 */
+.nexus-bg-enhanced::after{background-image:radial-gradient(circle,var(--nexus-desktop-grid-color) 1px,transparent 1px);background-size:32px 32px}
 .nexus-desktop{flex:1;position:relative;z-index:1;overflow:hidden;user-select:none}
 .nexus-desktop-icons{position:relative;width:100%;height:100%;overflow:hidden}
 .nexus-desktop-icon{position:absolute;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;cursor:default;border-radius:10px;width:80px;min-height:90px;-webkit-user-select:none;user-select:none}
@@ -364,8 +371,10 @@ const homePage = computed(() => (window.__NEXUS_ADMIN_PAGES__ || {})['nexus-home
 .nexus-drop-folder{background:rgba(255,255,255,0.2)!important;backdrop-filter:blur(8px);outline:2px dashed var(--nexus-primary-color);outline-offset:-2px;animation:nexus-folder-pulse .8s ease-in-out infinite}
 @keyframes nexus-folder-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 
-.nexus-desktop-icon-img{width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.15);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.08);backdrop-filter:blur(4px)}
-.nexus-desktop-icon-label{font-size:var(--nexus-font-size-sm);text-align:center;word-break:break-all;color:rgba(255,255,255,0.9);text-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.nexus-desktop-icon-img{width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,color-mix(in srgb,var(--el-color-primary) 10%,rgba(255,255,255,0.95)),rgba(255,255,255,0.20));border-radius:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.12),inset 0 1.5px 0 rgba(255,255,255,0.30),inset 0 -1px 0 rgba(0,0,0,0.05),0 4px 12px rgba(0,0,0,0.10);backdrop-filter:blur(6px)}
+/* 图标着色：白色高对比 + 微投影立体感 */
+.nexus-desktop-icon-img :deep(.el-icon){color:#fff !important;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.25))}
+.nexus-desktop-icon-label{font-size:var(--nexus-font-size-sm);text-align:center;word-break:break-all;color:#fff;font-weight:500;text-shadow:0 1px 6px rgba(0,0,0,0.5),0 0 4px rgba(0,0,0,0.25)}
 /* 加载遮罩 */
 .nexus-loading-overlay{position:absolute;inset:0;z-index:999;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
 .nexus-loading-bar{width:240px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden}
@@ -379,8 +388,7 @@ const homePage = computed(() => (window.__NEXUS_ADMIN_PAGES__ || {})['nexus-home
 .nexus-ctx-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:6px;font-size:13px;color:var(--nexus-text-color)}
 .nexus-ctx-item:hover{background:var(--nexus-bg-color-dark)}
 .nexus-ctx-divider{height:1px;background:var(--nexus-border-color);margin:4px 8px}
-html.dark .nexus-desktop-icon-img{background:rgba(0,0,0,0.25)}
-html.dark .nexus-desktop-icon-label{color:rgba(255,255,255,0.85)}
+html.dark .nexus-desktop-icon-img{background:linear-gradient(145deg,color-mix(in srgb,var(--el-color-primary) 8%,rgba(255,255,255,0.92)),rgba(255,255,255,0.18));box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08),inset 0 1.5px 0 rgba(255,255,255,0.22),inset 0 -1px 0 rgba(0,0,0,0.05),0 4px 12px rgba(0,0,0,0.10)}
 /* 首页侧滑面板 */
 .nexus-home-overlay{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.3);display:flex;justify-content:flex-end}
 .nexus-home-panel{width:520px;max-width:90vw;height:100vh;background:var(--nexus-bg-color-light);box-shadow:-4px 0 24px rgba(0,0,0,0.15);display:flex;flex-direction:column;animation:nexus-slide-in 0.25s ease-out}
