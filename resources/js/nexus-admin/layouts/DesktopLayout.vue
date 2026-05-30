@@ -388,9 +388,9 @@ const homePage = computed(() => (window.__NEXUS_ADMIN_PAGES__ || {})['nexus-home
 .nexus-ctx-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:6px;font-size:13px;color:var(--nexus-text-color)}
 .nexus-ctx-item:hover{background:var(--nexus-bg-color-dark)}
 .nexus-ctx-divider{height:1px;background:var(--nexus-border-color);margin:4px 8px}
-html.dark .nexus-desktop-icon-img{background:linear-gradient(145deg,color-mix(in srgb,var(--el-color-primary) 8%,rgba(255,255,255,0.92)),rgba(255,255,255,0.28));box-shadow:inset 0 0 0 1px rgba(255,255,255,0.10),inset 0 1.5px 0 rgba(255,255,255,0.28),inset 0 -1px 0 rgba(0,0,0,0.05),0 4px 12px rgba(0,0,0,0.15)}
+html.dark .nexus-desktop-icon-img{background:linear-gradient(145deg,color-mix(in srgb,var(--el-color-primary) 8%,rgba(255,255,255,0.92)),rgba(255,255,255,0.32));box-shadow:inset 0 0 0 1px rgba(255,255,255,0.10),inset 0 1.5px 0 rgba(255,255,255,0.28),inset 0 -1px 0 rgba(0,0,0,0.05),0 4px 12px rgba(0,0,0,0.15)}
 /* 暗色模式：白色光晕替代暗投影，图标边缘更清晰 */
-html.dark .nexus-desktop-icon-img :deep(.el-icon){filter:drop-shadow(0 0 5px rgba(255,255,255,0.15)) drop-shadow(0 1px 2px rgba(0,0,0,0.15))!important}
+html.dark .nexus-desktop-icon-img :deep(.el-icon){filter:drop-shadow(0 0 6px rgba(255,255,255,0.20)) drop-shadow(0 1px 2px rgba(0,0,0,0.15))!important}
 /* 暗色模式：文字阴影调亮 */
 html.dark .nexus-desktop-icon-label{text-shadow:0 1px 6px rgba(0,0,0,0.35)}
 /* 首页侧滑面板 */
