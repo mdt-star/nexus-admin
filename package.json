@@ -1,5 +1,5 @@
 {
-  "name": "mdt-star/nexus-admin",
+  "name": "@mdt-star/nexus-admin",
   "version": "1.0.0",
   "description": "基于 Vite + Vue 3 + Element Plus 的现代化后台管理界面基座",
   "private": true,
