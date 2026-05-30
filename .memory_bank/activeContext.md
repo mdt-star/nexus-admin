@@ -6,12 +6,11 @@
 ## 改动内容
 
 ### GlobalSearch.vue (`components/common/GlobalSearch.vue`)
-- **Bug 修复（精准修复）**：`filteredResults` 计算属性中 `item.id.toLowerCase()` 报错导致弹窗关闭
-- **根本原因**：菜单/页面数据的 `id` 字段可能为数字（非字符串），`item.id.toLowerCase()` 抛 `TypeError: item.id.toLowerCase is not a function`，计算属性异常导致 Vue 渲染崩溃，弹窗随之关闭
-- **触发链**：输入 → `query` 变化 → `filteredResults` 重算 → `item.id.toLowerCase()` 在数字 id 上抛异常 → Vue 渲染崩溃 → 弹窗关闭
-- **方案**：将 4 处 `xxx.toLowerCase()` 改为 `String(xxx ?? '').toLowerCase()`，安全处理非字符串/undefined/null 值
-- **还原**：移除此前所有无效改动（dialogVisible ref、watchers、isInputActive、@mousedown.stop、display:none 移除等），仅保留上述 4 行核心修复
-- **影响范围**：仅改 GlobalSearch.vue 的 `filteredResults` 计算属性（4 行），DesktopLayout.vue 完全还原
+- **Bug 修复一（输入消失）**：`filteredResults` 中 `item.id.toLowerCase()` 在数字 id 上抛 TypeError 导致 Vue 渲染崩溃、弹窗关闭
+  - 修复：4 处 `xxx.toLowerCase()` → `String(xxx ?? '').toLowerCase()`
+- **Bug 修复二（点不开）**：原始代码 `visible` computed 的 getter 返回 `props.visible`（恒 `false`），侧边栏模式未传 prop 时弹窗无法打开
+  - 修复：getter 改为 `() => localVisible.value`，新增 `watch(() => props.visible, ...)` 同步父组件 prop → 本地状态
+- **影响范围**：仅改 GlobalSearch.vue，DesktopLayout.vue 零改动
 
 ### HomePage.vue (`pages/system/HomePage.vue`)
 - **问题**：欢迎页在侧边栏和桌面模式下展示相同，缺少布局差异

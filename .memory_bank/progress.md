@@ -37,9 +37,11 @@
   - [x] 输入框图标（User/Lock）从 18px→20px，提高对比度至 `var(--nexus-text-color-secondary)`
   - [x] 登录页支持系统亮/暗主题切换（移除强制暗色背景，使用 `var(--nexus-bg-color)` 等系统变量）
   - [x] 亮色模式下粒子效果淡化（opacity * 0.3）
-- [x] 修复搜索弹窗输入时自动关闭的 Bug
-  - [x] 真正根因：`filteredResults` 中 `item.id.toLowerCase()` 在数字 id 上抛异常导致渲染崩溃
-  - [x] 修复：`String(item.id ?? '').toLowerCase()` 安全处理非字符串值（仅 4 行改动）
+- [x] 修复搜索弹窗两个 Bug
+  - [x] Bug A（输入消失）：`filteredResults` 中 `item.id.toLowerCase()` 在数字 id 上抛异常导致渲染崩溃
+  - [x] Bug A 修复：`String(item.id ?? '').toLowerCase()` 安全处理非字符串值
+  - [x] Bug B（点不开）：`visible` getter 返回 `props.visible`（恒 false），侧边栏模式弹窗无法打开
+  - [x] Bug B 修复：getter 改为 `() => localVisible.value` + 父组件 prop watch 同步
   - [x] 还原此前所有无效改动（dialogVisible ref、isInputActive、display:none 移除等）
 - [x] 修复欢迎页在侧边栏/桌面模式下的展示异常（HomePage.vue）
   - [x] 侧边栏模式：系统信息卡片在右侧，CSS Grid 双列布局
