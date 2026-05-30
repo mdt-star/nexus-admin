@@ -23,8 +23,10 @@
       <component :is="getPage(win.component)" />
     </div>
     <!-- 缩放手柄 -->
+    <div v-if="!maximized" class="nexus-resize-handle nexus-resize-l" @mousedown.prevent.stop="onResizeStart($event,'l')" />
     <div v-if="!maximized" class="nexus-resize-handle nexus-resize-r" @mousedown.prevent.stop="onResizeStart($event,'r')" />
     <div v-if="!maximized" class="nexus-resize-handle nexus-resize-b" @mousedown.prevent.stop="onResizeStart($event,'b')" />
+    <div v-if="!maximized" class="nexus-resize-handle nexus-resize-bl" @mousedown.prevent.stop="onResizeStart($event,'bl')" />
     <div v-if="!maximized" class="nexus-resize-handle nexus-resize-br" @mousedown.prevent.stop="onResizeStart($event,'br')">
       <div class="nexus-resize-grip" />
     </div>
@@ -171,7 +173,7 @@ const MIN_W = 300, MIN_H = 200
 function onResizeStart(event, mode) {
   if (maximized.value) return
   const rect = elRef.value?.getBoundingClientRect()
-  window.__nexusResize = { startX: event.clientX, startY: event.clientY, baseWidth: size.value.width || rect?.width || MIN_W, baseHeight: size.value.height || rect?.height || MIN_H, mode }
+  window.__nexusResize = { startX: event.clientX, startY: event.clientY, baseLeft: basePos.value.left, baseWidth: size.value.width || rect?.width || MIN_W, baseHeight: size.value.height || rect?.height || MIN_H, mode }
   document.addEventListener('mousemove', onResizeMove)
   document.addEventListener('mouseup', onResizeEnd)
   document.body.classList.add('nexus-dragging')
@@ -183,8 +185,11 @@ function onResizeMove(event) {
   const dx = event.clientX - r.startX, dy = event.clientY - r.startY
   let w = r.baseWidth, h = r.baseHeight
   if (r.mode === 'r' || r.mode === 'br') w = Math.max(MIN_W, r.baseWidth + dx)
-  if (r.mode === 'b' || r.mode === 'br') h = Math.max(MIN_H, r.baseHeight + dy)
+  if (r.mode === 'l' || r.mode === 'bl') w = Math.max(MIN_W, r.baseWidth - dx)
+  if (r.mode === 'b' || r.mode === 'br' || r.mode === 'bl') h = Math.max(MIN_H, r.baseHeight + dy)
   size.value = { width: w, height: h }
+  // 左侧缩放时同步调整 left，右侧不动
+  if (r.mode === 'l' || r.mode === 'bl') basePos.value.left = r.baseLeft + (r.baseWidth - w)
 }
 function onResizeEnd() {
   window.__nexusResize = null
@@ -329,8 +334,10 @@ html.dark .nexus-window-titlebar {
 
 /* ===== 缩放手柄 ===== */
 .nexus-resize-handle{position:absolute;z-index:10}
+.nexus-resize-l{left:0;top:0;width:6px;height:100%;cursor:w-resize}
 .nexus-resize-r{right:0;top:0;width:6px;height:100%;cursor:e-resize}
 .nexus-resize-b{left:0;bottom:0;width:100%;height:6px;cursor:s-resize}
+.nexus-resize-bl{left:0;bottom:0;width:20px;height:20px;cursor:sw-resize;z-index:11}
 .nexus-resize-br{right:0;bottom:0;width:20px;height:20px;cursor:se-resize;z-index:11}
 /* 右下角拖拽角标 */
 .nexus-resize-grip{position:absolute;right:4px;bottom:4px;width:8px;height:8px}
