@@ -192,7 +192,7 @@ let folderHoverTimer=null // 文件夹悬停计时器
 let folderHoverId=null    // 正在计时的文件夹 id
 const iconPos={}
 let iconVer=ref(0) // 版本号，更新时 +1 触发重绘
-const ICON_W=80,ICON_H=90,GRID_GAP=16,GRID_PAD=20,COLS=10
+const ICON_W=80,ICON_H=90,GRID_GAP=16,GRID_PAD=20,COLS=1
 let syncTimer=null // 防抖同步定时器
 let syncQueue={}   // 待同步队列 { [id]: data }，相同 id 只保留最后一条
 
