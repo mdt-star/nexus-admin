@@ -142,7 +142,14 @@ export const useDisktopStore = defineStore('nexus-disktop', () => {
         disktop_id: activeDisktopId.value,
         ...dedupedData
       })
-      const newItem = { ...response.data, parent_id: response.data.parent_id ?? null }
+      // 合并后端响应与请求数据，确保后端未返回的字段（如 component、path）不丢失
+      const newItem = {
+        ...response.data,
+        parent_id: response.data.parent_id ?? null,
+        component: response.data.component ?? data.component ?? null,
+        path: response.data.path ?? data.path ?? null,
+        custom: response.data.custom ?? data.custom ?? {}
+      }
       items.value.push(newItem)
       return newItem
     } catch (e) {

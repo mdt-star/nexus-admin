@@ -161,9 +161,43 @@ vendor/my-package/
 
 ## 测试
 
-当前测试覆盖：
+当前测试覆盖（14 个测试文件，123 个测试用例）：
 
-- HookManager 生命周期管理（10 项测试）
-- Windows Store 窗口状态管理（11 项测试）
+- HookManager 生命周期管理（10 项）
+- Windows Store 窗口状态管理（11 项）
+- Disktop Store 桌面项管理（16 项）
+- Menu Store 菜单管理（9 项）
+- Config Store 全局配置（9 项）
+- I18n Store 多语言管理（9 项）
+- Theme Store 主题管理（5 项）
+- Permission Store 权限管理（7 项）
+- User Store 用户状态（7 项）
+- Notification Store 通知管理（11 项）
+- Size Store 尺寸管理（10 项）
+- App Store 应用状态（4 项）
+- Plugin Registry 插件注册（6 项）
+- Hook Events 钩子事件（9 项）
 
 框架：Vitest + happy-dom
+
+## 开始菜单拖拽功能说明
+
+桌面模式下，开始菜单中的菜单项可通过拖拽添加到桌面（支持拖入已有文件夹）。
+
+### 数据流
+
+```
+StartMenu.onDragStart → JSON.stringify({ title, icon, component, path, type, children })
+                                ↓
+ DesktopLayout.onDrop → JSON.parse → ds.addItem({ ...item, custom, sort })
+                                ↓
+                     disktopStore.addItem → API POST → items.value.push(newItem)
+```
+
+- 叶子菜单（无 children）：`type: 'menu'`，将作为桌面图标，双击打开页面
+- 父级菜单（有 children）：`type: 'folder'`，将作为桌面文件夹，子项自动创建到文件夹内
+- 二级菜单：通过 `@dragstart.stop` 阻止事件冒泡到父级，确保 component/path 正确传递
+
+### 点击机制
+
+桌面图标支持双击打开。使用独立双击检测机制（300ms 内同一图标两次点击），不依赖浏览器原生 `dblclick` 事件，兼容性更可靠。

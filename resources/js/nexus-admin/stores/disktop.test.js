@@ -230,4 +230,57 @@ describe('DisktopStore', () => {
     await store.reorderItem(1, 0, 2)
     expect(store.items[0].parent_id).toBe(2)
   })
+
+  it('addItem() API 返回缺少 component/path 时从请求数据回填', async () => {
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.list.mockResolvedValue({ data: [{ id: 1, name: '默认桌面', is_default: true }] })
+    // API 响应不包含 component、path、custom，模拟后端未返回这些字段
+    disktopsApi.items.create.mockResolvedValue({
+      data: { id: 200, title: '控制台', icon: 'Monitor', parent_id: null, type: 'menu' }
+    })
+
+    const store = useDisktopStore()
+    await store.loadDisktops()
+    const item = await store.addItem({
+      title: '控制台', icon: 'Monitor', component: 'dashboard', path: '/dashboard', custom: { x: 100, y: 200 }
+    })
+
+    // 确认 component、path、custom 从请求数据回填，未丢失
+    expect(item.component).toBe('dashboard')
+    expect(item.path).toBe('/dashboard')
+    expect(item.custom).toEqual({ x: 100, y: 200 })
+  })
+
+  it('addItem() 内部字段不污染存储项', async () => {
+    const { default: disktopsApi } = await import('../services/disktops')
+    disktopsApi.list.mockResolvedValue({ data: [{ id: 1, name: '默认桌面', is_default: true }] })
+    disktopsApi.items.create.mockResolvedValue({
+      data: { id: 300, title: '测试项', icon: 'Star', parent_id: null, type: 'menu' }
+    })
+
+    const store = useDisktopStore()
+    await store.loadDisktops()
+    const item = await store.addItem({
+      title: '测试项', icon: 'Star', _copySuffix: ' 副本', _skipDedup: true
+    })
+
+    // 内部字段不应出现在存储的 item 中
+    expect(item._copySuffix).toBeUndefined()
+    expect(item._skipDedup).toBeUndefined()
+  })
+
+  it('getChildren() 按 sort 排序返回子项', () => {
+    const store = useDisktopStore()
+    store.items = [
+      { id: 3, title: '子C', parent_id: 1, sort: 2 },
+      { id: 1, title: '子A', parent_id: 1, sort: 0 },
+      { id: 2, title: '子B', parent_id: 1, sort: 1 }
+    ]
+
+    const children = store.getChildren(1)
+    expect(children).toHaveLength(3)
+    expect(children[0].sort).toBe(0)
+    expect(children[1].sort).toBe(1)
+    expect(children[2].sort).toBe(2)
+  })
 })

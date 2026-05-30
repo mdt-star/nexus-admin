@@ -44,7 +44,7 @@ import { useWindowStore } from '../stores/windows'
 import { useI18nStore } from '../stores/i18n'
 import { useConfigStore } from '../stores/config'
 import * as I from '@element-plus/icons-vue'
-import {Edit,Delete,FolderAdd,Close,Loading,Top,Bottom,Grid,Select} from '@element-plus/icons-vue'
+import {Edit,Delete,FolderAdd,Close,Grid,Select} from '@element-plus/icons-vue'
 import DesktopWindow from '../components/desktop/DesktopWindow.vue'
 import TaskBar from '../components/desktop/TaskBar.vue'
 import FolderView from '../components/desktop/FolderView.vue'
@@ -52,10 +52,9 @@ import ItemEditor from '../components/desktop/ItemEditor.vue'
 import PreferencesPanel from '../components/PreferencesPanel.vue'
 import GlobalSearch from '../components/common/GlobalSearch.vue'
 const ds=useDisktopStore(),ws=useWindowStore(),i18n=useI18nStore(),cfg=useConfigStore(),{t}=i18n
-const activeWindow=computed(()=>ws.items.find(w=>w.id===ws.activeId)||null)
 const bgIsColor=computed(()=>cfg.get('backgroundMode','color')!=='image')
 const bgStyle=computed(()=>{const m=cfg.get('backgroundMode','color');if(m==='image'){const img=cfg.get('backgroundImage',null),f=cfg.get('backgroundFit','fill'),fm={fill:'fill',contain:'contain',cover:'cover',center:'center'};if(img)return{backgroundImage:`url(${img})`,backgroundSize:fm[f]||'fill',backgroundRepeat:'no-repeat',backgroundPosition:'center'}}return{background:'linear-gradient(135deg,var(--nexus-desktop-bg-start),var(--nexus-desktop-bg-end))'}})
-const currentFolder=ref(null),folderHistory=ref([]),preferencesRef=ref(null),searchVisible=ref(false),editorVisible=ref(false),editingItem=ref(null),isNewItem=ref(false),editorPos=ref({x:200,y:100}),ctxVisible=ref(false),ctxItem=ref(null),ctxStyle=ref({}),homeVisible=ref(false),dragOverId=ref(null)
+const currentFolder=ref(null),folderHistory=ref([]),preferencesRef=ref(null),searchVisible=ref(false),editorVisible=ref(false),editingItem=ref(null),isNewItem=ref(false),editorPos=ref({x:200,y:100}),ctxVisible=ref(false),ctxItem=ref(null),ctxStyle=ref({}),homeVisible=ref(false)
 const wp={};function getWindowRect(id,idx){if(!wp[id]){const vw=window.innerWidth,vh=window.innerHeight,w=Math.min(Math.round(vw*.7),vw-40),h=Math.min(Math.round(vh*.8),vh-80);wp[id]={left:Math.round((vw-w)/2)+idx*30,top:Math.round((vh-h)/2*.3)+idx*30,width:w,height:h}}return wp[id]}
 onMounted(async()=>{if(!ds.loaded)await ds.loadDisktops();if(ds.activeDisktopId)await ds.loadItems();document.addEventListener('click',()=>ctxVisible.value=false);document.addEventListener('contextmenu',(e)=>{if(!e.target.closest('.nexus-ctx,.nexus-desktop,.nexus-desktop-icon,.nexus-desktop-window'))ctxVisible.value=false})})
 function getIconComponent(n){return n?I[n]||null:null}
@@ -121,7 +120,7 @@ async function onDrop(e){
     }
     return
   }
-  const d=e.dataTransfer.getData('application/json');if(!d)return;try{const item=JSON.parse(d),el=document.elementFromPoint(e.clientX,e.clientY),folder=el?.closest('[data-folder-id]');await ds.addItem({title:item.title,icon:item.icon,component:item.component,path:item.path,type:'menu',parent_id:folder?Number(folder.dataset.folderId)||null:null,_copySuffix:` ${t('startMenu.copy')}`})}catch(ex){console.warn('drop fail',ex)}}
+  const d=e.dataTransfer.getData('application/json');if(!d)return;try{const item=JSON.parse(d),el=document.elementFromPoint(e.clientX,e.clientY),folder=el?.closest('[data-folder-id]'),nextSort=ds.rootItems.reduce((max,i)=>Math.max(max,i.sort||0),0)+1;const newItem=await ds.addItem({title:item.title,icon:item.icon,component:item.component,path:item.path,type:item.type||'menu',parent_id:folder?Number(folder.dataset.folderId)||null:null,custom:{x:Math.max(0,e.clientX-40),y:Math.max(0,e.clientY-45)},sort:nextSort,_copySuffix:` ${t('startMenu.copy')}`});if(item.children?.length&&newItem){await Promise.all(item.children.map((c,i)=>ds.addItem({title:c.title,icon:c.icon,component:c.component,path:c.path,type:c.type||'menu',parent_id:newItem.id,sort:i,_skipDedup:true})))} }catch(ex){console.warn('drop fail',ex)}}
 function onDesktopContext(e){
   // 桌面右键 → 显示新建文件夹菜单
   ctxItem.value=null
@@ -191,10 +190,11 @@ const dragOverFolder=ref(null) // 悬停500ms后允许放入的文件夹 id
 let folderHoverTimer=null // 文件夹悬停计时器
 let folderHoverId=null    // 正在计时的文件夹 id
 const iconPos={}
-let iconVer=ref(0) // 版本号，更新时 +1 触发重绘
 const ICON_W=80,ICON_H=90,GRID_GAP=16,GRID_PAD=20,COLS=1
 let syncTimer=null // 防抖同步定时器
 let syncQueue={}   // 待同步队列 { [id]: data }，相同 id 只保留最后一条
+// 双击检测：记录上一次点击的时间与图标 id，300ms 内同一图标两次点击视为双击打开
+let lastClickInfo={time:0,itemId:null}
 
 function getItemBasePos(item){
   const c=item.custom||{}
@@ -284,6 +284,13 @@ async function onIconDragUp(e){
   const dx=e.clientX-off.startX,dy=e.clientY-off.startY
   if(Math.abs(dx)<=3&&Math.abs(dy)<=3){
     if(!document.querySelector('.nexus-desktop-icons')?.contains(el))el.remove()
+    // 双击检测：300ms 内同一图标两次点击 → 打开页面
+    const now=Date.now()
+    if(now-lastClickInfo.time<300&&lastClickInfo.itemId===id){
+      const item=ds.items.find(i=>i.id===id)
+      if(item)handleItemClick(item)
+    }
+    lastClickInfo={time:now,itemId:id}
     return
   }
   el.style.transform=''

@@ -14,7 +14,7 @@
         <el-input v-model="searchQuery" :placeholder="t('common.searchPlaceholder')" clearable
           prefix-icon="Search" @input="onSearchInput" />
       </div>
-      <el-menu ref="menuRef" class="nexus-start-menu" :default-active="activeIndex" @select="onSelect">
+      <el-menu class="nexus-start-menu" :default-active="activeIndex" @select="onSelect">
         <template v-for="item in filteredMenus" :key="item.id">
           <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)"
             draggable="true" @dragstart="onDragStart($event, item)">
@@ -25,7 +25,7 @@
               <span>{{ item.title }}</span>
             </template>
             <el-menu-item v-for="child in item.children" :key="child.id" :index="String(child.id)"
-              draggable="true" @dragstart="onDragStart($event, child)">
+              draggable="true" @dragstart.stop="onDragStart($event, child)">
               <el-icon>
                 <component :is="getIconComponent(child.icon)" />
               </el-icon>
@@ -66,7 +66,7 @@ import { useMenuStore } from '../../stores/menu'
 import { useI18nStore } from '../../stores/i18n'
 import { useShortcutsStore } from '../../stores/shortcuts'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import { FolderOpened, Rank, Star } from '@element-plus/icons-vue'
+import { Star } from '@element-plus/icons-vue'
 import WindowsStartIcon from './WindowsStartIcon.vue'
 
 const emit = defineEmits(['open-page'])
@@ -78,8 +78,6 @@ const { t } = i18nStore
 
 const searchQuery = ref('')
 const popoverRef = ref(null)
-const menuRef = ref(null)
-const isDragging = ref(false)
 const activeIndex = ref('')
 
 const filteredMenus = computed(() => {
@@ -89,16 +87,7 @@ const filteredMenus = computed(() => {
 })
 
 function onSearchInput() {
-  if (searchQuery.value) expandAllMatching(menuStore.menus || [])
-}
-
-function expandAllMatching(items) {
-  items.forEach(item => {
-    if (item.children?.length && item.children.some(c => c.title.toLowerCase().includes(searchQuery.value.toLowerCase()))) {
-      // el-sub-menu 会自动展开，不需要手动管理
-    }
-    if (item.children?.length) expandAllMatching(item.children)
-  })
+  // 搜索输入后 el-sub-menu 会自动展开，无需手动管理展开状态
 }
 
 function filterMenus(items, q) {
@@ -141,15 +130,16 @@ function togglePin(item) {
 }
 
 function onDragStart(event, item) {
-  isDragging.value = true
-  // 如果是父节点，递归收集所有子节点
-  const children = item.children?.length
+  // 判断是否为文件夹类型（有子节点则为文件夹）
+  const isFolder = !!(item.children?.length)
+  const children = isFolder
     ? item.children.map(c => ({
         title: c.title, icon: c.icon, component: c.component, path: c.path, type: 'menu'
       }))
     : []
   const data = JSON.stringify({
-    title: item.title, icon: item.icon, component: item.component, path: item.path, type: 'menu',
+    title: item.title, icon: item.icon, component: item.component, path: item.path,
+    type: isFolder ? 'folder' : 'menu',
     children  // 携带子节点信息
   })
   event.dataTransfer.setData('application/json', data)
@@ -159,7 +149,6 @@ function onDragStart(event, item) {
 }
 
 function onDragEnd() {
-  isDragging.value = false
   hide()
 }
 

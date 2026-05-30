@@ -72,4 +72,36 @@
   - [x] TaskBar.vue：同 id deactivate+ toggle、预览框关闭按钮
   - [x] SidebarLayout.vue：onTabClick 同 Tab 取消激活、关闭按钮增大
   - [x] disktop.js：removeItem 本地优先、delete 实时刷新
-  - [x] 编译修复：deleteItem 缺闭合大括号导致 build 失败
+  - [x] 修复开始菜单拖拽图标定位&点击失效问题（完整迭代）
+  - [x] DesktopLayout.vue onDrop：补充 custom 坐标（与文件夹拖出保持一致偏移 40/45px）
+  - [x] DesktopLayout.vue onDrop：补充 sort 值（追加到末尾，不扰动其他图标排序）
+  - [x] DesktopLayout.vue onIconDragUp：双击检测机制（300ms 内同一图标两次点击直接打开，不依赖浏览器 dblclick）
+  - [x] disktop.js addItem：合并后端响应与请求数据，确保 component/path/custom 不丢失
+  - [x] StartMenu.vue：二级菜单 el-menu-item 的 @dragstart 加 .stop 阻止冒泡到父级 el-sub-menu（避免父级用空 component/path 覆盖子项数据）
+  - [x] StartMenu.vue onDragStart：父级菜单（有 children）设为 type: 'folder'，叶子菜单仍用 type: 'menu'
+  - [x] DesktopLayout.vue onDrop：type 改为从 item.type 透传，而非硬编码 'menu'
+  - [x] DesktopLayout.vue onDrop：创建文件夹后遍历 item.children 创建子项（parent_id=newItem.id, sort=i, _skipDedup=true）
+  - [x] 约束条件：仅改桌面端代码，侧边栏模式零改动
+  - [x] 构建通过，全部 123 测试用例通过，零回归
+- [x] 代码清理与文档同步
+  - [x] StartMenu.vue：移除冗余变量/导入/空函数（menuRef、isDragging、Rank/FolderOpened、expandAllMatching）
+  - [x] DesktopLayout.vue：移除未使用的 computed/导入/变量（activeWindow、Loading/Top/Bottom、iconVer、dragOverId）
+  - [x] 修复 disktop.test.js 中遗留的重复代码
+  - [x] docs/README.md：新增开始菜单拖拽功能说明文档
+  - [x] 构建通过，全部 126 测试用例通过，零回归
+- [x] 任务闭环：开始菜单拖拽功能完整修复
+  - ✅ Bug 1：拖拽定位不准（custom 坐标）
+  - ✅ Bug 2：拖拽影响其他图标排序（sort 值）
+  - ✅ Bug 3：拖拽后图标无法点击（双击检测 + component 回填）
+  - ✅ Bug 4：二级菜单拖拽缺少 component/path（事件冒泡 .stop）
+  - ✅ Bug 5：父级菜单 type 错误（isFolder 判断）
+  - ✅ Bug 6：文件夹拖出为空（子项自动创建）
+  - ✅ 代码清理、测试覆盖、文档同步、构建验证
+
+  - [x] 构建通过，全部 123 测试用例通过，零回归
+- [x] 代码清理与文档同步
+  - [x] StartMenu.vue：移除冗余变量/导入/空函数（menuRef、isDragging、Rank/FolderOpened、expandAllMatching）
+  - [x] DesktopLayout.vue：移除未使用的 computed/导入/变量（activeWindow、Loading/Top/Bottom、iconVer、dragOverId）
+  - [x] docs/README.md：新增开始菜单拖拽功能说明文档
+  - [x] 构建通过，全部 123 测试用例通过，零回归
+
