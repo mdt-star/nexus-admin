@@ -207,7 +207,13 @@ const cn = {
     success: '登录成功',
     failed: '登录失败',
     logout: '退出登录',
-    profile: '个人信息'
+    profile: '个人信息',
+    welcome: '欢迎回来',
+    noAccount: '还没有账号？',
+    register: '联系管理员',
+    feature1: '桌面式管理界面',
+    feature2: '灵活布局切换',
+    feature3: '深度可定制'
   },
   tab: {
     close: '关闭',
@@ -403,7 +409,13 @@ const en = {
     success: 'Login successful',
     failed: 'Invalid credentials',
     logout: 'Logout',
-    profile: 'Profile'
+    profile: 'Profile',
+    welcome: 'Welcome Back',
+    noAccount: 'No account yet?',
+    register: 'Contact Admin',
+    feature1: 'Desktop-like Interface',
+    feature2: 'Flexible Layouts',
+    feature3: 'Deep Customization'
   },
   tab: {
     close: 'Close',
