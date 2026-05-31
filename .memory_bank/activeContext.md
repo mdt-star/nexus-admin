@@ -21,9 +21,9 @@
 ### 二、桌面模式功能增强与修复
 
 #### DesktopLayout.vue
-- **【布局】图标多列排布**：`COLS` 从常量 `1` 改为 `computed`，根据容器宽度动态计算列数。图标超首列后自动流转到后续列。
-- **【功能】框选与批量操作**：新增 `onDesktopMouseDown`/`onSelectMove`/`onSelectEnd` 实现拖拽框选，虚线框（`.nexus-select-rect`：1.5px dashed + 8% 背景色），选中图标高亮（`.nexus-desktop-icon-selected`：主色边框）。右键菜单多选时「编辑」置灰、「删除」变为「批量删除」。**关键安全措施**：`!iconsRef.value` 守卫确保 `getBoundingClientRect` 不会在未挂载时调用；点击图标时 `e.target.closest('.nexus-desktop-icon')` 提前 return，不干扰 `onIconMouseDown` 拖拽逻辑。
-- **【视窗】窗口条件渲染已移除**：恢复原始多窗口并行逻辑，所有窗口始终渲染共存（移除 `v-show`），保留 `z-index` 层级区分激活态。用户可同时看到和操作多个窗口。
+- **【布局】图标竖向排列**：`COLS=1` 常量，`getItemBasePos` 使用 `idx` 直接计算纵向位置。当图标超过容器可视高度时，自动流转至下一列（基于 `container.clientHeight` 计算 `maxRowsPerCol`）。
+- **【功能】框选与批量操作**：新增 `onDesktopMouseDown`/`onSelectMove`/`onSelectEnd` 实现拖拽框选，虚线框（`.nexus-select-rect`：1.5px dashed + 8% 背景色），选中图标高亮（`.nexus-desktop-icon-selected`：主色边框）。右键菜单多选时「编辑」置灰、「删除」变为「批量删除」。**关键安全措施**：`!iconsRef.value` 守卫；`e.preventDefault()` 禁用原生框选；点击图标时 `e.target.closest('.nexus-desktop-icon')` 提前 return 避免干扰拖拽。
+- **【视窗】首次进入仅展示激活窗口**：`initialHideInactive = ref(true)`，`v-show="!initialHideInactive \|\| win.id===ws.activeId"`。`watch(() => ws.activeId)` 监听用户切换/打开窗口后自动设 `false`，恢复多窗口共存。非激活窗口 DOM 保留不销毁。
 - **【功能】个人信息入口**：`onOpenProfile` 打开 `system-config` 页面。
 
 #### TaskBar.vue
@@ -31,10 +31,10 @@
 
 ### 核心设计原则
 - **环境隔离**：侧边栏/桌面改动互不交叉。
-- **v-show 而非 v-if**：窗口条件渲染使用 `v-show` 避免组件销毁。
+- **初始隐藏 + watch 恢复**：`initialHideInactive` + `watch(ws.activeId)` 实现首次仅展示激活窗口，用户操作后恢复多窗口共存；非激活窗口用 `v-show` 保留 DOM。
 - **iconsRef 守卫**：所有 `getBoundingClientRect` 调用前检查 `iconsRef.value`。
-- **原生框选禁用**：`onDesktopMouseDown` 中调用 `e.preventDefault()` + CSS `user-select: none` 防止浏览器原生选中效果干扰自定义虚线框。
-- **竖向排列（纵向自上而下）**：`getItemBasePos` 使用 `rowsPerCol = Math.ceil(total/cols)`，`col = Math.floor(idx/rowsPerCol)`，`row = idx % rowsPerCol` 实现纵向排满后流转至下一列。
+- **原生框选禁用**：`onDesktopMouseDown` 中调用 `e.preventDefault()` 防止浏览器原生选中效果干扰自定义虚线框。
+- **竖向排列（纵向自上而下）**：基于 `container.clientHeight` 计算 `maxRowsPerCol`，`col = floor(idx/maxRowsPerCol)`，`row = idx % maxRowsPerCol` 实现图标纵向排满后流转至下一列。
 - **Bug 修复一（拖拽定位不准）**：从开始菜单拖拽到桌面时，`onDrop` 未传递 `custom: { x, y }` 坐标，导致图标自动使用网格布局定位而非鼠标释放位置
   - 修复：在 `ds.addItem` 参数中补充 `custom: { x: Math.max(0, e.clientX-40), y: Math.max(0, e.clientY-45) }`，与文件夹拖出的坐标偏移一致
 - **Bug 修复二（拖拽影响其他图标排序）**：`onDrop` 未传递 `sort` 值，新图标默认 `sort: 0` 插入到排序列表头部，导致所有现有图标位移
