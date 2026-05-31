@@ -1,11 +1,40 @@
 # 当前活动上下文
 
 ## 当前工作
-修复开始菜单拖拽图标的定位与点击失效问题（不影响侧边栏模式）。
+桌面与侧边栏模式功能修复及优化（本次任务完成）。
 
 ## 改动内容
 
-### DesktopLayout.vue（Bug 修复）
+### 一、侧边栏模式修复与优化
+
+#### SidebarLayout.vue
+- **【样式】暗黑主题头部修复**：在全局 `<style>` 中添加 `html.dark .nexus-header:not([style*="background"])` 选择器，解决 scoped CSS 中 `[data-theme]` 选择器因 `data-v-xxx` 属性隔离而无法匹配 `<html>` 元素的问题。纯浅色主题不受影响（通过 `:not([style*="background"])` 确保仅未设置自定义 headerColor 时生效）。
+- **【交互】Tab 点击逻辑**：`onTabClick` 改为——同 Tab 仅保持激活状态（不触发切换或关闭），不同 Tab 才切换激活。新增 `ensureActiveTab()` + `watch` 监听，无激活 Tab 时自动激活第一个。
+- **【功能】个人信息菜单**：`handleUserCommand` 补充 `profile` 命令处理，打开 `system-config` 页面。
+
+#### StartMenu.vue
+- `placement` 从硬编码改为动态 prop（默认 `top-start`），桌面模式不受影响。
+
+#### SidebarMenu.vue
+- 传入 `placement="right-start"`，侧边栏模式开始菜单从右侧弹出。
+
+### 二、桌面模式功能增强与修复
+
+#### DesktopLayout.vue
+- **【布局】图标多列排布**：`COLS` 从常量 `1` 改为 `computed`，根据容器宽度动态计算列数。图标超首列后自动流转到后续列。
+- **【功能】框选与批量操作**：新增 `onDesktopMouseDown`/`onSelectMove`/`onSelectEnd` 实现拖拽框选，虚线框（`.nexus-select-rect`：1.5px dashed + 8% 背景色），选中图标高亮（`.nexus-desktop-icon-selected`：主色边框）。右键菜单多选时「编辑」置灰、「删除」变为「批量删除」。**关键安全措施**：`!iconsRef.value` 守卫确保 `getBoundingClientRect` 不会在未挂载时调用；点击图标时 `e.target.closest('.nexus-desktop-icon')` 提前 return，不干扰 `onIconMouseDown` 拖拽逻辑。
+- **【视窗】窗口条件渲染已移除**：恢复原始多窗口并行逻辑，所有窗口始终渲染共存（移除 `v-show`），保留 `z-index` 层级区分激活态。用户可同时看到和操作多个窗口。
+- **【功能】个人信息入口**：`onOpenProfile` 打开 `system-config` 页面。
+
+#### TaskBar.vue
+- 用户下拉菜单新增「个人信息」选项，同步侧边栏菜单结构。
+
+### 核心设计原则
+- **环境隔离**：侧边栏/桌面改动互不交叉。
+- **v-show 而非 v-if**：窗口条件渲染使用 `v-show` 避免组件销毁。
+- **iconsRef 守卫**：所有 `getBoundingClientRect` 调用前检查 `iconsRef.value`。
+- **原生框选禁用**：`onDesktopMouseDown` 中调用 `e.preventDefault()` + CSS `user-select: none` 防止浏览器原生选中效果干扰自定义虚线框。
+- **竖向排列（纵向自上而下）**：`getItemBasePos` 使用 `rowsPerCol = Math.ceil(total/cols)`，`col = Math.floor(idx/rowsPerCol)`，`row = idx % rowsPerCol` 实现纵向排满后流转至下一列。
 - **Bug 修复一（拖拽定位不准）**：从开始菜单拖拽到桌面时，`onDrop` 未传递 `custom: { x, y }` 坐标，导致图标自动使用网格布局定位而非鼠标释放位置
   - 修复：在 `ds.addItem` 参数中补充 `custom: { x: Math.max(0, e.clientX-40), y: Math.max(0, e.clientY-45) }`，与文件夹拖出的坐标偏移一致
 - **Bug 修复二（拖拽影响其他图标排序）**：`onDrop` 未传递 `sort` 值，新图标默认 `sort: 0` 插入到排序列表头部，导致所有现有图标位移

@@ -1,6 +1,6 @@
 <template>
   <el-popover ref="popoverRef" trigger="click" :width="360" :popper-class="'nexus-start-popper'"
-    :show-arrow="false" placement="top-start" :offset="8">
+    :show-arrow="false" :placement="placement" :offset="8">
     <template #reference>
       <slot name="reference" />
     </template>
@@ -69,6 +69,9 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { Star } from '@element-plus/icons-vue'
 import WindowsStartIcon from './WindowsStartIcon.vue'
 
+const props = defineProps({
+  placement: { type: String, default: 'top-start' }
+})
 const emit = defineEmits(['open-page'])
 
 const menuStore = useMenuStore()

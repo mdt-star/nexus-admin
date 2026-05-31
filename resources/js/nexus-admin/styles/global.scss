@@ -300,3 +300,11 @@ a {
 .slide-fade-leave-active { transition: all 0.2s ease-in; }
 .slide-fade-enter-from { transform: translateX(20px); opacity: 0; }
 .slide-fade-leave-to { transform: translateX(-20px); opacity: 0; }
+
+/* 禁止文本选择 */
+.unselectable, .unselectable * {
+  user-select: none;
+  -webkit-user-select: none; /* Chrome/Safari/Edge */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;      /* IE10+ */
+}

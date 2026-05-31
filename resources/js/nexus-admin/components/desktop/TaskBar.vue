@@ -6,7 +6,7 @@
         </template>
       </StartMenu>
     </div>
-    <div class="nexus-taskbar-center">
+    <div class="nexus-taskbar-center unselectable">
       <el-tooltip content="搜索 (⌘K)" placement="top"><button class="nexus-taskbar-btn" @click="openSearch"><el-icon :size="18"><Search /></el-icon></button></el-tooltip>
       <div class="nexus-taskbar-divider" />
       <div v-for="win in windowStore.items" :key="win.id" class="nexus-taskbar-item" :class="{ 'nexus-taskbar-item-active': win.id === windowStore.activeId }" @click="switchToWindow(win.id)" @mouseenter="showPreview(win.id, $event)" @mouseleave="hidePreview">
@@ -20,7 +20,7 @@
       <el-tooltip content="首页" placement="top"><button class="nexus-taskbar-btn nexus-taskbar-tray-btn" @click="openHome"><el-icon :size="18"><Monitor /></el-icon></button></el-tooltip>
       <el-dropdown trigger="click" @command="onLocaleChange"><button class="nexus-taskbar-btn nexus-taskbar-tray-btn"><GlobeIcon :size="16" /></button><template #dropdown><el-dropdown-menu><el-dropdown-item command="zh-CN">中文</el-dropdown-item><el-dropdown-item command="en">English</el-dropdown-item></el-dropdown-menu></template></el-dropdown>
       <el-tooltip content="切换主题" placement="top"><button class="nexus-taskbar-btn nexus-taskbar-tray-btn" @click="themeStore.toggleTheme()"><el-icon :size="16"><component :is="themeStore.theme === 'dark' ? 'Sunny' : 'Moon'" /></el-icon></button></el-tooltip>
-      <el-dropdown v-if="userStore.isLoggedIn" trigger="click" @command="onUserCommand"><button class="nexus-taskbar-btn nexus-taskbar-tray-btn"><el-avatar :size="22" :src="userStore.user?.avatar||''" shape="square">{{ userInitial }}</el-avatar></button><template #dropdown><el-dropdown-menu><el-dropdown-item command="preferences"><el-icon><Setting /></el-icon> 偏好设置</el-dropdown-item><el-dropdown-item command="logout"><el-icon><SwitchButton /></el-icon> 退出登录</el-dropdown-item></el-dropdown-menu></template></el-dropdown>
+      <el-dropdown v-if="userStore.isLoggedIn" trigger="click" @command="onUserCommand"><button class="nexus-taskbar-btn nexus-taskbar-tray-btn"><el-avatar :size="22" :src="userStore.user?.avatar||''" shape="circle">{{ userInitial }}</el-avatar></button><template #dropdown><el-dropdown-menu><el-dropdown-item command="preferences"><el-icon><Setting /></el-icon> 偏好设置</el-dropdown-item><el-dropdown-item command="profile"><el-icon><InfoFilled /></el-icon> 个人信息</el-dropdown-item><el-dropdown-item divided command="logout"><el-icon><SwitchButton /></el-icon> 退出登录</el-dropdown-item></el-dropdown-menu></template></el-dropdown>
       <div class="nexus-taskbar-clock"><div class="nexus-taskbar-clock-time">{{ clockTime }}</div><div class="nexus-taskbar-clock-date">{{ clockDate }}</div></div>
     </div>
     <Teleport to="body"><div v-if="previewVisible" class="nexus-taskbar-preview" :style="previewStyle" @mouseenter="previewKeep = true" @mouseleave="previewKeep = false; hidePreview()" @click="switchToWindow(previewWinId)">
@@ -35,12 +35,12 @@ import { useThemeStore } from '../../stores/theme'
 import { useI18nStore } from '../../stores/i18n'
 import { useUserStore } from '../../stores/user'
 import * as Icons from '@element-plus/icons-vue'
-import { Search, Setting, SwitchButton, Monitor, Close } from '@element-plus/icons-vue'
+import { Search, Setting, SwitchButton, Monitor, Close, InfoFilled } from '@element-plus/icons-vue'
 import GlobeIcon from '../GlobeIcon.vue'
 import NotificationBell from '../common/NotificationBell.vue'
 import WindowsStartIcon from './WindowsStartIcon.vue'
 import StartMenu from './StartMenu.vue'
-const emit = defineEmits(['open-page', 'open-search', 'open-preferences', 'open-home'])
+const emit = defineEmits(['open-page', 'open-search', 'open-preferences', 'open-home', 'open-profile'])
 const windowStore = useWindowStore()
 const themeStore = useThemeStore()
 const i18nStore = useI18nStore()
@@ -59,15 +59,19 @@ function updateClock() {
 onMounted(() => { updateClock(); clockTimer = setInterval(updateClock, 30000) })
 onUnmounted(() => { if (clockTimer) clearInterval(clockTimer) })
 function switchToWindow(id) {
+  //return id !== windowStore.activeId && windowStore.activate(id)
+  let switchingToActive = false
   if (id === windowStore.activeId) {
     // 已激活：取消激活（隐藏指示器/下划线）+ 切换最小化/恢复
     windowStore.deactivate()
     window.dispatchEvent(new CustomEvent('nexus-toggle-window', { detail: { id } }))
+    switchingToActive = true
   } else {
     // 从最小化/非激活状态恢复：激活窗口，同时 DesktopWindow 的 watch(isActive) 自动恢复
     windowStore.activate(id)
   }
   hidePreview()
+  emit('switchToWindow', { id, switchingToActive }) // 兼容旧版：点击已打开的窗口图标仍然触发 open-page 事件，供外部处理（如切换标签页）
 }
 function onMenuOpen(item) { emit('open-page', item) }
 function openSearch() { emit('open-search') }
@@ -88,7 +92,7 @@ function showPreview(id, event) {
   const top = (taskbarRect?.top || rect.top) - th - 8
   previewStyle.value = { left: left + 'px', top: top + 'px', width: tw + 'px', height: th + 'px' }
   clearTimeout(previewTimer)
-  previewTimer = setTimeout(() => { previewVisible.value = true }, 300)
+  previewTimer = setTimeout(() => { previewVisible.value = true }, 800)
 }
 function hidePreview() {
   clearTimeout(previewTimer)
@@ -105,6 +109,7 @@ function closePreviewWindow() {
 function onLocaleChange(loc) { i18nStore.setLocale(loc) }
 function onUserCommand(cmd) {
   if (cmd === 'preferences') emit('open-preferences')
+  else if (cmd === 'profile') emit('open-profile')
   else if (cmd === 'logout') userStore.logout()
 }
 function getIconComponent(n) { return n ? Icons[n] || null : null }
@@ -120,7 +125,7 @@ function getIconComponent(n) { return n ? Icons[n] || null : null }
   position: relative; z-index: 200; user-select: none; gap: 8px;
 }
 .nexus-taskbar-left { display: flex; align-items: center; gap: 4px; }
-.nexus-taskbar-center { flex: 1; display: flex; align-items: center; gap: var(--nexus-taskbar-item-gap); justify-content: center; overflow: hidden; }
+.nexus-taskbar-center {  flex: 1; display: flex; align-items: center; gap: var(--nexus-taskbar-item-gap); justify-content: center; overflow: hidden; }
 .nexus-taskbar-right { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
 .nexus-taskbar-btn {
   display: flex; align-items: center; justify-content: center;
@@ -145,6 +150,7 @@ function getIconComponent(n) { return n ? Icons[n] || null : null }
   position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
   width: 20px; height: 3px; border-radius: 2px; background: var(--nexus-primary-color);
 }
+
 .nexus-taskbar-tray-btn { width: 32px; height: 32px; }
 .nexus-taskbar-clock { display: flex; flex-direction: column; align-items: center; line-height: 1.15; padding: 0 6px; cursor: default; }
 .nexus-taskbar-clock-time { font-size: 11px; font-weight: 600; color: var(--nexus-text-color); }

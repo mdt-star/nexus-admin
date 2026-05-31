@@ -67,7 +67,7 @@
             :class="{ 'nexus-tab-active': tab.id === windowStore.activeId }" @click="onTabClick(tab.id)"
             @contextmenu.prevent.stop="openTabContextMenu($event, tab)">
             <span class="nexus-tab-label">{{ tab.title }}</span>
-            <el-icon class="nexus-tab-close" size="12" @click.stop="windowStore.close(tab.id)">
+            <el-icon class="nexus-tab-close" size="12" @click.stop="onTabClickClose(tab.id); ">
               <Close />
             </el-icon>
           </div>
@@ -122,7 +122,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useAppStore } from '../stores/app'
 import { useWindowStore } from '../stores/windows'
 import { useThemeStore } from '../stores/theme'
@@ -164,12 +164,33 @@ function onStartMenuOpenPage(item) {
   windowStore.open({ id: item.id, title: item.title, icon: item.icon, component: item.component, path: item.path })
 }
 
-// ==================== Tab 点击切换（支持同 Tab 取消激活） ====================
+// ==================== Tab 点击（侧边栏模式：仅激活，同 Tab 保持状态） ====================
 function onTabClick(id) {
-  if (id === windowStore.activeId) {
-    windowStore.deactivate()
-  } else {
+  if (id !== windowStore.activeId) {
     windowStore.activate(id)
+  } 
+}
+
+function onTabClickClose(id) {
+
+  if (id === windowStore.activeId) {
+    
+    const index = windowStore.items.findIndex(item => item.id === id)
+    const items = [...windowStore.items] // 获取当前 Tab 列表
+    items.splice(index, 1) // 模拟关闭当前 Tab 后的状态
+
+    if (index !== -1 && items.length > 0) {
+      windowStore.activate(items[Math.min(index, items.length - 1)].id)
+    }
+  }
+
+  windowStore.close(id)
+}
+
+// 当没有任何 Tab 处于激活状态时，默认自动激活第一个 Tab
+function ensureActiveTab() {
+  if (!windowStore.activeId && windowStore.items.length > 0) {
+    windowStore.activate(windowStore.items[0].id)
   }
 }
 
@@ -220,8 +241,17 @@ function closeRightTabs() {
 function handleLocaleChange(locale) { i18nStore.setLocale(locale) }
 function handleUserCommand(cmd) {
   if (cmd === 'preferences') preferencesRef.value?.open()
+  else if (cmd === 'profile') {
+    windowStore.open({ id: 'system-profile', title: '个人信息', icon: 'InfoFilled', component: 'system-config' })
+  }
   else if (cmd === 'logout') userStore.logout()
 }
+
+// ==================== Tab 自动激活 ====================
+// 当 Tab 列表变化且无激活 Tab 时，自动激活第一个 Tab
+watch(() => windowStore.items.length, () => {
+  ensureActiveTab()
+}, { immediate: true })
 
 // ==================== 生命周期 ====================
 onMounted(() => {
@@ -231,6 +261,7 @@ onMounted(() => {
     new MutationObserver(updateScrollState).observe(el, { childList: true, subtree: true })
     updateScrollState()
   }
+  ensureActiveTab()
 })
 
 // ==================== 工具函数 ====================
@@ -569,5 +600,12 @@ const homePage = computed(() => {
   height: 1px;
   background-color: var(--nexus-border-color);
   margin: 4px 8px;
+}
+
+/* ===== 暗黑主题头部修复 ===== */
+/* 使用全局样式而非 scoped 内的 [data-theme] 选择器，确保能匹配到 html.dark */
+/* 当未设置自定义 headerColor 时，暗色主题使用 --nexus-bg-color-light 变量值 */
+html.dark .nexus-header:not([style*="background"]) {
+  background-color: var(--nexus-bg-color-light) !important;
 }
 </style>

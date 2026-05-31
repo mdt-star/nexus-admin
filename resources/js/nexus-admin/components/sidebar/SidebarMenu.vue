@@ -57,7 +57,7 @@
           </el-menu-item>
         </template>
       </el-menu>
-      <StartMenu @open-page="(item) => $emit('open-page', item)">
+      <StartMenu placement="right-start" @open-page="(item) => $emit('open-page', item)">
         <template #reference>
           <div class="nexus-start-btn-wrapper">
             <el-button class="nexus-start-btn">

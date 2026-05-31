@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :model-value="visible" :title="isNew ? t('itemEditor.addItem') : t('itemEditor.editItem')" width="390px" 
+  <el-dialog :model-value="visible" :title="editorTitle" width="390px" 
     :draggable="true" append-to-body @close="close" @open="onOpen">
     <el-form :model="form">
       <el-form-item :label="t('itemEditor.title')">
@@ -74,10 +74,12 @@
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18nStore } from '../../stores/i18n'
+import { useDisktopStore } from '../../stores/disktop'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { Search } from '@element-plus/icons-vue'
 
 const { t } = useI18nStore()
+const desktopStore = useDisktopStore()
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -91,6 +93,13 @@ const emit = defineEmits(['close', 'save'])
 const form = reactive({
   title: '', icon: '', type: 'menu', component: '', path: '', custom: {}
 })
+
+// 用于在右键新建时暂存父级 ID
+const editorTitle = computed(() => {
+  const parentTitle = desktopStore.items.find(i => i.id === props.item?.parent_id)?.title || ''
+  if (props.isNew)  return parentTitle ? t('itemEditor.addItemIn', { location: parentTitle }) : t('itemEditor.addItem')
+  return t('itemEditor.editItem')
+}) // 监听 item 变化以更新表单数据
 
 // 图标选择器
 const iconPopoverVisible = ref(false)

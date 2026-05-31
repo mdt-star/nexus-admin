@@ -223,6 +223,7 @@ const cn = {
   },
   itemEditor: {
     addItem: '添加项',
+    addItemIn: '在 {location} 中添加项',
     editItem: '编辑项',
     title: '标题',
     titlePlaceholder: '输入标题',
@@ -448,6 +449,7 @@ const en = {
     title: 'Start Menu',
     dragHint: 'Drag menus to desktop or sidebar',
     newProject: 'New Project',
+    newProjectIn: 'New Project in {location}',
     unnamed: 'Untitled',
     copy: 'Copy',
     pinToShortcuts: 'Pin to shortcuts'

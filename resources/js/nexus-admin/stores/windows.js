@@ -116,15 +116,6 @@ export const useWindowStore = defineStore('nexus-windows', () => {
     await hookManager.emit('window:close', item)
 
     items.value.splice(index, 1)
-
-    // 如果关闭的是当前激活的，切换到上一个
-    if (activeId.value === id) {
-      if (items.value.length > 0) {
-        activeId.value = items.value[Math.min(index, items.value.length - 1)].id
-      } else {
-        activeId.value = null
-      }
-    }
   }
 
   /**

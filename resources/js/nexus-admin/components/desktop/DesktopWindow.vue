@@ -43,12 +43,15 @@ const props = defineProps({
   win: { type: Object, required: true },
   isActive: { type: Boolean, default: false },
   rect: { type: Object, default: () => ({ left: 0, top: 0, width: 600, height: 400 }) },
-  zIndex: { type: Number, default: 10 }
+  zIndex: { type: Number, default: 10 },
+  initialMinimized: { type: Boolean, default: false }
 })
+
 const emit = defineEmits(['activate', 'minimize', 'maximize', 'close'])
 
 const windowStore = useWindowStore()
-const minimized = ref(false)
+const minimized = ref(props.initialMinimized)
+
 const maximized = ref(false)
 const isDragging = ref(false)
 const elRef = ref(null)
@@ -70,7 +73,6 @@ function onActivate() { emit('activate', props.win.id) }
 
 function onMinimize() {
   minimized.value = true
-  // 取消激活，同步隐藏任务栏指示器/Tab 底部横线
   windowStore.deactivate()
   emit('minimize', props.win.id)
 }
