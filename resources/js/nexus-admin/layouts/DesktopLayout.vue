@@ -211,6 +211,11 @@ function onOpenProfile() {
 function onActivateWindow(id) { ws.activate(id) }
 function onDragOver(e) { e.dataTransfer.dropEffect = 'copy' }
 async function onDrop(e) {
+  // 统一处理坐标吸附：计算鼠标位置对应 custom 坐标并吸附到网格
+  function snapDropCoords(cx, cy) {
+    const rawX = Math.max(0, cx - 40), rawY = Math.max(0, cy - 45)
+    return snapToGrid.value ? snapToNearestGrid(rawX, rawY) : { x: rawX, y: rawY }
+  }
   // 处理从文件夹拖出的图标原生拖拽
   const folderDrop = window.__folderDropData
   window.__folderDropData = null
@@ -220,12 +225,13 @@ async function onDrop(e) {
       existing.parent_id = null
       const dropX = typeof folderDrop._dropX === 'number' ? folderDrop._dropX : e.clientX
       const dropY = typeof folderDrop._dropY === 'number' ? folderDrop._dropY : e.clientY
-      await ds.updateItem(folderDrop.id, { parent_id: null, custom: { x: Math.max(0, dropX - 40), y: Math.max(0, dropY - 45) } })
+      const c = snapDropCoords(dropX, dropY)
+      await ds.updateItem(folderDrop.id, { parent_id: null, custom: c })
       currentFolder.value = null
     }
     return
   }
-  const d = e.dataTransfer.getData('application/json'); if (!d) return; try { const item = JSON.parse(d), el = document.elementFromPoint(e.clientX, e.clientY), folder = el?.closest('[data-folder-id]'), nextSort = ds.rootItems.reduce((max, i) => Math.max(max, i.sort || 0), 0) + 1; const newItem = await ds.addItem({ title: item.title, icon: item.icon, component: item.component, path: item.path, type: item.type || 'menu', parent_id: folder ? Number(folder.dataset.folderId) || null : null, custom: { x: Math.max(0, e.clientX - 40), y: Math.max(0, e.clientY - 45) }, sort: nextSort, _copySuffix: ` ${t('startMenu.copy')}` }); if (item.children?.length && newItem) { await Promise.all(item.children.map((c, i) => ds.addItem({ title: c.title, icon: c.icon, component: c.component, path: c.path, type: c.type || 'menu', parent_id: newItem.id, sort: i, _skipDedup: true }))) } } catch (ex) { console.warn('drop fail', ex) }
+  const d = e.dataTransfer.getData('application/json'); if (!d) return; try { const item = JSON.parse(d), el = document.elementFromPoint(e.clientX, e.clientY), folder = el?.closest('[data-folder-id]'), nextSort = ds.rootItems.reduce((max, i) => Math.max(max, i.sort || 0), 0) + 1, c = snapDropCoords(e.clientX, e.clientY); const newItem = await ds.addItem({ title: item.title, icon: item.icon, component: item.component, path: item.path, type: item.type || 'menu', parent_id: folder ? Number(folder.dataset.folderId) || null : null, custom: c, sort: nextSort, _copySuffix: ` ${t('startMenu.copy')}` }); if (item.children?.length && newItem) { await Promise.all(item.children.map((c, i) => ds.addItem({ title: c.title, icon: c.icon, component: c.component, path: c.path, type: c.type || 'menu', parent_id: newItem.id, sort: i, _skipDedup: true }))) } } catch (ex) { console.warn('drop fail', ex) }
 }
 function onDesktopContext(e) {
   // 桌面右键 → 显示新建文件夹菜单
@@ -283,8 +289,13 @@ async function onEditorSave(data) {
     _pendingParentId = null  // 使用后立即清除
     const maxSort = ds.items.reduce((max, i) => Math.max(max, i.sort || 0), 0)
     const itemData = { ...data, parent_id: parentId, _skipDedup: true, sort: maxSort + 1 }
-    if (!snapToGrid.value && ctxX != null && ctxY != null) {
-      itemData.custom = { x: ctxX, y: ctxY }
+    if (ctxX != null && ctxY != null) {
+      if (snapToGrid.value) {
+        const s = snapToNearestGrid(ctxX, ctxY)
+        itemData.custom = { x: s.x, y: s.y }
+      } else {
+        itemData.custom = { x: ctxX, y: ctxY }
+      }
     }
     await ds.addItem(itemData)
     // 新建后刷新当前文件夹视图（如果当前打开的是目标父级文件夹）
@@ -298,13 +309,15 @@ async function onEditorSave(data) {
 }
 // 桌面图标自由拖拽
 const iconsRef = ref(null)
-const snapToGrid = ref(false) // 默认关闭紧贴网格，拖拽后保持自由位置
+const snapToGrid = ref(true) // 默认开启紧贴网格，释放时自动吸附到最近网格坐标
 const lastDragItem = ref(null) // 正在拖拽或最近拖拽的图标，保持较高层级
 const dragOverFolder = ref(null) // 悬停500ms后允许放入的文件夹 id
 let folderHoverTimer = null // 文件夹悬停计时器
 let folderHoverId = null    // 正在计时的文件夹 id
 const iconPos = {}
 const ICON_W = 80, ICON_H = 90, GRID_GAP = 16, GRID_PAD = 20, COLS = 1
+// 吸附到最近网格坐标：根据网格间距计算最近的网格交点
+function snapToNearestGrid(x, y) { const col = Math.round((x - GRID_PAD) / (ICON_W + GRID_GAP)), row = Math.round((y - GRID_PAD) / (ICON_H + GRID_GAP)); return { x: GRID_PAD + Math.max(0, col) * (ICON_W + GRID_GAP), y: GRID_PAD + Math.max(0, row) * (ICON_H + GRID_GAP) } }
 let syncTimer = null // 防抖同步定时器
 let syncQueue = {}   // 待同步队列 { [id]: data }，相同 id 只保留最后一条
 // 双击检测：记录上一次点击的时间与图标 id，300ms 内同一图标两次点击视为双击打开
@@ -312,7 +325,8 @@ let lastClickInfo = { time: 0, itemId: null }
 
 function getItemBasePos(item) {
   const c = item.custom || {}
-  if (c.x != null && c.y != null && !snapToGrid.value) return { x: c.x, y: c.y }
+  // 优先使用自定义坐标（已吸附或自由拖拽的保存位置），无坐标时回退到网格排列
+  if (c.x != null && c.y != null) return { x: c.x, y: c.y }
   const idx = ds.rootItems.findIndex(i => i.id === item.id)
   // 竖向排列：纵向自上而下排满容器可视高度后，流转至下一列
   const container = iconsRef.value
@@ -325,7 +339,8 @@ function getItemBasePos(item) {
 
 function iconStyle(item) {
   const p = getItemBasePos(item)
-  return { position: 'absolute', left: p.x + 'px', top: p.y + 'px', zIndex: lastDragItem.value === item.id ? 2 : 1 }
+  // 拖拽中的图标禁用过渡动画避免卡顿，释放后通过 left/top 变化触发平滑吸附动效
+  return { position: "absolute", left: p.x + "px", top: p.y + "px", zIndex: lastDragItem.value === item.id ? 998 : 1, transition: lastDragItem.value === item.id ? "none" : "left 0.25s ease-out, top 0.25s ease-out" }
 }
 
 // 从文件夹拖出图标（使用原生 HTML5 拖拽，FolderView 中的 dragstart 负责图像）
@@ -426,7 +441,9 @@ async function onIconDragUp(e) {
       }
     }
   }
-  const x = Math.max(0, off.baseX + dx), y = Math.max(0, off.baseY + dy)
+  let x = Math.max(0, off.baseX + dx), y = Math.max(0, off.baseY + dy), s
+  // 紧贴网格模式：释放时自动吸附到最近网格坐标
+  if (snapToGrid.value) { s = snapToNearestGrid(x, y); x = s.x; y = s.y }
   const item = ds.items.find(i => i.id === id)
   if (!item) return
   // 检测是否拖到已激活的文件夹上
@@ -435,6 +452,15 @@ async function onIconDragUp(e) {
     scheduleSync(id, { parent_id: dropFolderId })
     return
   }
+  // 紧贴网格模式：释放位置已有其他图标时自动交换位置
+  if (snapToGrid.value) {
+    const other = ds.rootItems.find(i => i.id !== id && getItemBasePos(i).x === x && getItemBasePos(i).y === y)
+    if (other) {
+      const origX = off.baseX, origY = off.baseY
+      other.custom = { ...(other.custom || {}), x: origX, y: origY }
+      ds.updateItem(other.id, { custom: other.custom })
+    }
+  }
   // 如果是从文件夹拖出来的，设置 parent_id=null 移出文件夹
   if (item.parent_id) {
     item.parent_id = null
@@ -442,7 +468,6 @@ async function onIconDragUp(e) {
   } else {
     const newCustom = { ...(item.custom || {}), x, y }
     item.custom = newCustom
-    snapToGrid.value = false
     lastDragItem.value = id
     ds.updateItem(id, { custom: newCustom })
   }
@@ -475,7 +500,7 @@ async function arrangeIcons() {
   snapToGrid.value = true
 }
 
-function toggleSnap() { ctxVisible.value = false; snapToGrid.value = !snapToGrid.value; if (snapToGrid.value) arrangeIcons() }
+function toggleSnap() { ctxVisible.value = false; snapToGrid.value = !snapToGrid.value }
 const homePage = computed(() => (window.__NEXUS_ADMIN_PAGES__ || {})['nexus-home'] || null)
 
 // ==================== 框选 ====================

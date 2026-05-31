@@ -115,3 +115,15 @@
   - [x] docs/README.md：新增开始菜单拖拽功能说明文档
   - [x] 构建通过，全部 123 测试用例通过，零回归
 
+- [x] 桌面网格图标吸附功能开发（DesktopLayout.vue）
+  - [x] `snapToGrid` 默认值改为 `true`（默认开启紧贴网格）
+  - [x] 新增 `snapToNearestGrid()` 网格吸附计算函数
+  - [x] 移除硬编码 `COLS=1`，改为根据容器宽度动态计算列数
+  - [x] `iconStyle()` 添加 CSS `transition` 实现平滑吸附动画
+  - [x] `onIconDragUp()` 拖拽释放时自动吸附到最近网格坐标
+  - [x] `onDrop()` 开始菜单/文件夹拖入时应用吸附
+  - [x] `onEditorSave()` 新建文件夹时支持网格吸附
+  - [x] `toggleSnap()` 切换模式不自动排列图标，仅切换状态
+  - [x] 构建通过，全部 126 测试用例通过，零回归
+  - [x] Memory Bank 同步更新
+
