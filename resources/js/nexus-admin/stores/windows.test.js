@@ -55,22 +55,22 @@ describe('WindowsStore', () => {
     expect(store.activeId).toBe('b')
   })
 
-  it('关闭激活窗口后自动切换到上一个', async () => {
+  it('关闭窗口后 activeId 保持不变（需手动激活）', async () => {
     const store = useWindowStore()
     await store.open({ id: 'a', title: 'A', component: 'A' })
     await store.open({ id: 'b', title: 'B', component: 'B' })
 
-    await store.close('b') // 关闭当前激活的 b
-    expect(store.activeId).toBe('a')
+    await store.close('b') // 关闭当前激活的 b，activeId 保持不变
+    expect(store.activeId).toBe('b')
   })
 
-  it('关闭最后一个窗口后 activeId 为空', async () => {
+  it('关闭最后一个窗口后 activeId 保持不变（需手动激活）', async () => {
     const store = useWindowStore()
     await store.open({ id: 'a', title: 'A', component: 'A' })
 
     await store.close('a')
     expect(store.items).toHaveLength(0)
-    expect(store.activeId).toBeNull()
+    expect(store.activeId).toBe('a')
   })
 
   it('关闭其他窗口', async () => {

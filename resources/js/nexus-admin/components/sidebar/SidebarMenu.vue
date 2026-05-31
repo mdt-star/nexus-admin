@@ -126,7 +126,7 @@ const { t } = i18nStore
 
 // ==================== 计算属性 ====================
 const appName = computed(() => configStore.get('appName', 'Nexus Admin'))
-const hasHeaderColor = computed(() => !!configStore.get('headerColor', ''))
+const hasHeaderColor = computed(() => !!configStore.get('headerColor', '') && configStore.get('theme', 'light') === 'light')
 const headerStyle = computed(() => {
   const color = configStore.get('headerColor', '')
   return color ? { background: color, borderBottom: 'none' } : {}

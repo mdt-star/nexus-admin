@@ -3,7 +3,7 @@
     <SidebarMenu @open-page="onStartMenuOpenPage" />
 
     <div class="nexus-main-area">
-      <header class="nexus-header" :style="headerStyle">
+      <header class="nexus-header" :style="hasHeaderColor ? headerStyle : {}">
         <div class="nexus-header-left">
           <el-button :icon="appStore.sidebarCollapsed ? 'Expand' : 'Fold'" circle @click="appStore.toggleSidebar()" />
           <GlobalSearch />
@@ -149,7 +149,7 @@ const { t } = i18nStore
 // ==================== 计算属性 ====================
 const footerText = computed(() => configStore.get('footer', ''))
 const currentLocale = computed(() => i18nStore.locale)
-const hasHeaderColor = computed(() => !!configStore.get('headerColor', ''))
+const hasHeaderColor = computed(() => !!configStore.get('headerColor', '')  && configStore.get('theme', 'light') === 'light')
 const headerStyle = computed(() => {
   const color = configStore.get('headerColor', '')
   return color ? { background: color, borderBottom: 'none' } : {}
