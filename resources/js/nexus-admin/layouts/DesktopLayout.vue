@@ -54,7 +54,8 @@
         </Teleport>
       </main>
       <TaskBar @open-page="onMenuOpen" @open-search="searchVisible = true" @switchToWindow="onSwitchToWindow"
-        @open-preferences="onOpenPreferences" @open-home="homeVisible = true" @open-profile="onOpenProfile" />
+        @open-preferences="onOpenPreferences" @open-home="homeVisible = true" @open-profile="onOpenProfile"
+        @close="autoSwitchWindow" />
     </div>
     <PreferencesPanel ref="preferencesRef" />
     <div style="display:none">

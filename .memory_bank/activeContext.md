@@ -1,7 +1,7 @@
 # 当前活动上下文
 
 ## 当前工作
-桌面与侧边栏模式功能修复及优化（本次任务完成）。
+桌面端 TaskBar 右键上下文菜单同步（本次任务完成）。
 
 ## 改动内容
 
@@ -147,11 +147,20 @@
 - **DesktopLayout.vue**：移除未使用的 `activeWindow`、`Loading`/`Top`/`Bottom` 导入、`iconVer`、`dragOverId`
 - 清理后构建正常，零报错
 
+### 三、桌面端 TaskBar 右键上下文菜单同步
+
+#### TaskBar.vue
+- **【功能补齐】任务栏项右键菜单**：新增与侧边栏 Tab 完全同步的右键上下文菜单，包含「关闭」「关闭其他」「关闭右侧标签页」「关闭全部」四个功能项。
+- **【交互】右键触发**：`.nexus-taskbar-center`（空白区域）和 `.nexus-taskbar-item`（单个窗口项）均支持 `@contextmenu.prevent.stop`，空白区域右键时「关闭」「关闭其他」「关闭右侧」置灰禁用。
+- **【样式复用】**：直接复用 SidebarLayout.vue 全局定义的 `.nexus-context-menu`、`.nexus-context-item`、`.nexus-context-divider` 等样式类，零新增 CSS。
+- **【国际化】**：菜单文案全部使用现有 `t('tab.close')`、`t('tab.closeOthers')`、`t('tab.closeRight')`、`t('tab.closeAll')` i18n 键，中英文均已有对应翻译。
+- **【图标】**：使用全局注册的 Element Plus 图标组件（`<Close />`、`<CircleClose />`、`<DArrowRight />`），无需额外导入。
+- **【隔离原则】**: 仅改 TaskBar.vue，侧边栏模式（SidebarLayout.vue/SidebarMenu.vue）零改动。
+
 ## 当前状态
-- 14 个测试文件，126 个测试用例，全部通过
+- 15 个测试文件，162 个测试用例，全部通过
 - 0 unhandled errors
 - 构建成功，零报错
-- 文档已同步更新
 
 ## 新增改造：前端接口层统一（API BaseURL、JWT 鉴权、全局错误拦截）
 

@@ -1,8 +1,8 @@
 # 项目进度
 
 ## 总体状态
-- 测试通过率: 126/126 (100%)
-- 测试文件: 14/14 全部通过
+- 测试通过率: 162/162 (100%)
+- 测试文件: 15/15 全部通过
 - Unhandled errors: 0
 
 ## 已完成
@@ -149,4 +149,16 @@
   - [x] 构建通过，全部 162 测试用例通过，零回归
   - [x] Memory Bank 同步更新
   - [x] 文档同步更新
+- [x] 桌面端 TaskBar 右键上下文菜单同步
+  - [x] TaskBar.vue：任务栏项（`.nexus-taskbar-item`）添加 `@contextmenu.prevent.stop` 右键事件
+  - [x] TaskBar.vue：任务栏空白区域（`.nexus-taskbar-center`）添加右键事件（关闭/关闭其他/关闭右侧置灰）
+  - [x] Teleport 到 body 的上下文菜单模板（与 SidebarLayout 结构一致）
+  - [x] 右键菜单状态管理（taskbarCtxVisible/taskbarCtxItem/taskbarCtxStyle/taskbarCtxIsActive）
+  - [x] 关闭、关闭其他、关闭右侧、关闭全部四个功能函数
+  - [x] 复用全局 `.nexus-context-menu` 样式，零新增 CSS
+  - [x] 使用现有 `t('tab.xxx')` i18n 键，中英文均已有翻译
+  - [x] 使用全局注册的 Element Plus 图标组件
+  - [x] 仅改 TaskBar.vue，侧边栏模式零改动
+  - [x] 构建通过，全部 162 测试用例通过，零回归
+  - [x] Memory Bank 同步更新
 

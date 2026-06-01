@@ -6,10 +6,10 @@
         </template>
       </StartMenu>
     </div>
-    <div class="nexus-taskbar-center unselectable">
+    <div class="nexus-taskbar-center unselectable" @contextmenu.prevent.stop="openTaskbarContextMenu($event, null)">
       <el-tooltip content="搜索 (⌘K)" placement="top"><button class="nexus-taskbar-btn" @click="openSearch"><el-icon :size="18"><Search /></el-icon></button></el-tooltip>
       <div class="nexus-taskbar-divider" />
-      <div v-for="win in windowStore.items" :key="win.id" class="nexus-taskbar-item" :class="{ 'nexus-taskbar-item-active': win.id === windowStore.activeId }" @click="switchToWindow(win.id)" @mouseenter="showPreview(win.id, $event)" @mouseleave="hidePreview">
+      <div v-for="win in windowStore.items" :key="win.id" class="nexus-taskbar-item" :class="{ 'nexus-taskbar-item-active': win.id === windowStore.activeId }" @click="switchToWindow(win.id)" @mouseenter="showPreview(win.id, $event)" @mouseleave="hidePreview" @contextmenu.prevent.stop="openTaskbarContextMenu($event, win)">
         <el-icon :size="18" class="nexus-taskbar-item-icon"><component :is="getIconComponent(win.icon)" /></el-icon>
         <span class="nexus-taskbar-item-label">{{ win.title }}</span>
         <div v-if="win.id === windowStore.activeId" class="nexus-taskbar-item-indicator" />
@@ -27,6 +27,28 @@
         <div class="nexus-taskbar-preview-header"><el-icon v-if="previewWin?.icon" :size="14"><component :is="getIconComponent(previewWin.icon)" /></el-icon><span>{{ previewWin?.title }}</span><el-button class="nexus-taskbar-preview-close" :icon="Close" size="small" text @click.stop="closePreviewWindow" /></div>
         <div class="nexus-taskbar-preview-thumb"><el-icon :size="48" color="var(--nexus-text-color-placeholder)"><component :is="previewWin ? getIconComponent(previewWin.icon) : 'Monitor'" /></el-icon></div>
       </div></Teleport>
+    <!-- 任务栏项右键上下文菜单 -->
+    <Teleport to="body">
+      <div v-if="taskbarCtxVisible" class="nexus-context-menu" :style="taskbarCtxStyle" @click.stop>
+        <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !taskbarCtxIsActive }"
+          @click="taskbarCtxIsActive && closeCurrentTab()">
+          <el-icon><Close /></el-icon><span>{{ t('tab.close') }}</span>
+        </div>
+        <div class="nexus-context-divider" />
+        <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !taskbarCtxIsActive }"
+          @click="taskbarCtxIsActive && closeOtherTabs()">
+          <el-icon><CircleClose /></el-icon><span>{{ t('tab.closeOthers') }}</span>
+        </div>
+        <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': !taskbarCtxIsActive }"
+          @click="taskbarCtxIsActive && closeRightTabs()">
+          <el-icon><DArrowRight /></el-icon><span>{{ t('tab.closeRight') }}</span>
+        </div>
+        <div class="nexus-context-divider" />
+        <div class="nexus-context-item" @click="closeAllTabs">
+          <el-icon><Close /></el-icon><span>{{ t('tab.closeAll') }}</span>
+        </div>
+      </div>
+    </Teleport>
   </div></template>
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
@@ -40,7 +62,7 @@ import GlobeIcon from '../GlobeIcon.vue'
 import NotificationBell from '../common/NotificationBell.vue'
 import WindowsStartIcon from './WindowsStartIcon.vue'
 import StartMenu from './StartMenu.vue'
-const emit = defineEmits(['open-page', 'open-search', 'open-preferences', 'open-home', 'open-profile'])
+const emit = defineEmits(['open-page', 'open-search', 'open-preferences', 'open-home', 'open-profile', 'close'])
 const windowStore = useWindowStore()
 const themeStore = useThemeStore()
 const i18nStore = useI18nStore()
@@ -101,7 +123,7 @@ function hidePreview() {
 // 预览中关闭对应窗口/Tab（立即移除预览，不使用延时 hidePreview）
 function closePreviewWindow() {
   const id = previewWinId.value
-  if (id) windowStore.close(id)
+  if (id) { windowStore.close(id); emit('close', id) }
   clearTimeout(previewTimer)
   previewVisible.value = false
   previewKeep.value = false
@@ -113,6 +135,53 @@ function onUserCommand(cmd) {
   else if (cmd === 'logout') userStore.logout()
 }
 function getIconComponent(n) { return n ? Icons[n] || null : null }
+
+// ==================== 任务栏项右键上下文菜单 ====================
+const taskbarCtxVisible = ref(false)
+const taskbarCtxItem = ref(null)
+const taskbarCtxStyle = ref({})
+const taskbarCtxIsActive = ref(false)
+
+function openTaskbarContextMenu(event, win) {
+  taskbarCtxVisible.value = true
+  taskbarCtxItem.value = win
+  taskbarCtxIsActive.value = win !== null
+  // 预估菜单高度（~180px），TaskBar 在屏幕底部时向上弹出避免溢出
+  const estMenuH = 180
+  const estMenuW = 160
+  const top = event.clientY + estMenuH > window.innerHeight
+    ? event.clientY - estMenuH
+    : event.clientY
+  const left = event.clientX + estMenuW > window.innerWidth
+    ? event.clientX - estMenuW
+    : event.clientX
+  taskbarCtxStyle.value = { left: `${Math.max(4, left)}px`, top: `${Math.max(4, top)}px` }
+  setTimeout(() => document.addEventListener('click', closeTaskbarContext, { once: true }), 0)
+}
+function closeTaskbarContext() { taskbarCtxVisible.value = false }
+function closeCurrentTab() {
+  taskbarCtxVisible.value = false
+  const id = taskbarCtxItem.value?.id
+  if (!id) return
+  windowStore.close(id)
+  emit('close', id)
+}
+function closeAllTabs() { taskbarCtxVisible.value = false; windowStore.closeAll() }
+function closeOtherTabs() {
+  taskbarCtxVisible.value = false
+  const id = taskbarCtxItem.value?.id
+  if (id) windowStore.closeOthers(id)
+}
+function closeRightTabs() {
+  taskbarCtxVisible.value = false
+  const id = taskbarCtxItem.value?.id
+  if (!id) return
+  const items = windowStore.items
+  const idx = items.findIndex(t => t.id === id)
+  if (idx === -1) return
+  const toClose = items.slice(idx + 1).map(t => t.id)
+  for (let i = toClose.length - 1; i >= 0; i--) windowStore.close(toClose[i])
+}
 </script>
 
 <style scoped>
