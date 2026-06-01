@@ -1,7 +1,7 @@
 # 当前活动上下文
 
 ## 当前工作
-桌面端 TaskBar 右键上下文菜单同步（本次任务完成）。
+桌面模式多选协同拖拽功能完善与图标位置重算算法开发（本次任务完成）。
 
 ## 改动内容
 
@@ -109,6 +109,40 @@
   - 模板重构为双容器结构：`.nexus-home-main`（快捷菜单+服务器信息+PHP环境）和 `.nexus-home-side`（系统信息卡片）
   - CSS：侧边栏模式使用 `display: grid; grid-template-columns: 1fr 360px`；桌面模式 `.nexus-home-side { display: none }` 隐藏侧栏
   - 侧边栏模式下系统信息卡片 `position: sticky` 随滚动固定
+
+### 四、桌面模式多选协同拖拽与图标位置重算算法
+
+#### DesktopLayout.vue — 新增多选协同拖拽支持
+
+##### 新增数据结构
+- **`multiDragData` ref**：存储多选拖拽时所有选中图标的初始基准位置快照（`[{ id, baseX, baseY }]`），用于释放时基于各自起始位置计算独立目标坐标。
+
+##### 改动函数
+
+**`onIconMouseDown`（多选拖拽启动检测）**
+- 点击已在 `selectedIds` 中的图标时，遍历全部选中项记录 `getItemBasePos` 快照到 `multiDragData`
+- 点击未选中图标时，清除选中状态走单选拖拽逻辑
+- **隔离防线**：只有 `isMultiSelected && selectedIds.has(item.id)` 才进入多选分支
+
+**`onIconDragMove`（多选同步移动）**
+- 主拖拽图标用 `_dragOffset` 保持原有 transform 逻辑
+- 其他选中图标循环查找 `[data-item-id]` DOM 元素，同步应用相同 `translate(dx,dy) scale(0.95)` 变换
+
+**`onIconDragUp`（多选落点位置重算 — 核心算法）**
+- **多选分支**（`multiDragData.length > 1`）：
+  1. 清除所有选中图标的 transform
+  2. 遍历 `multiDragData`，每个图标独立计算：`tx = baseX + dx`，`ty = baseY + dy`
+  3. **网格吸附**：每个图标独立调用 `snapToNearestGrid()` 吸附到最近网格交点
+  4. **位置冲突检测**：检查目标位置是否被非选中图标占据，自动交换位置
+  5. 每个图标各自调用 `ds.updateItem(id, { custom: { x: tx, y: ty } })` 保存
+  6. 拖拽完成后清理 `selectedIds` 和 `multiDragData`
+- **单选分支**：保持原有完整逻辑不变，不受多选分支任何影响
+
+##### 安全与隔离保障
+- 多选仅在 `selectedIds.size > 1` 且点击图标在选中列表内时触发
+- 单选拖拽逻辑完整保留，两个分支在 `onIconDragUp` 中泾渭分明
+- `FolderView.vue`、`SidebarLayout.vue`、`ItemEditor.vue`、`TaskBar.vue` 零改动
+- 所有 162 测试用例通过，零回归
 
 ### 桌面端交互优化
 - **FolderView.vue**：文件夹视图禁止文本选中（`user-select: none`）；图标必须双击打开；拖拽标记 `isDraggingFromFolder` 防止拖拽过程中意外关闭或打开；新增 `onPopupMouseDown`/`onGridMouseDown` 阻止网格区域文本选中

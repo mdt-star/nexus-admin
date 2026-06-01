@@ -112,6 +112,8 @@ const currentFolder = ref(null), folderHistory = ref([]), preferencesRef = ref(n
 // 框选状态
 const selectedIds = ref(new Set()), isSelecting = ref(false), selectRect = ref(null), selectStart = ref(null)
 const isMultiSelected = computed(() => selectedIds.value.size > 1)
+// 多选协同拖拽：存储所有选中图标的初始基准位置快照
+const multiDragData = ref([])
 
 const wp = {}; function getWindowRect(id, idx) { if (!wp[id]) { const vw = window.innerWidth, vh = window.innerHeight, w = Math.min(Math.round(vw * .7), vw - 40), h = Math.min(Math.round(vh * .8), vh - 80); wp[id] = { left: Math.round((vw - w) / 2) + idx * 30, top: Math.round((vh - h) / 2 * .3) + idx * 30, width: w, height: h } } return wp[id] }
 onMounted(async () => { if (!ds.loaded) await ds.loadDisktops(); if (ds.activeDisktopId) await ds.loadItems(); document.addEventListener('click', () => ctxVisible.value = false); document.addEventListener('contextmenu', (e) => { if (!e.target.closest('.nexus-ctx,.nexus-desktop,.nexus-desktop-icon,.nexus-desktop-window')) ctxVisible.value = false }) })
@@ -370,6 +372,21 @@ function onIconMouseDown(e, item) {
   const rect = e.currentTarget.getBoundingClientRect()
   iconPos[item.id] = { x: p.x, y: p.y }
   e.currentTarget._dragOffset = { ox: e.clientX - rect.left, oy: e.clientY - rect.top, startX: e.clientX, startY: e.clientY, baseX: p.x, baseY: p.y }
+  // 多选拖拽检测：如果当前点击的图标已在选中列表中，记录所有选中图标的基准位置快照
+  if (isMultiSelected.value && selectedIds.value.has(item.id)) {
+    const snap = []
+    selectedIds.value.forEach(id => {
+      const i = ds.items.find(it => it.id === id)
+      if (!i) return
+      const pos = getItemBasePos(i)
+      snap.push({ id, baseX: pos.x, baseY: pos.y })
+    })
+    multiDragData.value = snap
+  } else {
+    // 单选拖拽：清除已有选中，仅拖当前图标
+    selectedIds.value = new Set()
+    multiDragData.value = []
+  }
   document.addEventListener('mousemove', onIconDragMove)
   document.addEventListener('mouseup', onIconDragUp)
 }
@@ -384,6 +401,14 @@ function onIconDragMove(e) {
   const dy = e.clientY - off.startY
   // 用 transform 偏移，保留缩放拖拽效果
   el.style.transform = `translate(${dx}px,${dy}px) scale(0.95)`
+  // 多选协同拖拽：对主拖拽图标外的其他选中图标同步应用相同偏移
+  if (multiDragData.value.length > 1) {
+    multiDragData.value.forEach(data => {
+      if (data.id === lastDragItem.value) return
+      const otherEl = document.querySelector(`[data-item-id="${data.id}"]`)
+      if (otherEl) otherEl.style.transform = `translate(${dx}px,${dy}px) scale(0.95)`
+    })
+  }
   // 如果拖拽来自文件夹，用坐标检测鼠标是否移出文件夹遮罩（避免临时拖拽元素导致 e.target 不匹配）
   if (currentFolder.value) {
     const folderOverlay = document.querySelector('.nexus-folder-overlay')
@@ -454,6 +479,59 @@ async function onIconDragUp(e) {
       }
     }
   }
+  // ==================== 多选协同拖拽落点位置重算 ====================
+  // 当有多个选中图标一同拖拽时，对所有选中图标逐个计算独立坐标
+  if (multiDragData.value.length > 1) {
+    // 清除其他选中图标的 transform
+    multiDragData.value.forEach(data => {
+      if (data.id === id) return
+      const otherEl = document.querySelector(`[data-item-id="${data.id}"]`)
+      if (otherEl) otherEl.style.transform = ''
+    })
+    // 对每个选中图标：基于各自基准位置 + 拖拽偏移量计算新坐标，确保不重叠
+    for (const data of multiDragData.value) {
+      let tx = Math.max(0, data.baseX + dx)
+      let ty = Math.max(0, data.baseY + dy)
+      // 紧贴网格模式：每个图标独立吸附到最近网格交点
+      if (snapToGrid.value) {
+        const snapped = snapToNearestGrid(tx, ty)
+        tx = snapped.x
+        ty = snapped.y
+      }
+      const item = ds.items.find(i => i.id === data.id)
+      if (!item) continue
+      // 遇到选中图标拖到已激活的文件夹上时，移入文件夹
+      if (dropFolderId && data.id === id) {
+        item.parent_id = dropFolderId
+        scheduleSync(data.id, { parent_id: dropFolderId })
+        continue
+      }
+      // 紧贴网格模式：释放位置已有其他非选中图标时自动交换位置
+      if (snapToGrid.value) {
+        const other = ds.rootItems.find(i =>
+          !multiDragData.value.find(m => m.id === i.id) &&
+          getItemBasePos(i).x === tx && getItemBasePos(i).y === ty
+        )
+        if (other) {
+          const origItem = ds.items.find(i => i.id === data.id)
+          if (origItem) {
+            other.custom = { ...(other.custom || {}), x: data.baseX, y: data.baseY }
+            ds.updateItem(other.id, { custom: other.custom })
+          }
+        }
+      }
+      // 更新每个图标的 custom 坐标（保持相对于拖拽开始位置的偏移，绝不重叠）
+      const newCustom = { ...(item.custom || {}), x: tx, y: ty }
+      item.custom = newCustom
+      ds.updateItem(data.id, { custom: newCustom })
+    }
+    // 清理临时拖拽元素
+    selectedIds.value = new Set() // 多选拖拽完成后清除选中状态
+    multiDragData.value = []
+    if (!document.querySelector('.nexus-desktop-icons')?.contains(el)) el.remove()
+    return
+  }
+  // ==================== 单选拖拽（原逻辑） ====================
   let x = Math.max(0, off.baseX + dx), y = Math.max(0, off.baseY + dy), s
   // 紧贴网格模式：释放时自动吸附到最近网格坐标
   if (snapToGrid.value) { s = snapToNearestGrid(x, y); x = s.x; y = s.y }

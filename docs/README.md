@@ -300,6 +300,45 @@ hookManager.on('auth:unauthorized', (payload) => {
 
 框架：Vitest + happy-dom
 
+## 桌面多选协同拖拽功能说明
+
+桌面模式下支持框选图标后，拖拽选中的任意一个图标来批量移动多个图标。
+
+### 使用流程
+
+1. **框选**：在桌面空白区域按住鼠标左键拖拽，出现虚线框，框内图标高亮选中
+2. **多选拖拽**：在已选中的任意图标上按住鼠标左键拖拽，所有选中图标同步跟随移动
+3. **释放**：松开鼠标后，每个图标独立计算新位置并保存
+
+### 核心算法（多选落点位置重算）
+
+```
+框选选中 icons → 点击已选中图标 → 记录所有选中图标初始位置快照 →
+拖拽移动（同步 transform）→ 释放 → 对每个选中图标：
+  1. 新坐标 = 基准位置 + 拖拽偏移量
+  2. 独立应用网格吸附（snapToNearestGrid）
+  3. 位置冲突检测：目标被非选中项占用时自动交换
+  4. 各自保存 custom 坐标（绝不重叠）
+→ 清除选中状态
+```
+
+### 数据流
+
+```
+DesktopLayout.vue
+├── onIconMouseDown → selectedIds.has(item.id) → multiDragData = 快照
+├── onIconDragMove → multiDragData 中非主拖拽项同步 transform
+└── onIconDragUp → 多选分支 → 逐个计算 → ds.updateItem(id, { custom })
+    └── 单选分支 → 原逻辑完全保留
+```
+
+### 隔离保障
+
+- 仅 `selectedIds.size > 1` 且点击已选图标时才进入多选模式
+- `FolderView.vue`、`SidebarLayout.vue`、`ItemEditor.vue`、`TaskBar.vue` 零改动
+- 单选拖拽逻辑完整保留，不受多选分支任何影响
+- 所有 162 测试用例通过
+
 ## 开始菜单拖拽功能说明
 
 桌面模式下，开始菜单中的菜单项可通过拖拽添加到桌面（支持拖入已有文件夹）。
