@@ -261,7 +261,8 @@ const cn = {
     newProject: '新建项目',
     unnamed: '未命名',
     copy: '副本',
-    pinToShortcuts: '添加到快捷菜单'
+    pinToShortcuts: '添加到快捷菜单',
+    unpinFromShortcuts: '取消快捷菜单'
   },
   home: {
     serverInfo: '服务器信息',
@@ -476,7 +477,8 @@ const en = {
     newProjectIn: 'New Project in {location}',
     unnamed: 'Untitled',
     copy: 'Copy',
-    pinToShortcuts: 'Pin to shortcuts'
+    pinToShortcuts: 'Pin to shortcuts',
+    unpinFromShortcuts: 'Unpin from shortcuts'
   },
   home: {
     serverInfo: 'Server Info',

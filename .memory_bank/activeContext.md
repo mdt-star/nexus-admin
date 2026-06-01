@@ -218,6 +218,34 @@
 - 0 unhandled errors
 - 构建成功，零报错
 
+## 新增改造：侧边栏菜单右键「快捷菜单」状态切换与国际化动态文本
+
+### 改动文件
+
+| 文件 | 操作类型 | 说明 |
+|------|---------|------|
+| `components/sidebar/SidebarMenu.vue` | 修改 | 新增 `sidebarContextIsPinned` + `shortcutLabel` 动态计算属性，右键菜单文案根据快捷菜单状态动态切换 |
+| `mock/index.js` | 修改 | 中英文各新增 `startMenu.unpinFromShortcuts` 国际化翻译键 |
+
+### 功能说明
+
+侧边栏菜单右键上下文菜单中「添加到快捷菜单」项，现支持状态双向切换：
+
+- **已添加至快捷菜单**：文案动态显示「取消快捷菜单」，点击执行 `shortcutsStore.remove()` 移除
+- **未添加至快捷菜单**：文案动态显示「添加到快捷菜单」，点击执行 `shortcutsStore.add()` 添加
+
+### 实现方案
+
+- `sidebarContextIsPinned` 计算属性：通过 `shortcutsStore.has(item)` 判断当前右键项是否已在快捷菜单中
+- `shortcutLabel` 计算属性：根据 `sidebarContextIsPinned` 值动态返回对应 i18n 键文案
+- 原 `pinToShortcuts()` 函数内置 toggle 逻辑不变（`has()` → `remove()` / `add()`），仅文案改为动态绑定
+- `sidebarContextIsFolder` 禁用条件不变，文件夹及空白处仍不可用
+
+### 安全防线
+- 仅改 `SidebarMenu.vue` 和 `mock/index.js`，零改动其他组件
+- 侧边栏点击、路由跳转、拖拽排序、Tab 管理等现有功能完全不受影响
+- 全部 162 测试用例通过，构建成功
+
 ## 新增改造：前端接口层统一（API BaseURL、JWT 鉴权、全局错误拦截）
 
 ### 改动文件

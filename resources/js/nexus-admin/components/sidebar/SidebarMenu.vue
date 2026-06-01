@@ -48,7 +48,7 @@
         <div class="nexus-context-divider" />
         <div class="nexus-context-item" :class="{ 'nexus-context-item-disabled': sidebarContextIsFolder }"
           @click="!sidebarContextIsFolder && pinToShortcuts()">
-          <el-icon><Star /></el-icon><span>{{ t('startMenu.pinToShortcuts') }}</span>
+          <el-icon :style="pinnedIconStyle"><component :is="pinnedIconName" /></el-icon><span>{{ shortcutLabel }}</span>
         </div>
         <div class="nexus-context-divider" />
         <div class="nexus-context-item" @click="addSidebarItem">
@@ -476,6 +476,21 @@ const sidebarContextIsFolder = computed(() => {
   const item = sidebarContextItem.value
   return !item || (item.children && item.children.length > 0) || item.type === 'folder'
 })
+// 判断当前右键项是否已在快捷菜单中
+const sidebarContextIsPinned = computed(() => {
+  const item = sidebarContextItem.value
+  return item ? shortcutsStore.has(item) : false
+})
+// 快捷菜单按钮文案：根据是否已添加快捷菜单动态切换
+const shortcutLabel = computed(() => {
+  if (sidebarContextIsPinned.value) {
+    return t('startMenu.unpinFromShortcuts')
+  }
+  return t('startMenu.pinToShortcuts')
+})
+// 快捷菜单图标：已选中时实心星+主色，未选中时空心星+默认灰色
+const pinnedIconName = computed(() => sidebarContextIsPinned.value ? 'StarFilled' : 'Star')
+const pinnedIconStyle = computed(() => sidebarContextIsPinned.value ? { color: 'var(--nexus-primary-color)' } : {})
 // 新增项按钮文案：在文件夹上显示"在此新增项"，空白处显示"新增项"
 const addItemLabel = computed(() => {
   const item = sidebarContextItem.value
