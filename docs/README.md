@@ -159,6 +159,112 @@ vendor/my-package/
 | `--nexus-desktop-grid-color` | 桌面点阵网格色 | rgba(255,255,255,0.20) | rgba(255,255,255,0.18) |
 | `--nexus-desktop-glow` | 桌面顶部光泽色 | rgba(255,255,255,0.18) | rgba(255,255,255,0.16) |
 
+## API 通信层
+
+基于 Axios 统一封装，提供 BaseURL 配置、JWT 自动鉴权、全局错误拦截与登录态自动管理。
+
+### BaseURL 配置
+
+BaseURL 通过 `ConfigStore.global.apiBaseURL` 字段获取，由后端全局配置提供，按以下优先级：
+
+1. `setApiBaseURL(url)` — 应用初始化时由 `ConfigStore` 在全局配置加载后调用（来源：后端 API `/api/config` 返回的 `global.apiBaseURL`）
+2. `import.meta.env.VITE_API_BASE_URL` — 环境变量（`.env` 文件，用于开发/构建时覆盖）
+3. 空字符串 — 同源请求（默认）
+
+**Laravel 配置**（`config/nexus-admin.php`）：
+
+```php
+// API 基础路径（前端 axios 请求的 BaseURL）
+'api_base_url' => env('NEXUS_ADMIN_API_BASE_URL', ''),
+```
+
+**.env 文件配置**：
+
+```env
+# 前后端分离时设置后端 API 地址
+NEXUS_ADMIN_API_BASE_URL=https://api.example.com
+```
+
+**全局配置 API 响应格式**（`/api/config` 返回的 `global` 对象中需包含）：
+
+```json
+{
+  "global": {
+    "apiBaseURL": "https://api.example.com",
+    "loginPath": "/admin/login"
+  }
+}
+```
+
+### JWT 鉴权流程
+
+```
+请求 → 请求拦截器读取 localStorage('nexus-admin-token')
+      ↓
+      自动注入 Authorization: Bearer <token>
+      ↓
+      后端验证 → 有效 → 正常响应
+                → 无效(401) → 响应拦截器处理
+```
+
+- Token 存储键名：`nexus-admin-token`
+- 认证头格式：`Authorization: Bearer <token>`
+- Token 由登录接口返回，`userStore.login()` 自动保存到 localStorage
+
+### 全局 HTTP 错误状态拦截
+
+响应拦截器捕获所有 HTTP 错误，按状态码分类处理：
+
+| 状态码 | 行为 | 用户提示 |
+|--------|------|---------|
+| 401 | 清除 Token → 保存当前路径 → 触发事件 → 跳转登录页 | "登录已过期，请重新登录" |
+| 403 | 全局提示 | "没有权限执行此操作" |
+| 404 | 全局提示 | "请求的资源不存在" |
+| 422 | 静默（由调用方自行处理） | 无 |
+| 429 | 全局提示 | "请求过于频繁，请稍后重试" |
+| 5xx | 全局提示 | "服务器内部错误，请稍后重试" |
+| 网络超时 | 全局提示 | "请求超时，请稍后重试" |
+| 网络中断 | 全局提示 | "网络连接失败，请检查网络后重试" |
+
+**防重复提示机制**：同一状态码在 2 秒内只弹出一次错误提示，避免多个请求同时失败时重复弹窗。
+
+### 401 未登录自动处理
+
+当捕获到 401 状态码时，自动执行以下步骤：
+
+1. **保存当前路径**：将当前页面 URL 存入 `sessionStorage('nexus-redirect-path')`，登录后可恢复
+2. **清除本地 Token**：移除 localStorage 中的 `nexus-admin-token`
+3. **触发全局事件**：通过 `window.dispatchEvent(new CustomEvent('auth:unauthorized', ...))` 触发，供埋点、监控等插件捕获
+4. **跳转登录页**：`window.location.href = '/login'`
+
+### 静默请求模式
+
+某些场景（如会话恢复）需要静默处理错误，不显示用户提示。可通过 `_silentError` 选项标记：
+
+```js
+// 静默模式：错误时不弹出提示
+authApi.currentUser({ _silentError: true })
+```
+
+### 自定义事件
+
+所有全局事件通过 `hookManager.emit()` 触发，插件可通过 `hookManager.on()` 监听。
+
+| 事件名 | 触发时机 | 参数 |
+|--------|---------|------|
+| `auth:unauthorized` | 401 未登录/Token 过期 | `{ status: 401, message: '...' }` |
+
+插件监听事件示例：
+
+```js
+import hookManager from './utils/hook-manager'
+
+hookManager.on('auth:unauthorized', (payload) => {
+  console.log('未登录事件:', payload)
+  // 埋点上报 / 日志记录等
+})
+```
+
 ## 测试
 
 当前测试覆盖（14 个测试文件，126 个测试用例）：

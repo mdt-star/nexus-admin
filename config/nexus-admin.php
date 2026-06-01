@@ -30,4 +30,8 @@ return [
 
     // 底部版权信息
     'footer' => env('NEXUS_ADMIN_FOOTER', ''),
+
+    // API 基础路径（前端 axios 请求的 BaseURL）
+    // 默认空字符串表示同源请求，前后端分离时需设置为后端服务器地址
+    'api_base_url' => env('NEXUS_ADMIN_API_BASE_URL', ''),
 ];

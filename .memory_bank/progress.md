@@ -6,6 +6,23 @@
 - Unhandled errors: 0
 
 ## 已完成
+- [x] 前端接口层统一改造：BaseURL、JWT 鉴权与全局错误拦截
+  - [x] services/api.js：BaseURL 三级配置、JWT 请求拦截器、全局错误响应拦截（401/403/404/422/429/5xx）
+  - [x] services/auth.js：所有方法支持 options 参数透传
+  - [x] stores/user.js：restoreSession() 使用静默模式避免初始化时弹错
+  - [x] router/index.js：新增 /login 独立路由
+  - [x] LoginPage.vue：登录后从 sessionStorage 恢复上次访问路径
+  - [x] apiBaseURL 改为从 ConfigStore.global 获取，setter 模式注入
+  - [x] 登录路由改为动态注册（addLoginRoute），路径来自 configStore.get('loginPath')
+  - [x] LoginPage.vue onMounted 复用 redirectAfterLogin()
+  - [x] 统一使用 hookManager.emit() 触发 auth:unauthorized 事件
+  - [x] 错误消息全部国际化，通过 setTranslator() 注入翻译函数
+  - [x] 取消 Blade 注入 __NEXUS_ADMIN_CONFIG__（取消 apiBaseURL 注入）
+  - [x] 添加中英文 error 翻译键到 mock/i18n 数据
+  - [x] 防重复错误提示（2 秒节流）
+  - [x] _silentError 静默请求模式
+  - [x] docs/README.md 文档更新
+  - [x] 全部 126 个测试用例通过，零回归
 - [x] 桌面与侧边栏模式功能修复及优化
   - [x] 侧边栏：暗黑主题头部修复（全局 CSS，隔离浅色主题）
   - [x] 侧边栏：开始菜单右侧弹出（StartMenu placement prop）

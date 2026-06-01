@@ -83,7 +83,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { User, Lock, Monitor } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
 import { useI18nStore } from '../stores/i18n'
@@ -91,6 +92,7 @@ import { useConfigStore } from '../stores/config'
 import { useThemeStore } from '../stores/theme'
 import { ElMessage } from 'element-plus'
 
+const router = useRouter()
 const userStore = useUserStore()
 const i18nStore = useI18nStore()
 const configStore = useConfigStore()
@@ -114,6 +116,24 @@ const rules = {
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 }
 
+/**
+ * 登录成功后恢复上次访问的路径
+ * 优先级：sessionStorage 保存的 401 路径 > 后端返回的 redirectPath > 首页
+ * @param {string} [backendRedirectPath] - 登录接口返回的 redirectPath
+ */
+function redirectAfterLogin(backendRedirectPath) {
+  const savedPath = sessionStorage.getItem('nexus-redirect-path')
+  sessionStorage.removeItem('nexus-redirect-path')
+  router.replace(savedPath || backendRedirectPath || '/').catch(() => {})
+}
+
+// 如果已登录（如手动访问 /login 时 token 仍有效），直接跳转回首页
+onMounted(() => {
+  if (userStore.isLoggedIn) {
+    redirectAfterLogin()
+  }
+})
+
 async function handleLogin() {
   if (!formRef.value) return
   const valid = await formRef.value.validate().catch(() => false)
@@ -121,9 +141,10 @@ async function handleLogin() {
 
   loading.value = true
   try {
-    const success = await userStore.login(form.username, form.password)
-    if (success) {
+    const loginResult = await userStore.login(form.username, form.password)
+    if (loginResult) {
       ElMessage.success(t('login.success'))
+      redirectAfterLogin(loginResult.redirectPath)
     } else {
       ElMessage.error(t('login.failed'))
     }

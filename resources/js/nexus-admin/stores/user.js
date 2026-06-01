@@ -17,8 +17,10 @@ export const useUserStore = defineStore('nexus-user', () => {
 
   /**
    * 登录
+   * 成功时返回 response.data（包含 token、user、redirectPath 等字段）
    * @param {string} username
    * @param {string} password
+   * @returns {object|null} response.data 或 null
    */
   async function login(username, password) {
     const response = await authApi.login(username, password)
@@ -26,18 +28,19 @@ export const useUserStore = defineStore('nexus-user', () => {
       token.value = response.data.token
       user.value = response.data.user
       localStorage.setItem('nexus-admin-token', response.data.token)
-      return true
+      return response.data
     }
-    return false
+    return null
   }
 
   /**
    * 从 localStorage 恢复登录状态
+   * 使用静默模式（_silentError: true），避免在应用初始化时弹出错误提示
    */
   async function restoreSession() {
     if (!token.value) return false
     try {
-      const response = await authApi.currentUser()
+      const response = await authApi.currentUser({ _silentError: true })
       if (response.data) {
         user.value = response.data
         return true

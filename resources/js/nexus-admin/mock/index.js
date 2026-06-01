@@ -124,6 +124,17 @@ const cn = {
     page: '页面',
     items: '项'
   },
+
+  error: {
+    network: '网络连接失败，请检查网络后重试',
+    timeout: '请求超时，请稍后重试',
+    unauthorized: '登录已过期，请重新登录',
+    forbidden: '没有权限执行此操作',
+    notFound: '请求的资源不存在',
+    rateLimit: '请求过于频繁，请稍后重试',
+    serverError: '服务器内部错误，请稍后重试',
+    unknown: '请求失败（{status}）'
+  },
   menu: {
     dashboard: '控制台',
 
@@ -325,6 +336,17 @@ const en = {
     menu: 'Menu',
     page: 'Page',
     items: 'items'
+  },
+
+  error: {
+    network: 'Network connection failed, please check and retry',
+    timeout: 'Request timed out, please try again',
+    unauthorized: 'Session expired, please login again',
+    forbidden: 'You do not have permission to perform this action',
+    notFound: 'The requested resource was not found',
+    rateLimit: 'Too many requests, please try again later',
+    serverError: 'Server error, please try again later',
+    unknown: 'Request failed ({status})'
   },
 
   menu: {

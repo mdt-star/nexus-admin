@@ -49,7 +49,9 @@ describe('UserStore', () => {
 
     const store = useUserStore()
     const result = await store.login('admin', 'admin')
-    expect(result).toBe(true)
+    expect(result).toBeTruthy()
+    expect(result.token).toBe('test-token')
+    expect(result.user.username).toBe('admin')
     expect(store.token).toBe('test-token')
     expect(store.user.username).toBe('admin')
     expect(localStorageMock.setItem).toHaveBeenCalledWith('nexus-admin-token', 'test-token')

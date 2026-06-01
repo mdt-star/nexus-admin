@@ -12,6 +12,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import AppRoot from './AppRoot.vue'
 import router from './router'
+import { setApiBaseURL, setLoginPath, setTranslator } from './services/api'
 import permissionDirective from './directives/permission'
 import PermissionTag from './components/common/PermissionTag.vue'
 import hookManager from './utils/hook-manager'
@@ -239,6 +240,10 @@ async function initNexusAdmin(mountSelector = '#app') {
   await configStore.loadConfig()
   await hookManager.emit('config:loaded', configStore.merged)
 
+  // 从全局配置中读取 API BaseURL 和登录页路径，初始化请求实例
+  setApiBaseURL(configStore.get('apiBaseURL', ''))
+  setLoginPath(configStore.get('loginPath', '/login'))
+
   // 加载权限标签
   const { usePermissionStore } = await import('./stores/permission')
   const permissionStore = usePermissionStore()
@@ -253,6 +258,9 @@ async function initNexusAdmin(mountSelector = '#app') {
   const { useI18nStore } = await import('./stores/i18n')
   const i18nStore = useI18nStore()
   await i18nStore.init()
+
+  // 将翻译函数注入请求实例，使全局错误提示支持国际化
+  setTranslator(i18nStore.t)
 
   // 加载菜单
   const { useMenuStore } = await import('./stores/menu')

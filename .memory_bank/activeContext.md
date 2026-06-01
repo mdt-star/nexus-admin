@@ -118,7 +118,35 @@
 - 清理后构建正常，零报错
 
 ## 当前状态
-- 14 个测试文件，123 个测试用例，全部通过
+- 14 个测试文件，126 个测试用例，全部通过
 - 0 unhandled errors
 - 构建成功，零报错
 - 文档已同步更新
+
+## 新增改造：前端接口层统一（API BaseURL、JWT 鉴权、全局错误拦截）
+
+### 改动文件
+
+| 文件 | 操作类型 | 说明 |
+|------|---------|------|
+| `services/api.js` | 重写 | 新增 BaseURL 配置、JWT 请求拦截器、全局错误响应拦截器 |
+| `services/auth.js` | 修改 | 所有方法新增 `options` 参数透传 |
+| `stores/user.js` | 修改 | `restoreSession()` 使用静默模式 `{ _silentError: true }` |
+| `router/index.js` | 修改 | 新增 `/login` 独立路由 |
+| `components/LoginPage.vue` | 修改 | 新增登录后路径恢复逻辑 |
+| `resources/views/app.blade.php` | 修改 | 注入 `__NEXUS_ADMIN_CONFIG__.apiBaseURL` |
+| `config/nexus-admin.php` | 修改 | 新增 `api_base_url` 配置项 |
+| `docs/README.md` | 更新 | 新增 API 通信层完整文档 |
+
+### 关键决策
+
+1. **BaseURL 配置**：setter 模式，由 ConfigStore 全局配置加载后调用 `setApiBaseURL()` 设置（`configStore.get('apiBaseURL', '')`），env 变量为 fallback
+2. **JWT 自动携带**：请求拦截器中从 `localStorage('nexus-admin-token')` 读取并注入 `Authorization: Bearer` 头
+3. **错误分类处理**：401（特殊处理）、403、404、422（静默）、429、5xx、其他
+4. **401 四步处理**：保存路径 → 清除 Token → 触发 `auth:unauthorized` 事件 → 跳转登录页
+5. **防重复提示**：同一状态码 2 秒节流
+6. **静默模式**：`_silentError` 标记用于会话恢复等无需弹错的场景
+7. **登录恢复**：401 时路径存入 `sessionStorage('nexus-redirect-path')`，登录后读取并跳转
+8. **登录路由动态注册**：路由名固定为 `login`，路径来自 `configStore.get('loginPath', '/login')`，通过 `addLoginRoute()` 动态添加
+9. **事件机制统一**：全部通过 `hookManager.emit()` 触发，不再使用 `window.dispatchEvent`
+10. **国际化错误提示**：通过 `setTranslator(i18nStore.t)` 注入翻译函数，错误消息使用 `_t(key, fallback)` 模式
