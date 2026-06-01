@@ -144,7 +144,29 @@
 - `FolderView.vue`、`SidebarLayout.vue`、`ItemEditor.vue`、`TaskBar.vue` 零改动
 - 所有 162 测试用例通过，零回归
 
-### 桌面端交互优化
+### 五、侧边栏模式下无激活 Tab 时菜单选中状态同步清除（2026-06-01）
+
+#### 根因分析
+
+侧边栏模式下，关闭全部 Tab 后左侧菜单依然高亮选中某菜单项。
+
+**数据链路**：`SidebarLayout.onTabClickClose()` → `windowStore.close(id)` → `items.value.splice(index, 1)`（移除最后一项，但 `activeId` 未清空） → `SidebarMenu.vue` 的 `watch(() => windowStore.activeId)` 仍看到 truthy 值 → `menuActiveId` 保持非空 → `<el-menu :default-active>` 保持高亮。
+
+**根因**：`windows.js` 的 `close()` 方法仅移除了 items 中的元素，但未在 items 列表完全为空时将 `activeId` 同步置空。
+
+#### 改动文件
+
+| 文件 | 操作类型 | 说明 |
+|------|---------|------|
+| `stores/windows.js` | 修改 | `close()` 方法末尾追加防御性判断：items 为空时同步置空 activeId |
+| `stores/windows.test.js` | 修改 | 更新「关闭最后一个窗口」测试用例，期望值从 `toBe('a')` 改为 `toBeNull()` |
+
+#### 影响范围
+
+- 仅改 `stores/windows.js`，一行核心逻辑 + 一行为空判断
+- 桌面模式（DesktopLayout.vue/TaskBar.vue/DesktopWindow.vue）共用同一个 `close()` 方法，关闭最后一个窗口时同样受益（activeId 正确置空，正常显示首页）
+- 非末位关闭场景零影响：删除非最后一项时 items 不为空，条件不成立，activeId 保持不变
+- 全部 162 测试用例通过，零回归
 - **FolderView.vue**：文件夹视图禁止文本选中（`user-select: none`）；图标必须双击打开；拖拽标记 `isDraggingFromFolder` 防止拖拽过程中意外关闭或打开；新增 `onPopupMouseDown`/`onGridMouseDown` 阻止网格区域文本选中
 - **DesktopLayout.vue**：文件夹拖拽坐标检测改用 `getBoundingClientRect` 避免临时拖拽元素导致 `e.target.closest` 不匹配；临时拖拽元素添加半透明效果（`opacity:0.85` + `scale(0.95)`）显示正常拖拽状态
 - **windows.js**：`activate()` 增加同 id 重新激活逻辑（先置空再 `nextTick` 恢复），用于窗口最小化后通过 taskbar 恢复显示

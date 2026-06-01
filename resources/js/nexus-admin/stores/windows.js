@@ -116,6 +116,11 @@ export const useWindowStore = defineStore('nexus-windows', () => {
     await hookManager.emit('window:close', item)
 
     items.value.splice(index, 1)
+
+    // 当关闭最后一个 Tab/窗口时，同步清除激活状态，确保侧边栏菜单联动清空选中
+    if (items.value.length === 0) {
+      activeId.value = null
+    }
   }
 
   /**

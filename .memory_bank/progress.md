@@ -176,7 +176,12 @@
     - 修复：提取递归组件 `SidebarMenuNode.vue` 支持任意层级
   - [x] 新建 `SidebarMenuNode.vue` + 重构 `SidebarMenu.vue` 模板
   - [x] 构建通过，全部 126 测试用例通过，零回归
-- [x] 桌面模式多选协同拖拽功能完善与图标位置重算算法开发（2026-06-01）
+- [x] 侧边栏模式下无激活 Tab 时菜单选中状态同步清除（2026-06-01）
+  - [x] 根因分析：`windowStore.close()` 移除最后一项时未清空 `activeId`，导致菜单高亮无法解除
+  - [x] 修复：`windows.js` 的 `close()` 方法末尾追加 items 为空时同步置空 activeId
+  - [x] 测试更新：关闭最后一个窗口后 activeId 应为 null
+  - [x] 影响范围：仅改 `stores/windows.js`，桌面模式共用受益，零回归
+  - [x] 全部 162 测试用例通过
   - [x] 新增 `multiDragData` ref 存储多选拖拽的初始基准位置快照
   - [x] 修改 `onIconMouseDown`：多选拖拽启动检测（仅在点击已选中图标时触发多选模式）
   - [x] 修改 `onIconDragMove`：多选同步移动（对所有选中图标应用相同 transform 偏移）

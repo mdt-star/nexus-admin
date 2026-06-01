@@ -64,13 +64,13 @@ describe('WindowsStore', () => {
     expect(store.activeId).toBe('b')
   })
 
-  it('关闭最后一个窗口后 activeId 保持不变（需手动激活）', async () => {
+  it('关闭最后一个窗口后 activeId 置空（菜单联动清空选中状态）', async () => {
     const store = useWindowStore()
     await store.open({ id: 'a', title: 'A', component: 'A' })
 
     await store.close('a')
     expect(store.items).toHaveLength(0)
-    expect(store.activeId).toBe('a')
+    expect(store.activeId).toBeNull()
   })
 
   it('关闭其他窗口', async () => {
