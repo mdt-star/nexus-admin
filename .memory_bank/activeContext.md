@@ -189,3 +189,35 @@
 8. **登录路由动态注册**：路由名固定为 `login`，路径来自 `configStore.get('loginPath', '/login')`，通过 `addLoginRoute()` 动态添加
 9. **事件机制统一**：全部通过 `hookManager.emit()` 触发，不再使用 `window.dispatchEvent`
 10. **国际化错误提示**：通过 `setTranslator(i18nStore.t)` 注入翻译函数，错误消息使用 `_t(key, fallback)` 模式
+
+## 最近改动（侧边栏文件夹交互及深层菜单展开修复）
+
+### 2026-06-01：侧边栏三项交互修复
+
+#### 改动文件
+
+| 文件 | 改动类型 |
+|------|----------|
+| `components/sidebar/SidebarMenuNode.vue` | **新增** — 递归菜单节点组件 |
+| `components/sidebar/SidebarMenu.vue` | 模板重构 + 逻辑修复 |
+
+#### 修复内容
+
+**修复一：新建文件夹后不再自动打开标签页**
+- **根因**：新建文件夹（`type: 'folder'`）时，`buildTree` 生成 `children: []`，`item.children.length > 0` 为 `false`，文件夹渲染为 `el-menu-item`，点击后触发 `handleMenuSelect` 打开标签页。
+- **修复**：引入递归组件 `SidebarMenuNode.vue`，`isFolderNode` 判断仅当有子项时渲染为 `el-sub-menu`，空文件夹渲染为 `el-menu-item`（点击由 `handleMenuSelect` 守卫拦截）。
+- **守卫**：`handleMenuSelect` 中增加 `if (item.type === 'folder') return`，双重保障。
+
+**修复二：文件夹右键新增项与桌面模式行为对齐**
+- **根因**：`addSidebarFolder()` 中 `parentId = contextItem.parent_id` 将新项创建为同级。
+- **修复**：合并为统一 `addSidebarItem()` 函数，文件夹场景使用 `parentId = contextItem.id` 创建为子级。
+- **简化**：移除独立的「添加项」和「新建文件夹」两个菜单项，合并为单个「新增项」按钮。右键文件夹时显示「在此新增项」，空白处显示「新增项」。用户通过编辑器类型下拉菜单自由选择创建菜单/文件夹/链接等。
+
+**修复三：恢复二级及更深层级文件夹的正常展开**
+- **根因**：原模板仅在 `<el-sub-menu>` 内渲染 `el-menu-item`，不支持嵌套渲染。
+- **修复**：提取 `SidebarMenuNode.vue` 递归组件，每个节点根据 `isFolderNode` 判断渲染为 `el-sub-menu` 或 `el-menu-item`，支持任意层级嵌套。
+
+#### 影响范围
+- 仅改 `src/components/sidebar/` 目录下的组件
+- `SidebarLayout.vue`、`DesktopLayout.vue`、`disktop.js` 等文件零改动
+- 桌面模式不受任何影响

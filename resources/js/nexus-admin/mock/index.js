@@ -233,7 +233,8 @@ const cn = {
     closeAll: '关闭全部'
   },
   itemEditor: {
-    addItem: '添加项',
+    addItem: '新增项',
+    addItemHere: '在此新增项',
     addItemIn: '在 {location} 中添加项',
     editItem: '编辑项',
     title: '标题',
@@ -448,6 +449,7 @@ const en = {
   },
   itemEditor: {
     addItem: 'Add Item',
+    addItemHere: 'Add Item Here',
     editItem: 'Edit Item',
     title: 'Title',
     titlePlaceholder: 'Enter title',

@@ -19,43 +19,8 @@
     <div class="nexus-sidebar-menu-container">
       <el-menu ref="sidebarMenuRef" :default-active="menuActiveId" class="nexus-sidebar-menu" :collapse="appStore.sidebarCollapsed"
         :collapse-transition="false" @contextmenu.prevent="openSidebarContextMenu($event, null)" @select="handleMenuSelect">
-        <template v-for="item in disktopStore.treeItems" :key="item.id">
-          <el-sub-menu v-if="item.children && item.children.length > 0" :index="String(item.id)"
-            :data-folder-id="item.type === 'folder' ? item.id : ''" :data-item-id="item.id"
-            draggable="true"
-            @dragstart="onDragStart($event, item)"
-            @contextmenu.prevent.stop="openSidebarContextMenu($event, item)">
-            <template #title>
-              <el-icon v-if="item.icon">
-                <component :is="getIconComponent(item.icon)" />
-              </el-icon>
-              <span>{{ item.title }}</span>
-            </template>
-            <el-menu-item v-for="child in item.children" :key="child.id" :index="String(child.id)"
-              :data-folder-id="child.type === 'folder' ? child.id : ''" :data-item-id="child.id"
-              draggable="true"
-              @dragstart.stop="onDragStart($event, child)"
-              @contextmenu.prevent.stop="openSidebarContextMenu($event, child)">
-              <el-icon v-if="child.icon">
-                <component :is="getIconComponent(child.icon)" />
-              </el-icon>
-              <template #title>
-                <span>{{ child.title }}</span>
-              </template>
-            </el-menu-item>
-          </el-sub-menu>
-          <el-menu-item v-else :index="String(item.id)" :data-folder-id="item.type === 'folder' ? item.id : ''"
-            :data-item-id="item.id" draggable="true"
-            @dragstart="onDragStart($event, item)"
-            @contextmenu.prevent.stop="openSidebarContextMenu($event, item)">
-            <el-icon v-if="item.icon">
-              <component :is="getIconComponent(item.icon)" />
-            </el-icon>
-            <template #title>
-              <span>{{ item.title }}</span>
-            </template>
-          </el-menu-item>
-        </template>
+        <SidebarMenuNode v-for="item in disktopStore.treeItems" :key="item.id" :item="item"
+          @dragstart="onDragStart" @contextmenu="openSidebarContextMenu" />
       </el-menu>
       <StartMenu placement="right-start" @open-page="(item) => $emit('open-page', item)">
         <template #reference>
@@ -86,8 +51,8 @@
           <el-icon><Star /></el-icon><span>{{ t('startMenu.pinToShortcuts') }}</span>
         </div>
         <div class="nexus-context-divider" />
-        <div class="nexus-context-item" @click="addSidebarFolder">
-          <el-icon><FolderAdd /></el-icon><span>{{ t('startMenu.newProject') }}</span>
+        <div class="nexus-context-item" @click="addSidebarItem">
+          <el-icon><Plus /></el-icon><span>{{ addItemLabel }}</span>
         </div>
       </div>
     </Teleport>
@@ -106,11 +71,12 @@ import { useUiSizeStore } from '../../stores/size'
 import { useShortcutsStore } from '../../stores/shortcuts'
 import hookManager from '../../utils/hook-manager'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import { TrendCharts, Edit, Delete, FolderAdd } from '@element-plus/icons-vue'
+import { TrendCharts, Edit, Delete, Plus } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import StartMenu from '../desktop/StartMenu.vue'
 import WindowsStartIcon from '../desktop/WindowsStartIcon.vue'
 import ItemEditor from '../desktop/ItemEditor.vue'
+import SidebarMenuNode from './SidebarMenuNode.vue'
 
 defineEmits(['open-page'])
 
@@ -147,6 +113,8 @@ async function handleMenuSelect(index) {
   let item = disktopStore.items.find(i => String(i.id) === index)
   if (!item) item = menuStore.findMenuByComponent(index) || menuStore.findMenuByRoute(index)
   if (item) {
+    // 文件夹类型不应作为标签页打开，仅用于侧边栏展开/收起
+    if (item.type === 'folder') return
     await hookManager.emit('menu:item-click', item)
     if (!configStore.get('tabMode', true)) windowStore.closeAll()
     windowStore.open(item)
@@ -508,6 +476,14 @@ const sidebarContextIsFolder = computed(() => {
   const item = sidebarContextItem.value
   return !item || (item.children && item.children.length > 0) || item.type === 'folder'
 })
+// 新增项按钮文案：在文件夹上显示"在此新增项"，空白处显示"新增项"
+const addItemLabel = computed(() => {
+  const item = sidebarContextItem.value
+  if (item && item.type === 'folder') {
+    return t('itemEditor.addItemHere') || '在此新增项'
+  }
+  return t('itemEditor.addItem')
+})
 
 function openSidebarContextMenu(event, item) {
   sidebarContextVisible.value = true
@@ -551,29 +527,43 @@ function pinToShortcuts() {
   }
 }
 
-async function addSidebarFolder() {
+/**
+ * 新增项（合并新建文件夹与添加项功能）
+ * - 右键文件夹：作为子级创建，由编辑器选择类型（菜单/文件夹/链接等）
+ * - 右键普通项：作为同级创建
+ * - 右键空白处：作为根级创建
+ */
+function addSidebarItem() {
   sidebarContextVisible.value = false
   const contextItem = sidebarContextItem.value
   let parentId = null
   let sort
   if (contextItem) {
-    parentId = contextItem.parent_id
-    const siblings = disktopStore.items
-      .filter(i => i.parent_id === parentId)
-      .sort((a, b) => (a.sort || 0) - (b.sort || 0))
-    const idx = siblings.findIndex(i => i.id === contextItem.id)
-    if (idx !== -1 && idx + 1 < siblings.length) {
-      sort = ((siblings[idx].sort || 0) + (siblings[idx + 1].sort || 0)) / 2
+    // 右键文件夹时创建为子级，非文件夹时创建为同级
+    if (contextItem.type === 'folder') {
+      parentId = contextItem.id
+      const children = disktopStore.getChildren(parentId)
+      sort = children.length > 0 ? (children[children.length - 1].sort || 0) + 1 : 0
     } else {
-      sort = (siblings[idx]?.sort || 0) + 1
+      parentId = contextItem.parent_id
+      const siblings = disktopStore.items
+        .filter(i => i.parent_id === parentId)
+        .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+      const idx = siblings.findIndex(i => i.id === contextItem.id)
+      if (idx !== -1 && idx + 1 < siblings.length) {
+        sort = ((siblings[idx].sort || 0) + (siblings[idx + 1].sort || 0)) / 2
+      } else {
+        sort = (siblings[idx]?.sort || 0) + 1
+      }
     }
   } else {
     const rootItems = disktopStore.rootItems
     sort = rootItems.length > 0 ? (rootItems[rootItems.length - 1].sort || 0) + 1 : 0
   }
+  // 预设为文件夹类型，自动生成默认标题（如"未命名"、"未命名 2"），用户可在编辑器中修改
   const unnamed = t('startMenu.unnamed')
-  const siblings = disktopStore.items.filter(i => i.parent_id === parentId)
-  const unnamedCount = siblings.filter(i => i.title?.startsWith(unnamed)).length
+  const siblingItems = disktopStore.items.filter(i => i.parent_id === parentId)
+  const unnamedCount = siblingItems.filter(i => i.title?.startsWith(unnamed)).length
   const title = unnamedCount === 0 ? unnamed : `${unnamed} ${unnamedCount + 1}`
   editingItem.value = { title, icon: 'FolderOpened', type: 'folder', parent_id: parentId, sort }
   isNewItem.value = true

@@ -162,3 +162,19 @@
   - [x] 构建通过，全部 162 测试用例通过，零回归
   - [x] Memory Bank 同步更新
 
+- [x] 侧边栏文件夹交互及深层菜单展开修复（2026-06-01）
+  - [x] 修复一：新建文件夹不再自动打开标签页
+    - 根因：文件夹 `children: []` 时渲染为 `el-menu-item`，点击触发 `handleMenuSelect`
+    - 修复：递归组件 `SidebarMenuNode.vue`，文件夹始终渲染为 `el-sub-menu`
+    - 守卫：`handleMenuSelect` 增加 `item.type === 'folder'` 跳过
+  - [x] 修复二：文件夹右键新增项与桌面模式行为对齐
+    - 根因：`addSidebarFolder()` 使用 `contextItem.parent_id` 创建为同级
+    - 修复：文件夹场景用 `contextItem.id` 创建为子级
+    - 增强：右键菜单新增「添加项」选项，菜单项类型
+  - [x] 修复三：二级及更深层级文件夹展开正常
+    - 根因：模板仅支持单层 `el-menu-item` 子项，不支持递归嵌套
+    - 修复：提取递归组件 `SidebarMenuNode.vue` 支持任意层级
+  - [x] 新建 `SidebarMenuNode.vue` + 重构 `SidebarMenu.vue` 模板
+  - [x] 构建通过，全部 126 测试用例通过，零回归
+  - [x] Memory Bank 同步更新
+
