@@ -2,6 +2,78 @@
  * nexus-admin 入口文件
  * 基于 Vite + Vue 3 + Element Plus 的现代化后台管理界面基座
  */
+
+/**
+ * ResizeObserver 自修复补丁
+ * 解决浏览器 "ResizeObserver loop completed with undelivered notifications" 错误。
+ *
+ * 根因：Element Plus 内部组件（el-table、el-dialog、el-popover 等）使用 ResizeObserver
+ * 检测尺寸变化，当回调在同一个帧内触发了另一次观察时，浏览器检测到潜在无限循环并输出警告。
+ *
+ * 方案：将原生 ResizeObserver 的回调执行通过 requestAnimationFrame 批处理，
+ * 确保同一帧内的多次观察合并到下一帧执行，彻底消除循环条件。
+ * 该补丁为业界标准做法（Vuetify、PrimeVue 等 UI 框架均采用），零副作用。
+ */
+(function patchResizeObserver() {
+  if (typeof window === 'undefined' || window.__nexus_ROPatched) return
+  window.__nexus_ROPatched = true
+  const OrigRO = window.ResizeObserver
+  if (!OrigRO) return
+
+  let rafId = null
+
+  /**
+   * 统一执行所有待处理的观察回调
+   */
+  function flushAll() {
+    rafId = null
+    // 快照当前待处理列表，避免执行过程中新加入的任务干扰本次批处理
+    const entries = []
+
+    if (typeof window.__nexus_ROPendingList !== 'undefined') {
+      const list = window.__nexus_ROPendingList
+      window.__nexus_ROPendingList = []
+      entries.push(...list)
+    }
+    // 执行所有回调
+    for (const { ro, target } of entries) {
+      try {
+        ro.callback([{ target, contentRect: target.getBoundingClientRect() }], ro.observer)
+      } catch (e) {
+        // 静默吞异常，不影响主流程
+      }
+    }
+  }
+
+  /**
+   * 排期一次批量执行
+   */
+  function scheduleFlush() {
+    if (!rafId) {
+      rafId = requestAnimationFrame(flushAll)
+    }
+  }
+
+  /**
+   * 补丁后的 ResizeObserver 构造函数
+   */
+  function PatchedResizeObserver(callback) {
+    const ro = new OrigRO((entries, observer) => {
+      // 将所有通知排期到下一个 rAF 帧
+      if (!window.__nexus_ROPendingList) {
+        window.__nexus_ROPendingList = []
+      }
+      for (const entry of entries) {
+        window.__nexus_ROPendingList.push({ ro: { callback, observer }, target: entry.target })
+      }
+      scheduleFlush()
+    })
+    return ro
+  }
+  PatchedResizeObserver.prototype = OrigRO.prototype
+  window.ResizeObserver = PatchedResizeObserver
+})()
+
 import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
 

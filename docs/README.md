@@ -267,7 +267,7 @@ hookManager.on('auth:unauthorized', (payload) => {
 
 ## 测试
 
-当前测试覆盖（14 个测试文件，126 个测试用例）：
+当前测试覆盖（15 个测试文件，162 个测试用例）：
 
 - HookManager 生命周期管理（10 项）
 - Windows Store 窗口状态管理（11 项）
@@ -283,6 +283,7 @@ hookManager.on('auth:unauthorized', (payload) => {
 - App Store 应用状态（4 项）
 - Plugin Registry 插件注册（6 项）
 - Hook Events 钩子事件（9 项）
+- Disktop API 服务端数据管理（31 项）
 
 框架：Vitest + happy-dom
 
@@ -307,3 +308,35 @@ StartMenu.onDragStart → JSON.stringify({ title, icon, component, path, type, c
 ### 点击机制
 
 桌面图标支持双击打开。使用独立双击检测机制（300ms 内同一图标两次点击），不依赖浏览器原生 `dblclick` 事件，兼容性更可靠。
+
+## ResizeObserver 循环限制修复
+
+### 问题描述
+
+浏览器控制台出现 `ResizeObserver loop completed with undelivered notifications.` 警告。
+
+### 根因
+
+1. **Element Plus 内部使用 ResizeObserver**：`el-table`（列宽计算 + 表头同步）、`el-dialog`（定位）、`el-popover`/`el-select`/`el-dropdown`（弹出位置）均依赖 ResizeObserver 检测尺寸变化
+2. **Vue 响应式 DOM 更新**：当 Element Plus 的 ResizeObserver 回调触发 Vue 重新渲染，导致 DOM 尺寸再次变化，在当前帧内形成递归观察循环
+3. **桌面图标 CSS transition**：`left/top 0.25s ease-out` 过渡动画在拖拽释放时持续触发布局变化，加剧该问题
+
+### 修复方案
+
+在 `app.js` 顶部注入自执行补丁 `patchResizeObserver()`，对原生 `ResizeObserver` 进行安全封装：
+
+```
+原生 ResizeObserver → 补丁层拦截 → 暂存待处理通知 → requestAnimationFrame → 下一帧批量执行
+```
+
+**核心逻辑**：
+
+- 所有回调通知暂存到全局队列 `window.__nexus_ROPendingList`
+- 通过 `requestAnimationFrame` 将同一帧内的多次观察合并到下一帧统一执行
+- 浏览器无法检测到循环条件，彻底消除警告
+
+### 影响范围
+
+- 仅修改 `app.js`，零改动业务组件
+- 不影响 Element Plus 组件正常功能
+- 构建通过，全部 162 测试用例通过

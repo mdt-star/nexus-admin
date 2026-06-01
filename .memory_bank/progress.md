@@ -143,4 +143,10 @@
   - [x] `toggleSnap()` 切换模式不自动排列图标，仅切换状态
   - [x] 构建通过，全部 126 测试用例通过，零回归
   - [x] Memory Bank 同步更新
+- [x] 修复 ResizeObserver 循环限制错误
+  - [x] 根因分析：Element Plus 内部使用 ResizeObserver + CSS transition + Vue 响应式更新导致循环
+  - [x] 在 app.js 顶部注入自执行补丁，通过 requestAnimationFrame 批处理消除循环
+  - [x] 构建通过，全部 162 测试用例通过，零回归
+  - [x] Memory Bank 同步更新
+  - [x] 文档同步更新
 

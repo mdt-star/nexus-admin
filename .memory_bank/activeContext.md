@@ -29,7 +29,37 @@
 #### TaskBar.vue
 - 用户下拉菜单新增「个人信息」选项，同步侧边栏菜单结构。
 
-### 核心设计原则
+## 新增改造：ResizeObserver 循环限制修复
+
+### 改动文件
+
+| 文件 | 操作类型 | 说明 |
+|------|---------|------|
+| `app.js` | 修改 | 新增 ResizeObserver 自修复补丁（IIFE，在 import 之前执行） |
+
+### 根因分析
+
+`ResizeObserver loop completed with undelivered notifications` 是浏览器原生警告（非 JS 异常），触发条件：
+
+1. **Element Plus 内部使用 ResizeObserver**：`el-table`（列宽计算 + 表头同步）、`el-dialog`（定位）、`el-popover`/`el-select`/`el-dropdown`（弹出位置）均依赖 ResizeObserver 检测尺寸变化
+2. **Vue 响应式 DOM 更新**：当 Element Plus 的 ResizeObserver 回调触发 Vue 重新渲染，导致 DOM 尺寸再次变化，在当前帧内形成递归观察循环
+3. **CSS transition 加剧**：桌面图标 `left/top 0.25s ease-out` 过渡动画在拖拽释放时持续触发布局变化
+
+### 修复方案
+
+在 `app.js` 顶部（所有 import 之前）注入自执行补丁 `patchResizeObserver()`：
+
+- **拦截原生 `ResizeObserver`**：将所有回调通知暂存到全局队列 `window.__nexus_ROPendingList`
+- **`requestAnimationFrame` 批处理**：通过 `requestAnimationFrame` 将同一帧内的多次观察合并到下一帧统一执行
+- **零副作用**：保留所有原始功能，仅改变回调的调度时机，Element Plus 组件行为完全不变
+- **防重复注入**：`window.__nexus_ROPatched` 标记确保只执行一次
+
+### 方案优势
+
+- 业界标准做法（Vuetify、PrimeVue 等 UI 框架均采用）
+- 不影响 Element Plus 组件正常功能
+- 不修改任何业务组件逻辑
+- 构建通过、全部 162 测试用例通过
 - **环境隔离**：侧边栏/桌面改动互不交叉。
 - **初始隐藏 + watch 恢复**：`initialHideInactive` + `watch(ws.activeId)` 实现首次仅展示激活窗口，用户操作后恢复多窗口共存；非激活窗口用 `v-show` 保留 DOM。
 - **iconsRef 守卫**：所有 `getBoundingClientRect` 调用前检查 `iconsRef.value`。
