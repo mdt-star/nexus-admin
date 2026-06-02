@@ -117,11 +117,11 @@ async function bootstrap(mountSelector = '#app') {
     }
   }
 
-  // 注册基座内置路由
-  router.addRoute(internalRoutes)
-
-  // 一句话完成：install 基座 → install 第三方 → init 基座 → init 第三方
+  // install 基座 provider（代理 router.addRoute 后自动注册内部路由）
   await loadAndInstallProviders(providerCtx, nexusAdminProvider, pendingI18nMessages)
+
+  // 基座路由必须在 install 之后注册，确保走代理的数组处理逻辑
+  internalRoutes.forEach(route => router.addRoute(route))
 
   // 暴露页面组件到全局（布局组件通过此映射查找页面组件）
   window.__NEXUS_ADMIN_PAGES__ = nexusAdminProvider.buildPageMap(router)
