@@ -7,11 +7,11 @@
 
 ## 已完成
 - [x] 架构重构：从「声明式清单」到「编程式 Provider + routeStore」模型
-  - [x] 创建 `utils/create-provider-installer.js`：提供 `installProvider()` + `routeStore` + `normalizeRoute()`
+  - [x] 创建 `utils/create-provider-installer.js`：提供 `installProvider()` + `routeStore` + `normalizeRoute()` + `loadAndInstallProviders()`
   - [x] 路由简写功能：name/permission 自动推演、数组批量注册、path 参数支持
   - [x] 创建 `providers/nexus-admin.js`：基座自身通过 Provider 模式注册
-  - 包括 install()（路由/图标/指令/组件/语言包）和 init()（config/theme/i18n/user 等有顺序依赖的初始化）
-  - [x] 重构 `app.js`：bootstrap 流程精简为 createApp → loadAndInstallProviders → mount
+  - [x] install()（路由/图标/指令/组件/语言包）+ init()（config/theme/i18n/user 等有顺序依赖的初始化）+ buildPageMap(router)
+  - [x] 重构 `app.js`：bootstrap 流程精简为 createApp → loadAndInstallProviders → buildPageMap → mount
   - [x] `loadAndInstallProviders` 一体化：install 基座 → install 第三方 → init 基座 → init 第三方
   - [x] 重构后端 `NexusAdminManager.php`：仅收集 provider 路径
   - [x] 更新 Blade 注入 `__NEXUS_ADMIN_PROVIDERS__`
