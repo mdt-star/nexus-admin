@@ -68,10 +68,8 @@ import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 
 import AppRoot from './AppRoot.vue'
-import router from './router'
-import hookManager from './utils/hook-manager'
-import { loadAndInstallProviders, routeStore } from './utils/create-provider-installer'
-import nexusAdminProvider from './providers/nexus-admin'
+import router, { internalRoutes } from './router/index'
+import { hookManager, loadAndInstallProviders, nexusAdminProvider } from '@nexus-admin/core'
 
 import './styles/global.scss'
 
@@ -115,6 +113,9 @@ async function bootstrap(mountSelector = '#app') {
     }
   }
 
+  // 注册基座内置路由
+  router.addRoute(internalRoutes)
+
   // 一句话完成：install 基座 → install 第三方 → init 基座 → init 第三方
   await loadAndInstallProviders(providerCtx, nexusAdminProvider, pendingI18nMessages)
 
@@ -148,4 +149,4 @@ if (typeof document !== 'undefined') {
   }
 }
 
-export { bootstrap, hookManager, routeStore }
+export { bootstrap }

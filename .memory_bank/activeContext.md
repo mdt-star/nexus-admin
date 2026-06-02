@@ -1,58 +1,56 @@
 # 当前活动上下文
 
 ## 当前工作
-架构重构已全部完成，代码已合并到 `dev` 分支。最新提交（9302d8e5）完成了最后的重构步骤：
-- `loadAndInstallProviders()` 移入 `utils/create-provider-installer.js` 导出
-- `buildPageMap()` 移入 `providers/nexus-admin.js` 作为基座 Provider 的方法
-- `app.js` 进一步精简为纯 bootstrap 入口
+将核心代码拆分为独立 npm 包 `@nexus-admin/core`（npm workspace monorepo 模式）。
 
-## 改动总结
+### 已完成
+- 创建 `packages/core/` 目录及 `package.json` / `vite.config.js`（library mode）
+- 核心代码迁入 `packages/core/src/`（utils / providers / stores / components / layouts / lang / styles / services / directives / composables）
+- 创建 public API 入口 `packages/core/src/index.js`
+- `app.js` / `AppRoot.vue` 改为导入 `@nexus-admin/core`
+- 根目录 `package.json` 加入 `workspaces: ["packages/*"]`
+- Vite 构建通过（3.60s）
+- 全部 188 测试用例通过，15 测试文件通过
 
-### 核心架构变更
-从「声明式清单」（pages/components/directives/plugins 四类清单）转变为「编程式 Provider + routeStore」模型。
-
-### Provider 生命周期
-每个 Provider 支持两个阶段：
-1. **install(ctx)** — 注册型操作（路由、图标、指令、组件、语言包），mount 前执行，无顺序依赖
-2. **init(ctx, pendingI18nMessages)** — 初始化型操作（config/theme/i18n/user/size 等），有严格顺序依赖
-
-### 启动流程 (`app.js bootstrap`)
+### 目录结构变化
 ```
-createApp → use(Pinia) → use(Router) → use(ElementPlus)
-  → loadAndInstallProviders(ctx, baseProvider, pendingI18nMessages)
-    1. install 基座 provider
-    2. install 第三方 provider（动态 import）
-    3. init 基座 provider
-    4. init 第三方 provider
-  → window.__NEXUS_ADMIN_PAGES__ = nexusAdminProvider.buildPageMap(router)
-  → mount()
+nexus-admin/
+├── packages/
+│   └── core/                     ← @nexus-admin/core（npm 包）
+│       ├── package.json
+│       ├── vite.config.js
+│       └── src/
+│           ├── index.js          (public API 入口)
+│           ├── utils/            (create-provider-installer, hook-manager, hook-events)
+│           ├── providers/        (nexus-admin.js)
+│           ├── stores/           (12 个 Pinia stores)
+│           ├── services/         (9 个 API 服务)
+│           ├── components/       (公共组件)
+│           ├── layouts/          (布局组件)
+│           ├── lang/             (语言包)
+│           ├── styles/           (SCSS 变量/全局样式)
+│           ├── directives/       (权限指令)
+│           └── composables/      (useWindowDrag)
+├── resources/js/nexus-admin/     ← 应用层（入口 + 业务页面 + mock）
+│   ├── app.js
+│   ├── AppRoot.vue
+│   ├── pages/                    (demo + system)
+│   ├── mock/
+│   └── router/index.js
+└── package.json                  (workspaces: ["packages/*"])
 ```
 
-### 国际化三层合并
-1. 基座内置 (`lang/zh.js`, `lang/en.js`)
-2. 第三方 Provider (`ctx.i18n.addMessages()`)
-3. 后端 API（深合并，最高优先级）
-
-### 核心模块职责
-| 模块 | 职责 |
-|------|------|
-| `utils/create-provider-installer.js` | `installProvider()` / `loadAndInstallProviders()` / `routeStore` / `normalizeRoute()` |
-| `providers/nexus-admin.js` | 基座 Provider：`install()` / `init()` / `buildPageMap(router)` |
-| `app.js` | 入口：`createApp` → `loadAndInstallProviders` → `buildPageMap` → `mount` |
-| `router/index.js` | `internalRoutes` 内部路由配置 |
-| `stores/i18n.js` | `addMessages()` 三层合并国际化 |
-
-### 文件变更
-| 新增 | 修改 | 移除 |
-|------|------|------|
-| `utils/create-provider-installer.js` | `app.js` | `pages/registry.js` |
-| `providers/nexus-admin.js` | `stores/i18n.js` | `plugins/registry.js` |
-| `lang/zh.js`, `lang/en.js`, `lang/index.js` | `stores/menu.js` | `plugins/registry.test.js` |
-| `utils/create-provider-installer.test.js` | `router/index.js` | `mockMenus` 相关代码 |
-| | `NexusAdminManager.php` | |
-| | `app.blade.php` | |
-| | `mock/index.js`, `mock/setup.js` | |
-| | `styles/global.scss` | |
+### 应用层 vs 核心包分离
+| 类别 | 在核心包（core） | 在应用层（app） |
+|------|-----------------|----------------|
+| Provider 安装器 | ✅ `loadAndInstallProviders` | - |
+| Stores | ✅ 12 个 | - |
+| Components | ✅ 14 个 | - |
+| Layouts | ✅ 3 个 | - |
+| 路由定义 | - | ✅ `internalRoutes`（含 demo/system 页面） |
+| 业务页面 | - | ✅ `pages/demo`, `pages/system` |
+| Mock | - | ✅ `mock/` |
 
 ### 测试
 - 15 测试文件，188 测试用例，全部通过
+- 构建成功

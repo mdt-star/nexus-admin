@@ -26,3 +26,10 @@
 - [x] 样式迁移：菜单文字颜色变量移入 styles/global.scss
 - [x] 清理旧文件：pages/registry.js、plugins/registry.js 及测试
 - [x] 修复各类运行时 Bug：页面空白、组件映射丢失、StartMenu 无法打开等
+- [x] 核心代码拆分为 npm 包 @nexus-admin/core（npm workspace monorepo）
+  - [x] 创建 `packages/core/` 及 package.json / vite.config.js（library mode）
+  - [x] 核心代码迁入 `packages/core/src/`（utils / providers / stores / components / layouts / lang / styles / services / directives / composables）
+  - [x] 创建 public API 入口 `packages/core/src/index.js`
+  - [x] `app.js` / `AppRoot.vue` 改为导入 `@nexus-admin/core`
+  - [x] 根目录 `package.json` 加入 `workspaces: ["packages/*"]`
+  - [x] 构建 188 测试用例全部通过，build 成功

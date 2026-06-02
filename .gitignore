@@ -19,6 +19,10 @@ node_modules/
 # 前端构建产物
 /dist/
 
+# Monorepo workspace 子包
+packages/*/node_modules/
+packages/*/dist/
+
 # 操作系统
 Thumbs.db
 ehthumbs.db
