@@ -15,7 +15,9 @@ import {
 } from './index'
 
 export default (Mock) => {
-  // ==================== 桌面项（补充业务数据）====================
+  // ==================== 桌面（补充业务数据）====================
+  Mock.mock(/\/api\/disktops$/, 'get', () => mockDisktops)
+
   Mock.mock(/\/api\/disktops\/(\d+)\/items$/, 'get', (options) => {
     const id = Number(options.url.match(/\/api\/disktops\/(\d+)\/items/)[1])
     return mockDisktopItems.filter(item => item.disktop_id === id)
