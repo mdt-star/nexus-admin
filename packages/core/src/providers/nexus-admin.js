@@ -102,15 +102,28 @@ export default {
       }
     }, { immediate: true })
 
-    // URL 变化 → 窗口激活（支持浏览器前进/后退）
+    // URL 变化 → 打开对应页面（支持浏览器前进/后退）
+    const { useMenuStore } = await import('../stores/menu')
+    const menuStore = useMenuStore()
     let syncing = false
     router.afterEach((to) => {
       if (syncing) return
       if (to.path === '/') return
-      const match = windowStore.items.find(item => item.path === to.path)
-      if (match && match.id !== windowStore.activeId) {
+      // 先尝试从已打开窗口中激活
+      const open = windowStore.items.find(item => item.path === to.path)
+      if (open) {
+        if (open.id !== windowStore.activeId) {
+          syncing = true
+          windowStore.activate(open.id)
+          syncing = false
+        }
+        return
+      }
+      // 未打开：从菜单树中查找并打开（兼容已关闭页面的回退）
+      const menuItem = menuStore.findMenuByRoute(to.path)
+      if (menuItem) {
         syncing = true
-        windowStore.activate(match.id)
+        windowStore.open(menuItem)
         syncing = false
       }
     })
