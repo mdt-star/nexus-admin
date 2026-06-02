@@ -1,7 +1,7 @@
 /**
  * 系统信息 API
  */
-import request from '@nexus-admin/core/src/services/api'
+import { request } from '@nexus-admin/core'
 
 export default {
   info() {
