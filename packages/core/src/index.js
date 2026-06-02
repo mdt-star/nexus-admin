@@ -7,6 +7,7 @@
 
 // === Provider 安装器 ===
 export { loadAndInstallProviders, installProvider, routeStore } from './utils/create-provider-installer'
+export { I18nCollector } from './utils/i18n-collector'
 
 // === 钩子系统 ===
 export { default as hookManager } from './utils/hook-manager'

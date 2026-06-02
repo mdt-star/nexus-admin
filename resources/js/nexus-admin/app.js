@@ -69,7 +69,7 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 
 import zh from './lang/zh'
 import en from './lang/en'
-import { AppRoot } from '@nexus-admin/core'
+import { AppRoot, I18nCollector } from '@nexus-admin/core'
 import router, { internalRoutes } from './router/index'
 import { hookManager, loadAndInstallProviders, nexusAdminProvider } from '@nexus-admin/core'
 import '@nexus-admin/core/src/styles/global.scss'
@@ -98,27 +98,13 @@ async function bootstrap(mountSelector = '#app') {
   app.use(ElementPlus, { size: 'large' })
 
   // ==================== 安装并初始化所有 Provider ====================
-  // i18n.addMessages 暂存到队列，init 阶段回放
-  const pendingI18nMessages = []
-
-  // 注入应用层业务翻译（与核心包翻译合并）
-  pendingI18nMessages.push({ 'zh-CN': zh, 'en': en })
-
   const providerCtx = {
     app, router, hookManager, pinia,
-    i18n: {
-      addMessages(lang, msgs) {
-        if (typeof lang === 'object') {
-          pendingI18nMessages.push(lang)
-        } else {
-          pendingI18nMessages.push([lang, msgs])
-        }
-      }
-    }
+    i18n: new I18nCollector({ 'zh-CN': zh, 'en': en })
   }
 
-  // install 基座 provider（代理 router.addRoute 后自动注册内部路由）
-  await loadAndInstallProviders(providerCtx, nexusAdminProvider, pendingI18nMessages)
+  // install→init 一体化（i18n 队列在内部自动 flush）
+  await loadAndInstallProviders(providerCtx, nexusAdminProvider)
 
   // 基座路由必须在 install 之后注册，确保走代理的数组处理逻辑
   internalRoutes.forEach(route => router.addRoute(route))

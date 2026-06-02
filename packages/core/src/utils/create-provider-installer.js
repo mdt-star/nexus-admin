@@ -248,11 +248,13 @@ function normalizeRoute(route, parentName, provider) {
  *   3. init 基座 provider
  *   4. init 第三方 provider（如果提供 init 方法）
  *
- * @param {object}   ctx                   - provider 上下文
- * @param {object}   baseProvider           - 基座 provider 实例
- * @param {Array}    pendingI18nMessages    - 第三方暂存的语言包队列
+ * install 阶段：provider 调用 ctx.i18n.addMessages() 暂存语言包
+ * init 阶段：收集器自动 flush 并传入基座 provider 的回放逻辑
+ *
+ * @param {object}   ctx              - provider 上下文（ctx.i18n 应为 I18nCollector 实例）
+ * @param {object}   baseProvider     - 基座 provider 实例
  */
-export async function loadAndInstallProviders(ctx, baseProvider, pendingI18nMessages) {
+export async function loadAndInstallProviders(ctx, baseProvider) {
   // === 1. 安装基座 provider ===
   installProvider(ctx, 'nexus-admin', baseProvider)
 
@@ -276,6 +278,10 @@ export async function loadAndInstallProviders(ctx, baseProvider, pendingI18nMess
   }))
 
   // === 3. 初始化基座 provider ===
+  // 从 I18nCollector 中 flush 所有暂存的消息
+  const pendingI18nMessages = typeof ctx.i18n?.flush === 'function'
+    ? ctx.i18n.flush()
+    : []
   await baseProvider.init(ctx, pendingI18nMessages)
 
   // === 4. 初始化第三方 provider（如果有 init 方法） ===
