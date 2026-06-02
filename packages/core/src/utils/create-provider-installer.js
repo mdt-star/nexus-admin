@@ -286,12 +286,18 @@ export async function loadAndInstallProviders(ctx, baseProviders) {
     }
   }))
 
-  // === 3. init 各 base provider ===
+  // === 3. 执行所有已注册的 Mock ===
+  // 必须放在 init 之前，因为 init 阶段（如 restoreSession）会发 API 请求
+  if (ctx.mock && typeof ctx.mock.run === 'function') {
+    await ctx.mock.run()
+  }
+
+  // === 4. init 各 base provider ===
   for (const provider of initList) {
     await provider.init(ctx)
   }
 
-  // === 4. 初始化第三方 provider（如果有 init 方法） ===
+  // === 5. 初始化第三方 provider（如果有 init 方法） ===
   for (const provider of thirdPartyProviders) {
     if (typeof provider.init === 'function') {
       try {

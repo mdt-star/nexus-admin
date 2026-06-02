@@ -66,9 +66,6 @@ export async function createNexusApp({ router, baseProviders, mountSelector = '#
   }
   await loadAndInstallProviders(providerCtx, baseProviders)
 
-  // ==================== 执行所有已注册的 Mock ====================
-  await mock.run()
-
   // ==================== 挂载应用 ====================
   app.mount(mountSelector)
 
