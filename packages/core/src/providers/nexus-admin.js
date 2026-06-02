@@ -94,11 +94,26 @@ export default {
     // ==================== 9. URL 同步 ====================
     const { useWindowStore } = await import('../stores/windows')
     const windowStore = useWindowStore()
+
+    // 窗口激活 → URL（replace 不新增历史记录，由 afterEach 管理前进/后退）
     watch(() => windowStore.active, (active) => {
       if (active && active.path) {
-        router.push({ path: active.path, query: active.params?.query || {} }).catch(() => {})
+        router.replace({ path: active.path, query: active.params?.query || {} }).catch(() => {})
       }
     }, { immediate: true })
+
+    // URL 变化 → 窗口激活（支持浏览器前进/后退）
+    let syncing = false
+    router.afterEach((to) => {
+      if (syncing) return
+      if (to.path === '/') return
+      const match = windowStore.items.find(item => item.path === to.path)
+      if (match && match.id !== windowStore.activeId) {
+        syncing = true
+        windowStore.activate(match.id)
+        syncing = false
+      }
+    })
 
     // ==================== 10. 构建页面组件映射 ====================
     // 布局组件（SidebarLayout/DesktopLayout/DesktopWindow）通过此映射查找页面组件
