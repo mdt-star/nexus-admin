@@ -70,8 +70,7 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import AppRoot from './AppRoot.vue'
 import router, { internalRoutes } from './router/index'
 import { hookManager, loadAndInstallProviders, nexusAdminProvider } from '@nexus-admin/core'
-
-import './styles/global.scss'
+import '@nexus-admin/core/src/styles/global.scss'
 
 // 启动应用
 async function bootstrap(mountSelector = '#app') {
