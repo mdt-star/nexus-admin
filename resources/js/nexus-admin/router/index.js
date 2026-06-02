@@ -1,11 +1,10 @@
 /**
  * 路由配置
- * 将菜单 route 映射到页面组件，支持 URL 同步
  *
- * internalRoutes 为基座内置路由，由 providers/nexus-admin.js 通过
- * router.addRoute() 注册，自动进入 routeStore 管理。
+ * internalRoutes 为应用层业务路由，由 app-provider 通过 router.addRoute() 注册。
+ * 框架级路由（catch-all + 首页）已在 createNexusRouter() 中内置。
  */
-import { createRouter, createWebHistory } from 'vue-router'
+import { createNexusRouter } from '@nexus-admin/core'
 
 import Dashboard from '../pages/demo/Dashboard.vue'
 import ContentArticle from '../pages/demo/ContentArticle.vue'
@@ -13,19 +12,11 @@ import ContentCategory from '../pages/demo/ContentCategory.vue'
 import User from '../pages/system/User.vue'
 import Role from '../pages/system/Role.vue'
 import Config from '../pages/system/Config.vue'
-import HomePage from '@nexus-admin/core/src/pages/HomePage.vue'
 
-const routes = [
-  {
-    path: '/:pathMatch(.*)*',
-    name: 'app',
-    component: () => import('@nexus-admin/core/src/AppRoot.vue')
-  }
-]
+const router = createNexusRouter()
 
 /**
- * 基座内置路由，由 provider 统一注册
- * 放在此处集中管理路由配置，provider 只负责注册流程
+ * 应用层业务路由，由 app-provider 统一注册
  */
 export const internalRoutes = [
   {
@@ -48,18 +39,7 @@ export const internalRoutes = [
       { path: 'article', name: 'content-article', permission: true, meta: { title: '文章管理', icon: 'Notebook' }, component: ContentArticle },
       { path: 'category', name: 'content-category', permission: true, meta: { title: '分类管理', icon: 'Collection' }, component: ContentCategory }
     ]
-  },
-  {
-    path: '/',
-    name: 'nexus-home',
-    meta: { title: '首页', icon: 'HomeFilled', hidden: true, sort: -1 },
-    component: HomePage
   }
 ]
-
-const router = createRouter({
-  history: createWebHistory(),
-  routes
-})
 
 export default router
