@@ -50,6 +50,7 @@ nexus-admin/
 | 路由定义 | - | ✅ `internalRoutes`（含 demo/system 页面） |
 | 业务页面 | - | ✅ `pages/demo`, `pages/system` |
 | Mock | - | ✅ `mock/` |
+| 样式 | ✅ `styles/` (variables + global) | - |
 
 ### 测试
 - 15 测试文件，188 测试用例，全部通过

@@ -30,6 +30,7 @@ export { useShortcutsStore } from './stores/shortcuts'
 export { useUiSizeStore } from './stores/size'
 
 // === 组件 ===
+export { default as AppRoot } from './AppRoot.vue'
 export { default as GlobeIcon } from './components/GlobeIcon.vue'
 export { default as LoginPage } from './components/LoginPage.vue'
 export { default as PreferencesPanel } from './components/PreferencesPanel.vue'

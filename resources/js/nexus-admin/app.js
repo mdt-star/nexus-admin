@@ -67,7 +67,7 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 
-import AppRoot from './AppRoot.vue'
+import { AppRoot } from '@nexus-admin/core'
 import router, { internalRoutes } from './router/index'
 import { hookManager, loadAndInstallProviders, nexusAdminProvider } from '@nexus-admin/core'
 import '@nexus-admin/core/src/styles/global.scss'

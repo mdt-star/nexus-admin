@@ -19,7 +19,7 @@ const routes = [
   {
     path: '/:pathMatch(.*)*',
     name: 'app',
-    component: () => import('../AppRoot.vue')
+    component: () => import('@nexus-admin/core/src/AppRoot.vue')
   }
 ]
 
