@@ -5,22 +5,15 @@
  */
 
 import '@nexus-admin/core/src/styles/global.scss'
-
 import { createNexusApp, nexusAdminProvider } from '@nexus-admin/core'
 import router from './router/index'
 import appProvider from './providers/app'
 
 // 启动应用
-async function bootstrap() {
-  const { initMock } = await import('./mock/setup')
+const { initMock } = await import('./mock/setup')
 
-  await createNexusApp({
-    router,
-    baseProviders: [nexusAdminProvider, appProvider],
-    mockInit: initMock
-  })
-}
-
-bootstrap()
-
-export { bootstrap }
+export default await createNexusApp({
+  router,
+  baseProviders: [nexusAdminProvider, appProvider],
+  mockInit: initMock
+})
