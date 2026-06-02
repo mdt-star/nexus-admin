@@ -238,12 +238,23 @@ async function initNexusAdmin(mountSelector = '#app') {
 
   // ==================== 加载 Provider ====================
   // 构造 provider 上下文
-  const providerCtx = { app, router, hookManager, pinia }
+  // i18n.addMessages 在初始化前暂存到队列，i18nStore 初始化后回放
+  const pendingI18nMessages = []
+
+  const providerCtx = {
+    app, router, hookManager, pinia,
+    i18n: {
+      addMessages(lang, msgs) {
+        pendingI18nMessages.push([lang, msgs])
+      }
+    }
+  }
 
   // 1. 安装基座自身 Provider（内置路由，providerName='nexus-admin' 由 installProvider 自动注入）
   installProvider(providerCtx, 'nexus-admin', nexusAdminProvider)
 
   // 2. 加载并安装第三方 Provider（providerName 从 PHP 注入的 key 自动传入）
+  //    provider 可通过 ctx.i18n.addMessages(lang, msgs) 注册翻译
   await loadAndInstallProviders(providerCtx)
 
   // 3. 暴露页面组件到全局（兼容旧式引用）
@@ -276,16 +287,15 @@ async function initNexusAdmin(mountSelector = '#app') {
   // 初始化多语言
   const { useI18nStore } = await import('./stores/i18n')
   const i18nStore = useI18nStore()
-  await i18nStore.init()
+  // init 顺序：基座内置 → 第三方 Provider(暂存队列) → 后端 API
+  await i18nStore.init(pendingI18nMessages)
+  // 初始化后，provider 也可直接调用 i18nStore.addMessages()
+  providerCtx.i18n.addMessages = i18nStore.addMessages.bind(i18nStore)
 
   // 将翻译函数注入请求实例，使全局错误提示支持国际化
   setTranslator(i18nStore.t)
 
-  // 加载菜单
-  const { useMenuStore } = await import('./stores/menu')
-  const menuStore = useMenuStore()
-  await menuStore.loadMenus()
-
+  // 菜单数据由 routeStore 自动构建，无需手动加载
   // 恢复用户登录会话
   const { useUserStore } = await import('./stores/user')
   const userStore = useUserStore()

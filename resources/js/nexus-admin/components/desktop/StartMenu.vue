@@ -105,8 +105,8 @@ function filterMenus(items, q) {
 }
 
 function onSelect(index) {
-  const id = Number(index)
-  const item = findItem(menuStore.menus || [], id)
+  // index 是路由 name（字符串），不再转数字
+  const item = findItem(menuStore.menus || [], index)
   if (item && item.component) {
     emit('open-page', item)
     hide()
@@ -115,7 +115,8 @@ function onSelect(index) {
 
 function findItem(items, id) {
   for (const item of items) {
-    if (item.id === id) return item
+    // 使用宽松比较兼容字符串和数字 id
+    if (item.id == id) return item
     if (item.children?.length) {
       const found = findItem(item.children, id)
       if (found) return found

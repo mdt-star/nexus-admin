@@ -8,8 +8,7 @@
 import {
   mockMenus,
   mockPermissionTags,
-  mockConfig,
-  mockI18nMessages
+  mockConfig
 } from './index'
 
 let Mock = null
@@ -93,11 +92,9 @@ export async function initMock() {
   Mock.mock(/\/api\/permissions\/tags$/, 'get', () => mockPermissionTags)
 
   // ==================== 国际化 ====================
-
-  Mock.mock(/\/api\/i18n\/\w+/, 'get', (options) => {
-    const locale = options.url.match(/\/api\/i18n\/(\w+)/)[1]
-    return mockI18nMessages[locale] || mockI18nMessages['zh-CN']
-  })
+  // 基座语言包已在 base/translations.js 中内置
+  // Mock 返回空对象，addMessages 不会覆盖现有翻译（深合并）
+  Mock.mock(/\/api\/i18n\/\w+/, 'get', () => ({}))
 
   // ==================== 认证 ====================
 

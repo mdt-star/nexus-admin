@@ -96,7 +96,7 @@ export const routeStore = reactive({
       permission: meta.permission || null,
       sort: meta.sort ?? 0,
       path: route.path,
-      component: route.components?.default
+      component: (route.components?.default || route.component)
         ? route.name // 用路由 name 作为组件标识
         : null,
       provider: meta._provider || null
