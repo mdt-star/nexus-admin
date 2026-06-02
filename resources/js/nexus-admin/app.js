@@ -70,83 +70,10 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import AppRoot from './AppRoot.vue'
 import router from './router'
 import hookManager from './utils/hook-manager'
-import { installProvider, routeStore } from './utils/create-provider-installer'
-
-import './styles/global.scss'
-
-// 基座自身 Provider
+import { loadAndInstallProviders, routeStore } from './utils/create-provider-installer'
 import nexusAdminProvider from './providers/nexus-admin'
 
-/**
- * 加载、安装并初始化所有 Provider
- *
- * 内部顺序（install 无顺序依赖，init 有顺序依赖）：
- *   1. install 基座 provider（语言包、图标、指令、组件、路由）
- *   2. install 第三方 provider（注册操作）
- *   3. init 基座 provider（config → API → 权限 → 主题 → i18n → 用户 → 尺寸 → 响应式）
- *   4. init 第三方 provider（如果提供 init 方法）
- *
- * @param {object} ctx                  - provider 上下文
- * @param {Array}  pendingI18nMessages   - 第三方暂存的语言包队列
- */
-async function loadAndInstallProviders(ctx, pendingI18nMessages) {
-  // === 1. 安装基座 provider ===
-  installProvider(ctx, 'nexus-admin', nexusAdminProvider)
-
-  // === 2. 安装第三方 provider（注册型操作） ===
-  const providerMap = window.__NEXUS_ADMIN_PROVIDERS__ || {}
-  const thirdPartyProviders = []
-
-  await Promise.all(Object.entries(providerMap).map(async ([pkg, path]) => {
-    try {
-      const mod = await import(/* @vite-ignore */ `./${path}`)
-      const provider = mod.default || mod
-      if (provider && typeof provider.install === 'function') {
-        installProvider(ctx, pkg, provider)
-        thirdPartyProviders.push(provider)
-      }
-    } catch (e) {
-      console.warn(`[NexusAdmin] 加载 Provider "${pkg}" 失败:`, e)
-    }
-  }))
-
-  // === 3. 初始化基座 provider ===
-  await nexusAdminProvider.init(ctx, pendingI18nMessages)
-
-  // === 4. 初始化第三方 provider（如果有 init 方法） ===
-  for (const provider of thirdPartyProviders) {
-    if (typeof provider.init === 'function') {
-      try {
-        await provider.init(ctx)
-      } catch (e) {
-        console.warn(`[NexusAdmin] 初始化 Provider 失败:`, e)
-      }
-    }
-  }
-}
-
-/**
- * 构建页面组件映射（兼容旧式 window.__NEXUS_ADMIN_PAGES__）
- * 布局组件（SidebarLayout/DesktopLayout/DesktopWindow）通过此映射查找组件
- */
-function buildPageMapFromRoutes() {
-  const pageMap = {}
-  const routes = router.getRoutes()
-
-  function walk(records) {
-    for (const record of records) {
-      if (record.components?.default) {
-        pageMap[record.name] = record.components.default
-      }
-      if (record.children) {
-        walk(record.children)
-      }
-    }
-  }
-
-  walk(routes)
-  return pageMap
-}
+import './styles/global.scss'
 
 // 启动应用
 async function bootstrap(mountSelector = '#app') {
@@ -189,10 +116,10 @@ async function bootstrap(mountSelector = '#app') {
   }
 
   // 一句话完成：install 基座 → install 第三方 → init 基座 → init 第三方
-  await loadAndInstallProviders(providerCtx, pendingI18nMessages)
+  await loadAndInstallProviders(providerCtx, nexusAdminProvider, pendingI18nMessages)
 
   // 暴露页面组件到全局（布局组件通过此映射查找页面组件）
-  window.__NEXUS_ADMIN_PAGES__ = buildPageMapFromRoutes()
+  window.__NEXUS_ADMIN_PAGES__ = nexusAdminProvider.buildPageMap(router)
 
   // ==================== 挂载应用 ====================
   app.mount(mountSelector)

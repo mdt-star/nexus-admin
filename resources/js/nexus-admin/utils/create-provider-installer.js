@@ -238,3 +238,55 @@ function normalizeRoute(route, parentName, provider) {
     }
   }
 }
+
+/**
+ * 加载、安装并初始化所有 Provider
+ *
+ * 内部顺序（install 无顺序依赖，init 有顺序依赖）：
+ *   1. install 基座 provider
+ *   2. install 第三方 provider（注册操作）
+ *   3. init 基座 provider
+ *   4. init 第三方 provider（如果提供 init 方法）
+ *
+ * @param {object}   ctx                   - provider 上下文
+ * @param {object}   baseProvider           - 基座 provider 实例
+ * @param {Array}    pendingI18nMessages    - 第三方暂存的语言包队列
+ */
+export async function loadAndInstallProviders(ctx, baseProvider, pendingI18nMessages) {
+  // === 1. 安装基座 provider ===
+  installProvider(ctx, 'nexus-admin', baseProvider)
+
+  // === 2. 安装第三方 provider（注册型操作） ===
+  const providerMap = window.__NEXUS_ADMIN_PROVIDERS__ || {}
+  const thirdPartyProviders = []
+
+  await Promise.all(Object.entries(providerMap).map(async ([pkg, path]) => {
+    try {
+      // path 格式: "vendor/nexus-blog/provider.js"
+      // 从 utils/ 目录解析到项目根: ../${path}
+      const mod = await import(/* @vite-ignore */ `../${path}`)
+      const provider = mod.default || mod
+      if (provider && typeof provider.install === 'function') {
+        installProvider(ctx, pkg, provider)
+        thirdPartyProviders.push(provider)
+      }
+    } catch (e) {
+      console.warn(`[NexusAdmin] 加载 Provider "${pkg}" 失败:`, e)
+    }
+  }))
+
+  // === 3. 初始化基座 provider ===
+  await baseProvider.init(ctx, pendingI18nMessages)
+
+  // === 4. 初始化第三方 provider（如果有 init 方法） ===
+  for (const provider of thirdPartyProviders) {
+    if (typeof provider.init === 'function') {
+      try {
+        await provider.init(ctx)
+      } catch (e) {
+        console.warn(`[NexusAdmin] 初始化 Provider 失败:`, e)
+      }
+    }
+  }
+}
+

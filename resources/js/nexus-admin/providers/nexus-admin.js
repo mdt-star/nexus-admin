@@ -101,5 +101,31 @@ export default {
         router.push({ path: active.path, query: active.params?.query || {} }).catch(() => {})
       }
     }, { immediate: true })
+  },
+
+  /**
+   * 构建页面组件映射（兼容旧式 window.__NEXUS_ADMIN_PAGES__）
+   * 布局组件（SidebarLayout/DesktopLayout/DesktopWindow）通过此映射查找组件
+   *
+   * @param {object} router - Vue Router 实例
+   * @returns {object} { name: component }
+   */
+  buildPageMap(router) {
+    const pageMap = {}
+    const routes = router.getRoutes()
+
+    function walk(records) {
+      for (const record of records) {
+        if (record.components?.default) {
+          pageMap[record.name] = record.components.default
+        }
+        if (record.children) {
+          walk(record.children)
+        }
+      }
+    }
+
+    walk(routes)
+    return pageMap
   }
 }
