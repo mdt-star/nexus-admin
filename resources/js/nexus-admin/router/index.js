@@ -13,7 +13,7 @@ import ContentCategory from '../pages/demo/ContentCategory.vue'
 import User from '../pages/system/User.vue'
 import Role from '../pages/system/Role.vue'
 import Config from '../pages/system/Config.vue'
-import HomePage from '../pages/system/HomePage.vue'
+import HomePage from '@nexus-admin/core/src/pages/HomePage.vue'
 
 const routes = [
   {

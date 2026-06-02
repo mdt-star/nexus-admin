@@ -42,6 +42,7 @@ export const useUserStore = defineStore('nexus-user', () => {
     try {
       const response = await authApi.currentUser({ _silentError: true })
       if (response.data) {
+        console.log('Session restored for user:', response.data)
         user.value = response.data
         return true
       }
