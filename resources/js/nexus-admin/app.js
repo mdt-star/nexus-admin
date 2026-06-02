@@ -127,6 +127,7 @@ async function loadAndInstallProviders(ctx, pendingI18nMessages) {
 
 /**
  * 构建页面组件映射（兼容旧式 window.__NEXUS_ADMIN_PAGES__）
+ * 布局组件（SidebarLayout/DesktopLayout/DesktopWindow）通过此映射查找组件
  */
 function buildPageMapFromRoutes() {
   const pageMap = {}
@@ -187,11 +188,11 @@ async function bootstrap(mountSelector = '#app') {
     }
   }
 
-  // 暴露页面组件到全局
-  window.__NEXUS_ADMIN_PAGES__ = buildPageMapFromRoutes()
-
   // 一句话完成：install 基座 → install 第三方 → init 基座 → init 第三方
   await loadAndInstallProviders(providerCtx, pendingI18nMessages)
+
+  // 暴露页面组件到全局（布局组件通过此映射查找页面组件）
+  window.__NEXUS_ADMIN_PAGES__ = buildPageMapFromRoutes()
 
   // ==================== 挂载应用 ====================
   app.mount(mountSelector)

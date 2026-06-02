@@ -36,7 +36,15 @@ npm run test:watch
 
 ```
 resources/js/nexus-admin/
-├── app.js                    # 应用入口
+├── app.js                    # 应用入口（bootstrap 启动器）
+├── providers/                # Provider（扩展注册机制）
+│   └── nexus-admin.js        #   基座自身 Provider（install + init）
+├── lang/                     # 语言包
+│   ├── index.js              #   统一加载入口
+│   ├── zh.js                 #   中文翻译
+│   └── en.js                 #   英文翻译
+├── router/                   # 路由配置
+│   └── index.js              #   internalRoutes + createRouter
 ├── components/               # 公共组件
 │   └── common/
 │       └── PermissionTag.vue # 权限标签组件
@@ -49,9 +57,8 @@ resources/js/nexus-admin/
 │   ├── MainLayout.vue        # 主布局（响应式切换）
 │   └── SidebarLayout.vue     # 侧边栏布局（Tab 模式）
 ├── mock/                     # Mock 数据
-│   └── index.js
-├── plugins/                  # 插件系统
-│   └── registry.js           # 插件注册中心
+│   ├── index.js              #   模拟数据定义
+│   └── setup.js              #   Mock.js 拦截配置
 ├── services/                 # API 服务
 │   └── api.js
 ├── stores/                   # Pinia 状态管理
@@ -66,18 +73,10 @@ resources/js/nexus-admin/
 │   ├── variables.scss        # CSS 变量（亮/暗主题）
 │   └── global.scss           # 全局样式
 ├── utils/                    # 工具
+│   ├── create-provider-installer.js  # Provider 安装器 + routeStore
 │   ├── hook-manager.js       # 钩子管理器
 │   └── hook-events.js        # 内置钩子事件
-└── vendor/                   # 扩展包目录
-    └── nexus-demo/           # 示例扩展包
-        ├── registry.js
-        └── pages/
-            ├── Dashboard.vue
-            ├── ContentArticle.vue
-            ├── ContentCategory.vue
-            ├── SystemUser.vue
-            ├── SystemRole.vue
-            └── SystemConfig.vue
+└── vendor/                   # 扩展包目录（composer 安装）
 ```
 
 ## 布局模式

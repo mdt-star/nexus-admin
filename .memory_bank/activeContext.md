@@ -1,33 +1,47 @@
 # 当前活动上下文
 
 ## 当前工作
-第三方注册机制架构重构已完成：从「声明式清单」（pages/components/directives/plugins）转变为「编程式 Provider + routeStore」模型。
+第三方注册机制架构重构已完成。Provider + routeStore 模型、国际化改造、代码清理均已全部完成，准备合并到 dev 分支。
 
 ## 改动总结
 
-### 新增文件
-| 文件 | 说明 |
-|------|------|
-| `utils/create-provider-installer.js` | Provider 安装器工厂 + routeStore 路由注册中心 |
-| `utils/create-provider-installer.test.js` | 14 个测试用例 |
-| `providers/nexus-admin.js` | 基座自身 Provider，注册内置路由 |
+### 核心架构变更
+从「声明式清单」（pages/components/directives/plugins 四类清单）转变为「编程式 Provider + routeStore」模型。
 
-### 修改文件
-| 文件 | 操作 | 说明 |
+### Provider 生命周期
+每个 Provider 支持两个阶段：
+1. **install()** — 注册型操作（路由、图标、指令、组件、语言包），mount 前执行，无顺序依赖
+2. **init()** — 初始化型操作（config/theme/i18n/user/size 等），有严格顺序依赖
+
+### 启动流程 (`app.js bootstrap`)
+```
+createApp → use(Pinia) → use(Router) → use(ElementPlus)
+  → loadAndInstallProviders()
+    1. install 基座 provider
+    2. install 第三方 provider
+    3. init 基座 provider
+    4. init 第三方 provider
+  → window.__NEXUS_ADMIN_PAGES__ = buildPageMapFromRoutes()
+  → mount()
+```
+
+### 国际化三层合并
+1. 基座内置 (`lang/zh.js`, `lang/en.js`)
+2. 第三方 Provider (`ctx.i18n.addMessages()`)
+3. 后端 API（深合并，最高优先级）
+
+### 文件变更
+| 新增 | 修改 | 移除 |
 |------|------|------|
-| `app.js` | 重写 | 移除四类解析函数，改为 provider 加载流程；引入 routeStore；通过 router.getRoutes() 构建页面映射 |
-| `NexusAdminManager.php` | 重写 | 从四类清单 → 仅收集 provider 路径；保留 collectRegistry() 兼容 |
-| `NexusAdminServiceProvider.php` | 修改 | 注入 nexusProviders 替代 nexusRegistry |
-| `app.blade.php` | 修改 | 注入 `__NEXUS_ADMIN_PROVIDERS__` 替代 `__NEXUS_ADMIN_REGISTRY__` |
-| `index.html` | 修改 | 开发环境使用新的 provider 机制 |
+| `utils/create-provider-installer.js` | `app.js` | `pages/registry.js` |
+| `providers/nexus-admin.js` | `stores/i18n.js` | `plugins/registry.js` |
+| `lang/zh.js`, `lang/en.js`, `lang/index.js` | `stores/menu.js` | `plugins/registry.test.js` |
+| `utils/create-provider-installer.test.js` | `router/index.js` | `mockMenus` 相关代码 |
+| | `NexusAdminManager.php` | |
+| | `app.blade.php` | |
+| | `mock/index.js`, `mock/setup.js` | |
+| | `styles/global.scss` | |
 
-### 移除文件
-| 文件 | 说明 |
-|------|------|
-| `pages/registry.js` | 不再需要（开发环境环境直接用 index.html 的 __NEXUS_ADMIN_PROVIDERS__）|
-| `plugins/registry.js` | 插件注册中心（被 provider 机制取代）|
-| `plugins/registry.test.js` | 对应测试 |
-
-## 测试情况
-- 15 个测试文件，170 个测试用例，全部通过
-- 构建成功，零报错
+### 测试
+- 15 测试文件，188 测试用例，全部通过
+- 构建成功
