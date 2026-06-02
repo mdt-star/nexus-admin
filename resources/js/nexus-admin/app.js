@@ -8,58 +8,7 @@
  *   3. 挂载应用
  */
 
-/**
- * ResizeObserver 自修复补丁
- * 解决浏览器 "ResizeObserver loop completed with undelivered notifications" 错误。
- */
-(function patchResizeObserver() {
-  if (typeof window === 'undefined' || window.__nexus_ROPatched) return
-  window.__nexus_ROPatched = true
-  const OrigRO = window.ResizeObserver
-  if (!OrigRO) return
-
-  let rafId = null
-
-  function flushAll() {
-    rafId = null
-    const entries = []
-
-    if (typeof window.__nexus_ROPendingList !== 'undefined') {
-      const list = window.__nexus_ROPendingList
-      window.__nexus_ROPendingList = []
-      entries.push(...list)
-    }
-    for (const { ro, target } of entries) {
-      try {
-        ro.callback([{ target, contentRect: target.getBoundingClientRect() }], ro.observer)
-      } catch (e) {
-        // 静默吞异常
-      }
-    }
-  }
-
-  function scheduleFlush() {
-    if (!rafId) {
-      rafId = requestAnimationFrame(flushAll)
-    }
-  }
-
-  function PatchedResizeObserver(callback) {
-    const ro = new OrigRO((entries, observer) => {
-      if (!window.__nexus_ROPendingList) {
-        window.__nexus_ROPendingList = []
-      }
-      for (const entry of entries) {
-        window.__nexus_ROPendingList.push({ ro: { callback, observer }, target: entry.target })
-      }
-      scheduleFlush()
-    })
-    return ro
-  }
-  PatchedResizeObserver.prototype = OrigRO.prototype
-  window.ResizeObserver = PatchedResizeObserver
-})()
-
+import '@nexus-admin/core/src/utils/patch-resize-observer'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
