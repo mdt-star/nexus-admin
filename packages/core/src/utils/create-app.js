@@ -27,44 +27,46 @@ import AppRoot from '../AppRoot.vue'
 import hookManager from './hook-manager'
 import { I18nCollector } from './i18n-collector'
 import { loadAndInstallProviders } from './create-provider-installer'
+import { initCoreMock } from '../mock/setup'
 
 /**
  * 创建并启动 Nexus Admin 应用
  *
- * 自动加载 Mock 策略（优先级从高到低）：
- *   1. app layer 根目录下的 mock/setup.js（约定路径）
- *   2. 核心包内置的 initCoreMock（仅占位，无业务数据）
+ * Mock 策略：
+ *   1. 始终加载核心包内置 Mock（框架 API 响应）
+ *   2. 如果传入 mockInit，在核心 Mock 之后执行（应用层可继承并覆盖）
+ *   3. 开关：import.meta.env.VITE_USE_MOCK === 'false' 时跳过
  *
  * @param {object} options
  * @param {object}   options.router         - Vue Router 实例
  * @param {object[]} options.baseProviders  - base provider 数组
+ * @param {Function} [options.mockInit]     - 应用层 Mock 初始化函数（可选）
  * @param {string}   [options.mountSelector] - 挂载选择器，默认 '#app'
  * @returns {Promise<object>} app 实例
  */
-export async function createNexusApp({ router, baseProviders, mountSelector = '#app' }) {
+export async function createNexusApp({ router, baseProviders, mockInit, mountSelector = '#app' }) {
   const app = createApp(AppRoot)
   const pinia = createPinia()
 
   // 触发 app:init 钩子
   await hookManager.emit('app:init', app)
 
-  // 加载 Mock（先尝试应用层约定路径，再回退到核心包内置）
+  // 加载 Mock
   if (import.meta.env.VITE_USE_MOCK !== 'false') {
-    // 先尝试从应用层加载业务 Mock
-    let mockLoaded = false
-    if (typeof window.__NEXUS_ADMIN_MOCK_PATH__ !== 'undefined') {
-      try {
-        const mod = await import(/* @vite-ignore */ window.__NEXUS_ADMIN_MOCK_PATH__)
-        await mod.initMock?.()
-        mockLoaded = true
-      } catch { /* 忽略 */ }
+    // 1. 核心包内置 Mock（框架 API）
+    try {
+      await initCoreMock()
+    } catch (e) {
+      console.warn('[NexusAdmin] 核心 Mock 加载失败:', e.message)
     }
-    // 回退到核心包内置 Mock
-    if (!mockLoaded) {
+
+    // 2. 应用层自定义 Mock（继承并覆盖）
+    if (mockInit) {
       try {
-        const { initCoreMock } = await import('../mock/setup')
-        await initCoreMock()
-      } catch { /* 核心包内置 mock 不存在则跳过 */ }
+        await mockInit()
+      } catch (e) {
+        console.warn('[NexusAdmin] 应用层 Mock 加载失败（可忽略）:', e.message)
+      }
     }
   }
 
