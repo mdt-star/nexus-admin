@@ -1,0 +1,14 @@
+{
+  "shortcuts": [
+    {
+      "label": "Run2",
+      "command": "npm run dev  -- --port 8082",
+      "icon": "play"
+    },
+    {
+      "label": "Run1",
+      "command": "npm run dev  -- --port 8081",
+      "icon": "play"
+    }
+  ]
+}

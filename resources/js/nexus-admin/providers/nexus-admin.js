@@ -1,57 +1,105 @@
 /**
  * Nexus Admin 基座提供者
  *
- * 注册内置路由、页面组件到 system 命名空间。
+ * install: 注册型操作（语言包、图标、指令、组件、路由）
+ * init:    初始化型操作（config/theme/i18n/user/size 等有顺序依赖的启动流程）
+ *
  * providerName 'nexus-admin' 由 app.js 通过 installProvider 自动注入。
- * 第三方 provider 不需要写 providerName，基座会从 PHP 收集的 key 自动传入。
  */
-import Dashboard from '../pages/demo/Dashboard.vue'
-import ContentArticle from '../pages/demo/ContentArticle.vue'
-import ContentCategory from '../pages/demo/ContentCategory.vue'
-import User from '../pages/system/User.vue'
-import Role from '../pages/system/Role.vue'
-import Config from '../pages/system/Config.vue'
-import HomePage from '../pages/system/HomePage.vue'
+import { baseMessages } from '../lang/index'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import permissionDirective from '../directives/permission'
+import PermissionTag from '../components/common/PermissionTag.vue'
+import { internalRoutes } from '../router/index'
+import { setApiBaseURL, setLoginPath, setTranslator } from '../services/api'
+import { watch } from 'vue'
 
 export default {
   /**
-   * @param {object}   ctx           - { app, router, hookManager, pinia }
-   * @param {string}   providerName  - 由基座自动传入的提供者名称
+   * install 阶段：注册型操作
+   * 在 app.mount() 之前执行，无顺序依赖
    */
-  install({ router }, providerName) {
-    // 路由数组批量注册
-    // name 和 permission 可通过简写自动推演
-    // name: 从 path 自动推演（/system → system），子路由自动拼父 name
-    // permission: true → 自动取 name 值
-    router.addRoute([
-      {
-        path: '/system',
-        permission: true,
-        meta: { title: '系统管理', icon: 'Setting', sort: 1000 },
-        redirect: '/system/user',
-        children: [
-          // name 显式指定，与 windowStore.open 的 component 引用保持兼容
-          { path: 'user', name: 'system-user', permission: true, meta: { title: '用户管理', icon: 'User' }, component: User },
-          { path: 'role', name: 'system-role', permission: true, meta: { title: '角色管理', icon: 'Avatar' }, component: Role },
-          { path: 'config', name: 'system-config', permission: true, meta: { title: '系统配置', icon: 'Setting' }, component: Config }
-        ]
-      },
-      {
-        path: '/demo',
-        permission: true,
-        meta: { title: '内容管理', icon: 'Document', sort: 100 },
-        children: [
-          { path: 'dashboard', name: 'dashboard', permission: true, meta: { title: '仪表盘', icon: 'DataBoard' }, component: Dashboard },
-          { path: 'article', name: 'content-article', permission: true, meta: { title: '文章管理', icon: 'Notebook' }, component: ContentArticle },
-          { path: 'category', name: 'content-category', permission: true, meta: { title: '分类管理', icon: 'Collection' }, component: ContentCategory }
-        ]
-      },
-      {
-        path: '/',
-        name: 'nexus-home',
-        meta: { title: '首页', icon: 'HomeFilled', hidden: true, sort: -1 },
-        component: HomePage
+  install({ app, router, i18n }, providerName) {
+    // ==================== 1. 语言包 ====================
+    i18n.addMessages(baseMessages)
+
+    // ==================== 2. Element Plus 图标全局注册 ====================
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+      app.component(key, component)
+    }
+
+    // ==================== 3. 权限指令 ====================
+    app.directive('permission', permissionDirective)
+
+    // ==================== 4. 权限组件 ====================
+    app.component('PermissionTag', PermissionTag)
+
+    // ==================== 5. 路由注册 ====================
+    router.addRoute(internalRoutes)
+  },
+
+  /**
+   * init 阶段：初始化型操作
+   * 在 install 之后、app.mount() 之前执行，有严格的顺序依赖
+   *
+   * @param {object}   ctx                     - { app, router, hookManager, pinia, i18n }
+   * @param {Array}    pendingI18nMessages     - 第三方暂存的语言包队列
+   */
+  async init(ctx, pendingI18nMessages) {
+    const { app, router, hookManager, pinia } = ctx
+
+    // ==================== 1. 配置加载 ====================
+    const { useConfigStore } = await import('../stores/config')
+    const configStore = useConfigStore()
+    configStore.loadUserConfigFromStorage()
+    await configStore.loadConfig()
+    await hookManager.emit('config:loaded', configStore.merged)
+
+    // ==================== 2. API 基础配置 ====================
+    setApiBaseURL(configStore.get('apiBaseURL', ''))
+    setLoginPath(configStore.get('loginPath', '/login'))
+
+    // ==================== 3. 权限标签 ====================
+    const { usePermissionStore } = await import('../stores/permission')
+    const permissionStore = usePermissionStore()
+    await permissionStore.loadTags()
+
+    // ==================== 4. 主题初始化 ====================
+    const { useThemeStore } = await import('../stores/theme')
+    const themeStore = useThemeStore()
+    themeStore.init()
+
+    // ==================== 5. 多语言初始化 ====================
+    const { useI18nStore } = await import('../stores/i18n')
+    const i18nStore = useI18nStore()
+    await i18nStore.init(pendingI18nMessages)
+    // 初始化后，第三方 provider 可调用 i18nStore.addMessages()
+    ctx.i18n.addMessages = i18nStore.addMessages.bind(i18nStore)
+    // 将翻译函数注入请求实例
+    setTranslator(i18nStore.t)
+
+    // ==================== 6. 用户会话恢复 ====================
+    const { useUserStore } = await import('../stores/user')
+    const userStore = useUserStore()
+    await userStore.restoreSession()
+
+    // ==================== 7. UI 尺寸 ====================
+    const { useUiSizeStore } = await import('../stores/size')
+    const uiSizeStore = useUiSizeStore()
+    uiSizeStore.syncFromConfig(configStore)
+
+    // ==================== 8. 响应式 ====================
+    const { useAppStore } = await import('../stores/app')
+    const appStore = useAppStore()
+    appStore.initResponsive()
+
+    // ==================== 9. URL 同步 ====================
+    const { useWindowStore } = await import('../stores/windows')
+    const windowStore = useWindowStore()
+    watch(() => windowStore.active, (active) => {
+      if (active && active.path) {
+        router.push({ path: active.path, query: active.params?.query || {} }).catch(() => {})
       }
-    ])
+    }, { immediate: true })
   }
 }

@@ -1,11 +1,12 @@
 /**
  * I18n Store 单元测试
  *
- * 测试三层合并：基座内置 → Provider 暂存 → 后端 API
+ * 测试两层合并：第三方 Provider → 后端 API
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useI18nStore } from './i18n'
+import { baseMessages } from '../lang/index'
 
 vi.mock('../utils/hook-manager', () => ({
   default: {
@@ -19,7 +20,6 @@ vi.mock('../services/i18n', () => ({
   }
 }))
 
-// Mock localStorage for config store
 const localStorageMock = (() => {
   let store = {}
   return {
@@ -43,28 +43,42 @@ describe('I18nStore', () => {
     expect(store.locale).toBe('zh-CN')
   })
 
-  it('init 加载基座内置语言包', async () => {
+  it('addMessages 批量注册所有语言', async () => {
     const store = useI18nStore()
-    // Mock 后端返回空，不干扰内置翻译
     const { default: i18nApi } = await import('../services/i18n')
     i18nApi.messages.mockResolvedValue({ data: {} })
+
+    // Provider 通过 addMessages(baseMessages) 批量注册所有语言
+    store.addMessages(baseMessages)
 
     await store.init()
 
-    // 基座内置翻译可用
     expect(store.t('common.save')).toBe('保存')
-    expect(store.t('common.searchPlaceholder')).toBe('搜索菜单或页面...')
+    expect(store.t('common.cancel')).toBe('取消')
   })
 
-  it('init 加载英文内置语言包', async () => {
+  it('addMessages 支持单语言注册', async () => {
     const store = useI18nStore()
     const { default: i18nApi } = await import('../services/i18n')
     i18nApi.messages.mockResolvedValue({ data: {} })
 
-    await store.setLocale('en')
+    store.addMessages('zh-CN', { custom: { hello: '你好' } })
+    await store.init()
 
-    expect(store.t('common.save')).toBe('Save')
-    expect(store.t('common.searchPlaceholder')).toBe('Search menus or pages...')
+    expect(store.t('custom.hello')).toBe('你好')
+  })
+
+  it('init 通过 pendingMessages 注册语言包', async () => {
+    const store = useI18nStore()
+    const { default: i18nApi } = await import('../services/i18n')
+    i18nApi.messages.mockResolvedValue({ data: {} })
+
+    // 模拟 provider install 阶段的 pending 队列
+    const pending = [baseMessages]
+    await store.init(pending)
+
+    // 基座翻译可用
+    expect(store.t('common.save')).toBe('保存')
   })
 
   it('addMessages 深合并不覆盖已有翻译', async () => {
@@ -72,12 +86,12 @@ describe('I18nStore', () => {
     const { default: i18nApi } = await import('../services/i18n')
     i18nApi.messages.mockResolvedValue({ data: {} })
 
-    await store.init()
-
+    store.addMessages(baseMessages)
     // Provider 注册额外翻译
     store.addMessages('zh-CN', { blog: { title: '博客管理' } })
+    await store.init()
 
-    expect(store.t('common.save')).toBe('保存')   // 基座翻译不变
+    expect(store.t('common.save')).toBe('保存')    // 基座翻译不变
     expect(store.t('blog.title')).toBe('博客管理')  // 新增翻译
   })
 
@@ -86,67 +100,35 @@ describe('I18nStore', () => {
     const { default: i18nApi } = await import('../services/i18n')
     i18nApi.messages.mockResolvedValue({ data: {} })
 
-    await store.init()
-
-    // Provider 覆盖部分翻译
+    store.addMessages(baseMessages)
     store.addMessages('zh-CN', { common: { save: '存储' } })
+    await store.init()
 
     expect(store.t('common.save')).toBe('存储')     // 被覆盖
     expect(store.t('common.cancel')).toBe('取消')    // 未被覆盖
   })
 
-  it('后端 API 语言包通过 addMessages 合并', async () => {
+  it('后端 API 语言包通过 addMessages 合并，优先级最高', async () => {
     const { default: i18nApi } = await import('../services/i18n')
-    // 后端返回覆盖翻译
     i18nApi.messages.mockResolvedValue({ data: { common: { save: '后端保存' } } })
 
     const store = useI18nStore()
+    store.addMessages(baseMessages)
     await store.init()
 
-    // 后端优先级最高
-    expect(store.t('common.save')).toBe('后端保存')
-    expect(store.t('common.cancel')).toBe('取消')    // 基座翻译未覆盖
+    expect(store.t('common.save')).toBe('后端保存')  // 后端 > Provider
+    expect(store.t('common.cancel')).toBe('取消')     // 基座翻译未覆盖
   })
 
-  it('pendingMessages 在 init 中合并', async () => {
-    const store = useI18nStore()
-    const { default: i18nApi } = await import('../services/i18n')
-    i18nApi.messages.mockResolvedValue({ data: {} })
-
-    // 模拟第三方 Provider 暂存的翻译（使用嵌套对象，t() 通过点号路径查找）
-    const pending = [
-      ['zh-CN', { plugin: { hello: '你好' } }],
-      ['en', { plugin: { hello: 'Hello' } }]
-    ]
-
-    await store.init(pending)
-
-    expect(store.t('plugin.hello')).toBe('你好')
-    // 基座翻译仍在
-    expect(store.t('common.save')).toBe('保存')
-  })
-
-  it('pendingMessages 优先级高于基座，低于后端', async () => {
-    const { default: i18nApi } = await import('../services/i18n')
-    i18nApi.messages.mockResolvedValue({ data: { common: { save: '后端保存' } } })
-
-    const store = useI18nStore()
-    const pending = [['zh-CN', { common: { save: 'Provider 保存' } }]]
-
-    await store.init(pending)
-
-    // 后端 > Provider > 基座
-    expect(store.t('common.save')).toBe('后端保存')
-  })
-
-  it('后端 API 失败时保留基座+Provider 翻译', async () => {
+  it('后端 API 失败时保留 Provider 翻译', async () => {
     const { default: i18nApi } = await import('../services/i18n')
     i18nApi.messages.mockRejectedValue(new Error('Network error'))
 
     const store = useI18nStore()
+    store.addMessages(baseMessages)
     await store.init()
 
-    // 基座翻译仍在
+    // Provider 翻译仍在
     expect(store.t('common.save')).toBe('保存')
   })
 
@@ -155,6 +137,7 @@ describe('I18nStore', () => {
     const { default: i18nApi } = await import('../services/i18n')
     i18nApi.messages.mockResolvedValue({ data: {} })
 
+    store.addMessages(baseMessages)
     await store.init()
 
     expect(store.t('common.confirmDelete', { title: '测试' })).toBe('确定删除「测试」？')
@@ -168,9 +151,14 @@ describe('I18nStore', () => {
 
   it('setLocale() 切换语言', async () => {
     const { default: i18nApi } = await import('../services/i18n')
+    // en 在 provider 中已注册，mock 后端返回空
     i18nApi.messages.mockResolvedValue({ data: {} })
 
     const store = useI18nStore()
+    store.addMessages(baseMessages)
+    await store.init()
+
+    // 切换到英文
     await store.setLocale('en')
     expect(store.locale).toBe('en')
     expect(store.t('common.save')).toBe('Save')
@@ -181,13 +169,14 @@ describe('I18nStore', () => {
     i18nApi.messages.mockResolvedValue({ data: {} })
 
     const store = useI18nStore()
+    store.addMessages(baseMessages)
     await store.init()
 
     // 模拟后继请求失败
     i18nApi.messages.mockRejectedValue(new Error('Network error'))
     await store.loadLocale('ja')
 
-    // 基座 zh-CN 翻译仍在
+    // 已有翻译不受影响
     expect(store.t('common.save')).toBe('保存')
   })
 })
