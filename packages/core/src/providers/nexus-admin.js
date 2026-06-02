@@ -38,11 +38,13 @@ export default {
    * init 阶段：初始化型操作
    * 在 install 之后、app.mount() 之前执行，有严格的顺序依赖
    *
-   * @param {object}   ctx                     - { app, router, hookManager, pinia, i18n }
-   * @param {Array}    pendingI18nMessages     - 第三方暂存的语言包队列
+   * @param {object}   ctx  - { app, router, hookManager, pinia, i18n }
+   *                            ctx.i18n 为 I18nCollector 实例，内部调用 flush() 获取队列
    */
-  async init(ctx, pendingI18nMessages) {
+  async init(ctx) {
     const { app, router, hookManager, pinia } = ctx
+    // 从 I18nCollector 中 flush 所有暂存的消息
+    const pendingI18nMessages = ctx.i18n?.flush?.() ?? []
 
     // ==================== 1. 配置加载 ====================
     const { useConfigStore } = await import('../stores/config')
