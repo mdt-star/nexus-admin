@@ -1,9 +1,10 @@
 /**
- * 应用层 Mock 拦截
+ * 应用层业务 Mock 数据
  *
- * 继承核心包内置 Mock，仅添加本应用特有的业务 Mock 数据。
+ * 导出一个 (Mock) => { ... } 函数，
+ * 在 app-provider 的 install 阶段通过 ctx.mock.add() 注册，
+ * 与核心包内置 Mock 叠加运行。
  */
-import { initCoreMock } from '@nexus-admin/core/src/mock/setup'
 import {
   mockPermissionTags,
   mockConfig,
@@ -13,24 +14,9 @@ import {
   mockSystemInfo
 } from './index'
 
-let Mock = null
-
-async function getMock() {
-  if (!Mock) {
-    Mock = (await import('mockjs')).default
-  }
-  return Mock
-}
-
-export async function initMock() {
-  // 先加载框架 API Mock
-  await initCoreMock()
-
-  // 再用业务数据覆盖/补充
-  const Mock = await getMock()
-
+export default (Mock) => {
   // ==================== 桌面项（补充业务数据）====================
-  Mock.mock(/\/api\/disktops\/\d+\/items$/, 'get', (options) => {
+  Mock.mock(/\/api\/disktops\/(\d+)\/items$/, 'get', (options) => {
     const id = Number(options.url.match(/\/api\/disktops\/(\d+)\/items/)[1])
     return mockDisktopItems.filter(item => item.disktop_id === id)
   })

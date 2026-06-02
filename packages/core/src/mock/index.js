@@ -1,34 +1,13 @@
 /**
- * 核心包内置 Mock 拦截
+ * 核心包内置 Mock 数据
  *
- * 模拟框架基础设施所需的 API 响应（auth / config / disktops / permissions / i18n / notifications），
- * 不包含任何业务数据。
+ * 模拟框架基础设施所需的 API 响应。
+ * 导出一个 (Mock) => { ... } 函数，由 MockManager 自动注册。
  *
- * 应用层可通过 createNexusApp({ mockInit }) 继承并扩展：
- *   import { initCoreMock } from '@nexus-admin/core/src/mock/setup'
- *   export async function initMock() {
- *     await initCoreMock()
- *     // 添加业务 Mock
- *   }
- *
- * 开关：import.meta.env.VITE_USE_MOCK === 'false' 时跳过
+ * 开关：VITE_USE_MOCK=false 时全部跳过（由 MockManager 控制）。
  */
 
-let Mock = null
-
-async function getMock() {
-  if (!Mock) {
-    Mock = (await import('mockjs')).default
-    Mock.setup({ timeout: '200-400' })
-  }
-  return Mock
-}
-
-export async function initCoreMock() {
-  if (import.meta.env.VITE_USE_MOCK === 'false') return
-
-  const Mock = await getMock()
-
+export default (Mock) => {
   // ==================== 桌面项 API ====================
   Mock.mock(/\/api\/disktops$/, 'get', () => [
     { id: 1, user_id: 1, name: '默认桌面', is_default: true, sort: 0, created_at: new Date().toISOString() }
@@ -61,12 +40,17 @@ export async function initCoreMock() {
   Mock.mock(/\/api\/auth\/login$/, 'post', (options) => {
     const { username, password } = JSON.parse(options.body)
     if (username === 'admin' && password === 'admin') {
-      return { token: 'nexus-mock-token-' + Date.now(), user: { id: 1, username: 'admin', nickname: '管理员', avatar: '', email: 'admin@nexus.local', roles: ['admin'], permissions: ['*'] } }
+      return {
+        token: 'nexus-mock-token-' + Date.now(),
+        user: { id: 1, username: 'admin', nickname: '管理员', avatar: '', email: 'admin@nexus.local', roles: ['admin'], permissions: ['*'] }
+      }
     }
     return { error: '用户名或密码错误' }
   })
   Mock.mock(/\/api\/auth\/logout$/, 'post', () => ({ success: true }))
-  Mock.mock(/\/api\/auth\/user$/, 'get', () => ({ id: 1, username: 'admin', nickname: '管理员', avatar: '', email: 'admin@nexus.local', roles: ['admin'], permissions: ['*'] }))
+  Mock.mock(/\/api\/auth\/user$/, 'get', () => ({
+    id: 1, username: 'admin', nickname: '管理员', avatar: '', email: 'admin@nexus.local', roles: ['admin'], permissions: ['*']
+  }))
 
   // ==================== 通知 API ====================
   Mock.mock(/\/api\/notifications$/, 'get', () => [])

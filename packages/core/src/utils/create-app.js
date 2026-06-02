@@ -27,48 +27,31 @@ import AppRoot from '../AppRoot.vue'
 import hookManager from './hook-manager'
 import { I18nCollector } from './i18n-collector'
 import { loadAndInstallProviders } from './create-provider-installer'
-import { initCoreMock } from '../mock/setup'
+import { MockManager } from './mock-manager'
 
 /**
  * 创建并启动 Nexus Admin 应用
  *
  * Mock 策略：
- *   1. 始终加载核心包内置 Mock（框架 API 响应）
- *   2. 如果传入 mockInit，在核心 Mock 之后执行（应用层可继承并覆盖）
- *   3. 开关：import.meta.env.VITE_USE_MOCK === 'false' 时跳过
+ *   1. 框架自动创建 MockManager，挂到 ctx.mock
+ *   2. Provider 在 install 阶段通过 ctx.mock.add(handler) 注册
+ *   3. install 之后自动 mockManager.run() 执行所有注册
+ *   4. 核心包内置 Mock 已默认注册
+ *   5. 开关：import.meta.env.VITE_USE_MOCK === 'false' 时跳过
  *
  * @param {object} options
  * @param {object}   options.router         - Vue Router 实例
  * @param {object[]} options.baseProviders  - base provider 数组
- * @param {Function} [options.mockInit]     - 应用层 Mock 初始化函数（可选）
  * @param {string}   [options.mountSelector] - 挂载选择器，默认 '#app'
  * @returns {Promise<object>} app 实例
  */
-export async function createNexusApp({ router, baseProviders, mockInit, mountSelector = '#app' }) {
+export async function createNexusApp({ router, baseProviders, mountSelector = '#app' }) {
   const app = createApp(AppRoot)
   const pinia = createPinia()
+  const mock = new MockManager()
 
   // 触发 app:init 钩子
   await hookManager.emit('app:init', app)
-
-  // 加载 Mock
-  if (import.meta.env.VITE_USE_MOCK !== 'false') {
-    // 1. 核心包内置 Mock（框架 API）
-    try {
-      await initCoreMock()
-    } catch (e) {
-      console.warn('[NexusAdmin] 核心 Mock 加载失败:', e.message)
-    }
-
-    // 2. 应用层自定义 Mock（继承并覆盖）
-    if (mockInit) {
-      try {
-        await mockInit()
-      } catch (e) {
-        console.warn('[NexusAdmin] 应用层 Mock 加载失败（可忽略）:', e.message)
-      }
-    }
-  }
 
   // ==================== 注册基础设施 ====================
   app.use(pinia)
@@ -78,9 +61,13 @@ export async function createNexusApp({ router, baseProviders, mockInit, mountSel
   // ==================== 安装并初始化所有 Provider ====================
   const providerCtx = {
     app, router, hookManager, pinia,
-    i18n: new I18nCollector()
+    i18n: new I18nCollector(),
+    mock
   }
   await loadAndInstallProviders(providerCtx, baseProviders)
+
+  // ==================== 执行所有已注册的 Mock ====================
+  await mock.run()
 
   // ==================== 挂载应用 ====================
   app.mount(mountSelector)
