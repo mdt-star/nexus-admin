@@ -67,11 +67,10 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 
-import zh from './lang/zh'
-import en from './lang/en'
 import { AppRoot, I18nCollector } from '@nexus-admin/core'
-import router, { internalRoutes } from './router/index'
+import router from './router/index'
 import { hookManager, loadAndInstallProviders, nexusAdminProvider } from '@nexus-admin/core'
+import appProvider from './providers/app'
 import '@nexus-admin/core/src/styles/global.scss'
 
 // 启动应用
@@ -100,14 +99,11 @@ async function bootstrap(mountSelector = '#app') {
   // ==================== 安装并初始化所有 Provider ====================
   const providerCtx = {
     app, router, hookManager, pinia,
-    i18n: new I18nCollector({ 'zh-CN': zh, 'en': en })
+    i18n: new I18nCollector()
   }
 
-  // install→init 一体化（i18n 队列在内部自动 flush）
-  await loadAndInstallProviders(providerCtx, nexusAdminProvider)
-
-  // 基座路由必须在 install 之后注册，确保走代理的数组处理逻辑
-  internalRoutes.forEach(route => router.addRoute(route))
+  // 安装基座 + 业务 provider（i18n 队列在 init 阶段自动 flush）
+  await loadAndInstallProviders(providerCtx, [nexusAdminProvider, appProvider])
 
   // 暴露页面组件到全局（布局组件通过此映射查找页面组件）
   window.__NEXUS_ADMIN_PAGES__ = nexusAdminProvider.buildPageMap(router)

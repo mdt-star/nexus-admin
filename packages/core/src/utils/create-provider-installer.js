@@ -243,20 +243,29 @@ function normalizeRoute(route, parentName, provider) {
  * 加载、安装并初始化所有 Provider
  *
  * 内部顺序（install 无顺序依赖，init 有顺序依赖）：
- *   1. install 基座 provider
+ *   1. install 各 base provider（基座 + 业务等）
  *   2. install 第三方 provider（注册操作）
- *   3. init 基座 provider
+ *   3. init 各 base provider
  *   4. init 第三方 provider（如果提供 init 方法）
  *
  * install 阶段：provider 调用 ctx.i18n.addMessages() 暂存语言包
  * init 阶段：收集器自动 flush 并传入基座 provider 的回放逻辑
  *
- * @param {object}   ctx              - provider 上下文
- * @param {object}   baseProvider     - 基座 provider 实例
+ * @param {object}          ctx               - provider 上下文
+ * @param {object|object[]} baseProviders     - 一个或多个 base provider 实例
  */
-export async function loadAndInstallProviders(ctx, baseProvider) {
-  // === 1. 安装基座 provider ===
-  installProvider(ctx, 'nexus-admin', baseProvider)
+export async function loadAndInstallProviders(ctx, baseProviders) {
+  const list = Array.isArray(baseProviders) ? baseProviders : [baseProviders]
+  const initList = []
+
+  // === 1. install 各 base provider ===
+  for (const provider of list) {
+    const name = provider.name || 'provider'
+    installProvider(ctx, name, provider)
+    if (typeof provider.init === 'function') {
+      initList.push(provider)
+    }
+  }
 
   // === 2. 安装第三方 provider（注册型操作） ===
   const providerMap = window.__NEXUS_ADMIN_PROVIDERS__ || {}
@@ -277,9 +286,10 @@ export async function loadAndInstallProviders(ctx, baseProvider) {
     }
   }))
 
-  // === 3. 初始化基座 provider ===
-  // i18n 消息由基座 provider 内部通过 ctx.i18n.flush() 获取
-  await baseProvider.init(ctx)
+  // === 3. init 各 base provider ===
+  for (const provider of initList) {
+    await provider.init(ctx)
+  }
 
   // === 4. 初始化第三方 provider（如果有 init 方法） ===
   for (const provider of thirdPartyProviders) {
