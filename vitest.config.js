@@ -12,7 +12,7 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     globals: true,
-    include: ['resources/js/nexus-admin/**/*.test.js'],
+    include: ['packages/core/src/**/*.test.js'],
     root: resolve(__dirname)
   }
 })

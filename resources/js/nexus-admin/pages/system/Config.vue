@@ -79,7 +79,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { useI18nStore } from '../../stores/i18n'
+import { useI18nStore } from '@nexus-admin/core'
 
 const { t } = useI18nStore()
 

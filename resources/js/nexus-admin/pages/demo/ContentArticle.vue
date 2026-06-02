@@ -129,8 +129,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Delete, Setting } from "@element-plus/icons-vue"
-import { useI18nStore } from '../../stores/i18n'
-import { useWindowStore } from '../../stores/windows'
+import { useI18nStore } from '@nexus-admin/core'
+import { useWindowStore } from '@nexus-admin/core'
 import { Refresh } from '@element-plus/icons-vue'
 
 const { t } = useI18nStore()
