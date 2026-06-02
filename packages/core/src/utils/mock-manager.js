@@ -38,6 +38,9 @@ export class MockManager {
   /**
    * 执行所有注册的 Mock
    * 在 app.mount() 之前调用
+   *
+   * 逆序执行：后注册的 handler 先注册到 Mock.js。
+   * 这样业务/第三方 Mock 可以覆盖核心包内置 Mock 的同 pattern 响应。
    */
   async run() {
     if (import.meta.env.VITE_USE_MOCK === 'false') return
@@ -46,7 +49,8 @@ export class MockManager {
     const Mock = (await import('mockjs')).default
     Mock.setup({ timeout: '200-400' })
 
-    for (const fn of this._handlers) {
+    // 逆序：业务/第三方 Mock（后 add）先注册，优先级更高
+    for (const fn of [...this._handlers].reverse()) {
       try {
         await fn(Mock)
       } catch (e) {
