@@ -35,48 +35,34 @@ npm run test:watch
 ## 项目结构
 
 ```
-resources/js/nexus-admin/
-├── app.js                    # 应用入口（bootstrap 启动器）
-├── providers/                # Provider（扩展注册机制）
-│   └── nexus-admin.js        #   基座自身 Provider（install + init）
-├── lang/                     # 语言包
-│   ├── index.js              #   统一加载入口
-│   ├── zh.js                 #   中文翻译
-│   └── en.js                 #   英文翻译
-├── router/                   # 路由配置
-│   └── index.js              #   internalRoutes + createRouter
-├── components/               # 公共组件
-│   └── common/
-│       └── PermissionTag.vue # 权限标签组件
-├── composables/              # 组合式函数
-│   └── useWindowDrag.js      # 窗口拖拽
-├── directives/               # 自定义指令
-│   └── permission.js         # v-permission 权限指令
-├── layouts/                  # 布局组件
-│   ├── DesktopLayout.vue     # 桌面式布局（窗口模式）
-│   ├── MainLayout.vue        # 主布局（响应式切换）
-│   └── SidebarLayout.vue     # 侧边栏布局（Tab 模式）
-├── mock/                     # Mock 数据
-│   ├── index.js              #   模拟数据定义
-│   └── setup.js              #   Mock.js 拦截配置
-├── services/                 # API 服务
-│   └── api.js
-├── stores/                   # Pinia 状态管理
-│   ├── app.js                # 应用全局状态
-│   ├── config.js             # 配置管理
-│   ├── i18n.js               # 多语言
-│   ├── menu.js               # 菜单管理
-│   ├── permission.js         # 权限管理
-│   ├── theme.js              # 主题管理
-│   └── windows.js            # 窗口/Tab 管理
-├── styles/                   # 样式
-│   ├── variables.scss        # CSS 变量（亮/暗主题）
-│   └── global.scss           # 全局样式
-├── utils/                    # 工具
-│   ├── create-provider-installer.js  # Provider 安装器 + routeStore
-│   ├── hook-manager.js       # 钩子管理器
-│   └── hook-events.js        # 内置钩子事件
-└── vendor/                   # 扩展包目录（composer 安装）
+nexus-admin/                        # Monorepo（npm workspaces）
+├── packages/
+│   └── core/                      ← @nexus-admin/core（npm 包）
+│       ├── package.json            # peerDeps: vue/pinia/element-plus/vue-router
+│       ├── vite.config.js          # library mode 构建配置
+│       └── src/
+│           ├── index.js           # 公共 API 入口
+│           ├── AppRoot.vue        # 根组件
+│           ├── providers/
+│           │   └── nexus-admin.js # 基座 Provider（install + init + buildPageMap）
+│           ├── utils/
+│           │   ├── create-provider-installer.js  # Provider 安装器 + routeStore
+│           │   ├── hook-manager.js # 钩子管理器
+│           │   └── hook-events.js  # 内置钩子事件
+│           ├── stores/            # 12 个 Pinia 状态管理
+│           ├── services/          # API 服务（axios 封装 + auth/config/disktops 等）
+│           ├── components/        # 公共组件（14 个）
+│           ├── layouts/           # 布局组件（DesktopLayout / MainLayout / SidebarLayout）
+│           ├── lang/              # 语言包（zh.js / en.js）
+│           ├── styles/            # SCSS 变量 + 全局样式
+│           ├── directives/        # v-permission 权限指令
+│           └── composables/       # useWindowDrag 窗口拖拽
+├── resources/js/nexus-admin/      ← 应用层（入口 + 业务页面）
+│   ├── app.js                     # 启动入口（import @nexus-admin/core）
+│   ├── router/index.js            # 路由定义（internalRoutes + createRouter）
+│   ├── pages/                     # 业务页面（demo + system）
+│   └── mock/                      # Mock 数据
+└── package.json                   # workspaces: ["packages/*"]
 ```
 
 ## 布局模式
@@ -113,7 +99,7 @@ resources/js/nexus-admin/
 ### 使用示例
 
 ```js
-import hookManager from './utils/hook-manager'
+import { hookManager } from '@nexus-admin/core'
 
 // 注册
 hookManager.on('theme:changed', ({ theme, primaryColor }) => {
@@ -141,7 +127,7 @@ await hookManager.emit('theme:changed', { theme: 'dark', primaryColor: '#409EFF'
 Provider 文件使用 `createProviderInstaller` 创建，在 install 中自由注册组件、指令、路由：
 
 ```js
-import { createProviderInstaller } from 'nexus-admin/utils/create-provider-installer'
+import { createProviderInstaller } from '@nexus-admin/core'
 
 export default createProviderInstaller('nexus-blog', ({ app, router }) => {
   router.addRoute({
@@ -289,7 +275,7 @@ authApi.currentUser({ _silentError: true })
 插件监听事件示例：
 
 ```js
-import hookManager from './utils/hook-manager'
+import { hookManager } from '@nexus-admin/core'
 
 hookManager.on('auth:unauthorized', (payload) => {
   console.log('未登录事件:', payload)
@@ -299,7 +285,7 @@ hookManager.on('auth:unauthorized', (payload) => {
 
 ## 测试
 
-当前测试覆盖（15 个测试文件，162 个测试用例）：
+当前测试覆盖（15 个测试文件，188 个测试用例）：
 
 - HookManager 生命周期管理（10 项）
 - Windows Store 窗口状态管理（11 项）
@@ -356,7 +342,7 @@ DesktopLayout.vue
 - 仅 `selectedIds.size > 1` 且点击已选图标时才进入多选模式
 - `FolderView.vue`、`SidebarLayout.vue`、`ItemEditor.vue`、`TaskBar.vue` 零改动
 - 单选拖拽逻辑完整保留，不受多选分支任何影响
-- 所有 162 测试用例通过
+- 所有 188 测试用例通过
 
 ## 开始菜单拖拽功能说明
 
@@ -410,4 +396,4 @@ StartMenu.onDragStart → JSON.stringify({ title, icon, component, path, type, c
 
 - 仅修改 `app.js`，零改动业务组件
 - 不影响 Element Plus 组件正常功能
-- 构建通过，全部 162 测试用例通过
+- 构建通过，全部 188 测试用例通过
