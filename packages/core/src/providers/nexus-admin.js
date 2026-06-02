@@ -99,6 +99,10 @@ export default {
         router.push({ path: active.path, query: active.params?.query || {} }).catch(() => {})
       }
     }, { immediate: true })
+
+    // ==================== 10. 构建页面组件映射 ====================
+    // 布局组件（SidebarLayout/DesktopLayout/DesktopWindow）通过此映射查找页面组件
+    window.__NEXUS_ADMIN_PAGES__ = this.buildPageMap(router)
   },
 
   /**

@@ -105,9 +105,6 @@ async function bootstrap(mountSelector = '#app') {
   // 安装基座 + 业务 provider（i18n 队列在 init 阶段自动 flush）
   await loadAndInstallProviders(providerCtx, [nexusAdminProvider, appProvider])
 
-  // 暴露页面组件到全局（布局组件通过此映射查找页面组件）
-  window.__NEXUS_ADMIN_PAGES__ = nexusAdminProvider.buildPageMap(router)
-
   // ==================== 挂载应用 ====================
   app.mount(mountSelector)
 
