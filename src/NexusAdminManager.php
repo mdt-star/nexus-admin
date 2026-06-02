@@ -6,42 +6,40 @@ use Illuminate\Support\Facades\File;
 
 /**
  * Nexus Admin 管理器
- * 负责收集扩展包的注册信息（页面、组件、指令、插件）
+ * 负责收集扩展包的 provider 入口文件路径
  *
- * 注册信息收集优先级：
- * 1. composer.json 中 extra.nexus 显式声明（优先级高）
- * 2. 自动扫描 vendor/{包名}/resources/js/nexus-admin/ 下的约定目录（优先级低）
+ * 第三方包通过 composer.json 的 extra.nexus.provider 声明入口文件：
+ *
+ *   ```json
+ *   {
+ *     "extra": {
+ *       "nexus": {
+ *         "provider": "resources/js/nexus-admin/provider.js"
+ *       }
+ *     }
+ *   }
+ *   ```
+ *
+ * 基座在 Blade 视图中注入 __NEXUS_ADMIN_PROVIDERS__ 变量，
+ * 前端 app.js 读取后动态加载所有 provider。
+ *
+ * 不再维护 pages/components/directives/plugins 四类清单，
+ * 第三方在 provider.js 中自行完成所有注册。
  */
 class NexusAdminManager
 {
     /**
-     * 已注册的页面映射
-     * ['page-key' => 'relative/path/to/Page.vue']
+     * 已收集的 provider 映射
+     * ['nexus-blog' => 'vendor/nexus-blog/provider.js']
      */
-    protected array $pages = [];
+    protected array $providers = [];
 
     /**
-     * 已注册的全局组件映射
-     * ['ComponentName' => 'relative/path/to/Component.vue']
+     * 收集所有扩展包的 provider 路径
+     *
+     * @return array { 'package-short-name': 'vendor/xxx/provider.js' }
      */
-    protected array $components = [];
-
-    /**
-     * 已注册的指令映射
-     * ['directive-name' => 'relative/path/to/directive.js']
-     */
-    protected array $directives = [];
-
-    /**
-     * 已注册的插件映射
-     * ['plugin-id' => ['hooks' => [...], 'handler' => 'path/to/handler.js']]
-     */
-    protected array $plugins = [];
-
-    /**
-     * 收集所有扩展包的注册信息
-     */
-    public function collectRegistry(): array
+    public function collectProviders(): array
     {
         $installedPackages = $this->getInstalledPackages();
 
@@ -51,140 +49,25 @@ class NexusAdminManager
                 continue;
             }
 
-            $this->collectPackageRegistry($packageName, $packageConfig);
+            $this->collectPackageProvider($packageName, $packageConfig);
         }
 
-        return [
-            'pages'       => $this->pages,
-            'components'  => $this->components,
-            'directives'  => $this->directives,
-            'plugins'     => $this->plugins,
-        ];
+        return $this->providers;
     }
 
     /**
-     * 收集单个扩展包的注册信息
+     * 收集单个扩展包的 provider 路径
      */
-    protected function collectPackageRegistry(string $packageName, array $packageConfig): void
+    protected function collectPackageProvider(string $packageName, array $packageConfig): void
     {
-        // 获取包名简写（去掉 vendor 前缀）
         $shortName = $this->getShortName($packageName);
 
-        // 优先级 1：从 composer.json 的 extra.nexus 中读取显式声明
+        // 从 composer.json 的 extra.nexus.provider 中读取
         $nexusConfig = $packageConfig['extra']['nexus'] ?? null;
 
-        if ($nexusConfig) {
-            $this->collectFromExplicitConfig($shortName, $nexusConfig);
-            return;
-        }
-
-        // 优先级 2：自动扫描约定目录
-        $this->collectFromAutoScan($packageName, $shortName);
-    }
-
-    /**
-     * 从 composer.json 显式声明中收集注册信息
-     */
-    protected function collectFromExplicitConfig(string $shortName, array $nexusConfig): void
-    {
-        // 遍历 nexus 下的每个配置项（可能有多组）
-        foreach ($nexusConfig as $key => $config) {
-            // 处理 pages
-            if (isset($config['pages'])) {
-                foreach ($config['pages'] as $pageKey => $pagePath) {
-                    $this->pages[$pageKey] = $this->normalizeVendorPath($shortName, $pagePath);
-                }
-            }
-
-            // 处理 components
-            if (isset($config['components'])) {
-                foreach ($config['components'] as $compName => $compPath) {
-                    $this->components[$compName] = $this->normalizeVendorPath($shortName, $compPath);
-                }
-            }
-
-            // 处理 directives
-            if (isset($config['directives'])) {
-                foreach ($config['directives'] as $dirName => $dirPath) {
-                    $this->directives[$dirName] = $this->normalizeVendorPath($shortName, $dirPath);
-                }
-            }
-
-            // 处理 plugins
-            if (isset($config['plugins'])) {
-                foreach ($config['plugins'] as $pluginId => $pluginConfig) {
-                    $pluginConfig['handler'] = $this->normalizeVendorPath($shortName, $pluginConfig['handler']);
-                    $this->plugins[$pluginId] = $pluginConfig;
-                }
-            }
-        }
-    }
-
-    /**
-     * 从约定目录自动扫描收集注册信息
-     */
-    protected function collectFromAutoScan(string $packageName, string $shortName): void
-    {
-        // 约定目录：vendor/{包名}/resources/js/nexus-admin/
-        $basePath = base_path("vendor/{$packageName}/resources/js/nexus-admin");
-
-        if (!is_dir($basePath)) {
-            return;
-        }
-
-        // 扫描 pages 目录
-        $pagesPath = "{$basePath}/pages";
-        if (is_dir($pagesPath)) {
-            $files = File::allFiles($pagesPath);
-            foreach ($files as $file) {
-                if ($file->getExtension() === 'vue') {
-                    $relativePath = $file->getRelativePathname();
-                    $pageKey = $this->filenameToKey($relativePath);
-                    $this->pages[$pageKey] = $this->normalizeVendorPath($shortName, "pages/{$relativePath}");
-                }
-            }
-        }
-
-        // 扫描 components 目录
-        $componentsPath = "{$basePath}/components";
-        if (is_dir($componentsPath)) {
-            $files = File::allFiles($componentsPath);
-            foreach ($files as $file) {
-                if ($file->getExtension() === 'vue') {
-                    $relativePath = $file->getRelativePathname();
-                    $compName = pathinfo($relativePath, PATHINFO_FILENAME);
-                    $this->components[$compName] = $this->normalizeVendorPath($shortName, "components/{$relativePath}");
-                }
-            }
-        }
-
-        // 扫描 directives 目录
-        $directivesPath = "{$basePath}/directives";
-        if (is_dir($directivesPath)) {
-            $files = File::allFiles($directivesPath);
-            foreach ($files as $file) {
-                if ($file->getExtension() === 'js') {
-                    $relativePath = $file->getRelativePathname();
-                    $dirName = $this->filenameToKey($relativePath);
-                    $this->directives[$dirName] = $this->normalizeVendorPath($shortName, "directives/{$relativePath}");
-                }
-            }
-        }
-
-        // 扫描 plugins 目录
-        $pluginsPath = "{$basePath}/plugins";
-        if (is_dir($pluginsPath)) {
-            $files = File::allFiles($pluginsPath);
-            foreach ($files as $file) {
-                if ($file->getExtension() === 'js') {
-                    $relativePath = $file->getRelativePathname();
-                    $pluginId = $this->filenameToKey($relativePath);
-                    $this->plugins[$pluginId] = [
-                        'hooks'   => [],
-                        'handler' => $this->normalizeVendorPath($shortName, "plugins/{$relativePath}"),
-                    ];
-                }
-            }
+        if ($nexusConfig && isset($nexusConfig['provider'])) {
+            $providerPath = $nexusConfig['provider'];
+            $this->providers[$shortName] = $this->normalizeVendorPath($shortName, $providerPath);
         }
     }
 
@@ -239,30 +122,16 @@ class NexusAdminManager
     }
 
     /**
-     * 文件名转键名（kebab-case）
-     * UserList.vue → user-list
-     * user/Settings.vue → user-settings
+     * @deprecated 保留兼容方法，最终移除
      */
-    protected function filenameToKey(string $filename): string
+    public function collectRegistry(): array
     {
-        // 去掉扩展名
-        $withoutExt = pathinfo($filename, PATHINFO_FILENAME);
-
-        // 替换目录分隔符为 -
-        $withDashes = str_replace('/', '-', $withoutExt);
-        $withDashes = str_replace('\\', '-', $withDashes);
-
-        // 转 kebab-case
-        return $this->toKebabCase($withDashes);
-    }
-
-    /**
-     * 驼峰转 kebab-case
-     */
-    protected function toKebabCase(string $str): string
-    {
-        $result = preg_replace('/([a-z])([A-Z])/', '$1-$2', $str);
-        $result = preg_replace('/([A-Z]+)([A-Z][a-z])/', '$1-$2', $result);
-        return strtolower($result);
+        return [
+            'pages'      => [],
+            'components' => [],
+            'directives' => [],
+            'plugins'    => [],
+            'providers'  => $this->collectProviders(),
+        ];
     }
 }

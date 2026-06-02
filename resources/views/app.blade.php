@@ -5,14 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ config('nexus-admin.app_name', 'Nexus Admin') }}</title>
 
-  {{-- 注入扩展包注册信息到前端 --}}
+  {{-- 注入扩展包 Provider 路径到前端 --}}
+  {{-- provider 格式: { 'nexus-blog': 'vendor/nexus-blog/provider.js' } --}}
   <script>
-    window.__NEXUS_ADMIN_REGISTRY__ = @json($nexusRegistry ?? [
-        'pages' => [],
-        'components' => [],
-        'directives' => [],
-        'plugins' => [],
-    ]);
+    window.__NEXUS_ADMIN_PROVIDERS__ = @json($nexusProviders ?? (object)[]);
   </script>
 
   {{-- Vite 构建资源 --}}

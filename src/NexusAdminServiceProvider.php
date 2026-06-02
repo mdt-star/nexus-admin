@@ -43,12 +43,12 @@ class NexusAdminServiceProvider extends ServiceProvider
         // 加载视图
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'nexus-admin');
 
-        // 收集扩展包注册信息并注入到视图
+        // 收集扩展包 Provider 路径并注入到视图
         $manager = $this->app->make(NexusAdminManager::class);
-        $registry = $manager->collectRegistry();
+        $providers = $manager->collectProviders();
 
-        view()->composer('nexus-admin::app', function ($view) use ($registry) {
-            $view->with('nexusRegistry', $registry);
+        view()->composer('nexus-admin::app', function ($view) use ($providers) {
+            $view->with('nexusProviders', $providers);
         });
     }
 }

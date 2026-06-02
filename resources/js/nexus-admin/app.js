@@ -1,6 +1,11 @@
 /**
  * nexus-admin 入口文件
  * 基于 Vite + Vue 3 + Element Plus 的现代化后台管理界面基座
+ *
+ * 架构说明：
+ *   基座不直接管理 pages/components/directives/plugins 的注册，
+ *   而是由各个 Provider 在 install 阶段自行完成。
+ *   基座仅负责加载 Provider 并注入上下文（app、router、hookManager 等）。
  */
 
 /**
@@ -88,105 +93,63 @@ import { setApiBaseURL, setLoginPath, setTranslator } from './services/api'
 import permissionDirective from './directives/permission'
 import PermissionTag from './components/common/PermissionTag.vue'
 import hookManager from './utils/hook-manager'
-import pluginRegistry from './plugins/registry'
+import { installProvider, routeStore } from './utils/create-provider-installer'
 
 import './styles/global.scss'
 
+// 基座自身 Provider
+import nexusAdminProvider from './providers/nexus-admin'
+
 /**
- * 加载扩展包注册表
- * 从 window.__NEXUS_ADMIN_REGISTRY__ 读取（由 Blade 视图注入）
- * 如果不存在（开发环境直接使用 index.html），返回空注册表
+ * 加载并安装扩展包 Provider
  *
- * 注册表结构（兼容两种格式）：
- * 格式 A（路径字符串 - 生产环境 Blade 注入）：
- *   pages: { 'page-key': 'vendor/{pkg}/pages/xxx.vue' }
- * 格式 B（组件对象 - 开发环境 registry.js 直接导入）：
- *   pages: { 'page-key': VueComponent }
+ * 从 window.__NEXUS_ADMIN_PROVIDERS__ 读取（由 Blade 视图注入），
+ * 格式：{ 'nexus-blog': 'vendor/nexus-blog/provider.js' }
+ *
+ * 每个 provider 通过 installProvider() 安装，providerName 自动从 key 注入，
+ * provider.js 中不需要重复声明包名。
  */
-function loadRegistry() {
-  return window.__NEXUS_ADMIN_REGISTRY__ || {
-    pages: {},
-    components: {},
-    directives: {},
-    plugins: {}
-  }
-}
+async function loadAndInstallProviders(ctx) {
+  const providerMap = window.__NEXUS_ADMIN_PROVIDERS__ || {}
 
-/**
- * 解析注册表中的条目
- * 兼容路径字符串和组件对象两种格式
- */
-function resolveEntry(value) {
-  // 如果是字符串（路径），动态导入
-  if (typeof value === 'string') {
-    return import(`./${value}`).then(mod => mod.default || mod)
-  }
-  // 如果是对象/函数（已导入的组件），直接返回
-  return Promise.resolve(value)
-}
-
-/**
- * 解析注册表中的页面组件
- */
-async function resolvePageComponents(pageMap) {
-  const resolved = {}
-  for (const [key, value] of Object.entries(pageMap)) {
+  const tasks = Object.entries(providerMap).map(async ([pkg, path]) => {
     try {
-      resolved[key] = await resolveEntry(value)
-    } catch (e) {
-      console.warn(`[NexusAdmin] 加载页面组件 "${key}" 失败:`, e)
-    }
-  }
-  return resolved
-}
-
-/**
- * 解析注册表中的全局组件
- */
-async function resolveComponents(compMap) {
-  const resolved = {}
-  for (const [name, value] of Object.entries(compMap)) {
-    try {
-      resolved[name] = await resolveEntry(value)
-    } catch (e) {
-      console.warn(`[NexusAdmin] 加载全局组件 "${name}" 失败:`, e)
-    }
-  }
-  return resolved
-}
-
-/**
- * 解析注册表中的指令
- */
-async function resolveDirectives(dirMap) {
-  const resolved = {}
-  for (const [name, value] of Object.entries(dirMap)) {
-    try {
-      resolved[name] = await resolveEntry(value)
-    } catch (e) {
-      console.warn(`[NexusAdmin] 加载指令 "${name}" 失败:`, e)
-    }
-  }
-  return resolved
-}
-
-/**
- * 解析注册表中的插件处理器
- */
-async function resolvePlugins(pluginMap) {
-  const resolved = {}
-  for (const [id, config] of Object.entries(pluginMap)) {
-    try {
-      const handler = await resolveEntry(config.handler)
-      resolved[id] = {
-        ...config,
-        loader: () => handler
+      const mod = await import(/* @vite-ignore */ `./${path}`)
+      const provider = mod.default || mod
+      if (provider && typeof provider.install === 'function') {
+        installProvider(ctx, pkg, provider)
       }
     } catch (e) {
-      console.warn(`[NexusAdmin] 加载插件 "${id}" 失败:`, e)
+      console.warn(`[NexusAdmin] 加载 Provider "${pkg}" 失败:`, e)
+    }
+  })
+
+  return Promise.all(tasks)
+}
+
+/**
+ * 构建页面组件映射（兼容旧式 window.__NEXUS_ADMIN_PAGES__）
+ * 从 router 的路由表中递归提取所有带 component 的路由。
+ * 注意：直接存储 resolved 组件对象，不要函数包装，
+ * 否则 `<component :is>` 会解析失败显示 [object Object]。
+ */
+function buildPageMapFromRoutes() {
+  const pageMap = {}
+  const routes = router.getRoutes()
+
+  function walk(records) {
+    for (const record of records) {
+      if (record.components?.default) {
+        pageMap[record.name] = record.components.default
+      }
+      if (record.children) {
+        walk(record.children)
+      }
     }
   }
-  return resolved
+
+  walk(routes)
+  return pageMap
 }
 
 /**
@@ -273,34 +236,18 @@ async function initNexusAdmin(mountSelector = '#app') {
   // 注册权限组件
   app.component('PermissionTag', PermissionTag)
 
-  // 加载扩展包注册表
-  const registry = loadRegistry()
+  // ==================== 加载 Provider ====================
+  // 构造 provider 上下文
+  const providerCtx = { app, router, hookManager, pinia }
 
-  // 解析并注册页面组件
-  const pageComponents = await resolvePageComponents(registry.pages || {})
+  // 1. 安装基座自身 Provider（内置路由，providerName='nexus-admin' 由 installProvider 自动注入）
+  installProvider(providerCtx, 'nexus-admin', nexusAdminProvider)
 
-  // 解析并注册全局组件
-  const globalComponents = await resolveComponents(registry.components || {})
+  // 2. 加载并安装第三方 Provider（providerName 从 PHP 注入的 key 自动传入）
+  await loadAndInstallProviders(providerCtx)
 
-  // 注册全局组件到 Vue
-  for (const [name, component] of Object.entries(globalComponents)) {
-    app.component(name, component)
-  }
-
-  // 解析并注册指令
-  const directives = await resolveDirectives(registry.directives || {})
-  for (const [name, directive] of Object.entries(directives)) {
-    app.directive(name, directive)
-  }
-
-  // 解析并注册插件
-  const plugins = await resolvePlugins(registry.plugins || {})
-  for (const [id, config] of Object.entries(plugins)) {
-    pluginRegistry.register('extension', id, config)
-  }
-
-  // 暴露页面组件到全局，供布局组件动态加载
-  window.__NEXUS_ADMIN_PAGES__ = pageComponents
+  // 3. 暴露页面组件到全局（兼容旧式引用）
+  window.__NEXUS_ADMIN_PAGES__ = buildPageMapFromRoutes()
 
   // 加载配置
   const { useConfigStore } = await import('./stores/config')
@@ -364,13 +311,8 @@ async function initNexusAdmin(mountSelector = '#app') {
     }
   }, { immediate: true })
 
-
-
-
-
   // 挂载应用
   app.mount(mountSelector)
-
 
   // 触发 app:mounted 钩子
   await hookManager.emit('app:mounted', document.querySelector(mountSelector))
@@ -398,4 +340,4 @@ if (typeof document !== 'undefined') {
   }
 }
 
-export { initNexusAdmin, hookManager, pluginRegistry }
+export { initNexusAdmin, hookManager, routeStore }

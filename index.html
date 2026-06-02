@@ -11,9 +11,9 @@
 <body>
   <div id="app"></div>
   <script type="module">
-    // 开发环境：注入扩展包注册信息
-    import pageRegistry from '/resources/js/nexus-admin/pages/registry.js'
-    window.__NEXUS_ADMIN_REGISTRY__ = pageRegistry
+    // 开发环境：目前无第三方 provider，基座自身通过 providers/nexus-admin.js 注入
+    // 第三方 provider 在 window.__NEXUS_ADMIN_PROVIDERS__ 中声明由 Blade 视图注入
+    window.__NEXUS_ADMIN_PROVIDERS__ = {}
 
     // 初始化应用
     import('/resources/js/nexus-admin/app.js')

@@ -127,16 +127,36 @@ await hookManager.emit('theme:changed', { theme: 'dark', primaryColor: '#409EFF'
 
 ## 扩展包开发
 
-在 `vendor/` 目录下创建子目录即可开发扩展包。支持自动扫描：
+第三方通过 `composer.json` 的 `extra.nexus.provider` 声明 Provider 入口文件：
 
+```json
+{
+  "extra": {
+    "nexus": {
+      "provider": "resources/js/nexus-admin/provider.js"
+    }
+  }
+}
 ```
-vendor/my-package/
-├── pages/          # 页面组件（.vue）
-├── components/     # 公共组件
-├── directives/     # 自定义指令
-├── plugins/        # 插件
-└── registry.js     # 注册文件
+
+Provider 文件使用 `createProviderInstaller` 创建，在 install 中自由注册组件、指令、路由：
+
+```js
+import { createProviderInstaller } from 'nexus-admin/utils/create-provider-installer'
+
+export default createProviderInstaller('nexus-blog', ({ app, router }) => {
+  router.addRoute({
+    path: '/blog',
+    name: 'blog',
+    meta: { title: '博客管理', icon: 'Document', permission: 'blog.manage' },
+    component: () => import('./pages/BlogDashboard.vue')
+  })
+})
 ```
+
+Provider 的 install 方法接收上下文对象 `{ app, router, hookManager, pinia, configStore }`，
+可调用 `app.component()`、`app.directive()`、`app.use()` 等 Vue API。
+注册的路由会自动被 routeStore 捕获并按 provider 名称分组管理。
 
 ## 主题定制
 
