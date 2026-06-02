@@ -24,15 +24,15 @@ export function createNexusRouter() {
     history: createWebHistory(),
     routes: [
       {
-        path: '/:pathMatch(.*)*',
-        name: 'app',
-        component: () => import('../AppRoot.vue')
-      },
-      {
         path: '/',
         name: 'nexus-home',
         meta: { title: '首页', icon: 'HomeFilled', hidden: true, sort: -1 },
         component: () => import('../pages/HomePage.vue')
+      },
+      {
+        path: '/:pathMatch(.*)*',
+        name: 'app',
+        component: () => import('../AppRoot.vue')
       }
     ]
   })
