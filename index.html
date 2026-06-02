@@ -11,9 +11,11 @@
 <body>
   <div id="app"></div>
   <script type="module">
-    // 开发环境：目前无第三方 provider，基座自身通过 providers/nexus-admin.js 注入
-    // 第三方 provider 在 window.__NEXUS_ADMIN_PROVIDERS__ 中声明由 Blade 视图注入
+    // 第三方 provider 由 Blade 视图通过 window.__NEXUS_ADMIN_PROVIDERS__ 注入
     window.__NEXUS_ADMIN_PROVIDERS__ = {}
+
+    // 应用层 Mock 路径（框架自动加载）
+    window.__NEXUS_ADMIN_MOCK_PATH__ = '/resources/js/nexus-admin/mock/setup.js'
 
     // 初始化应用
     import('/resources/js/nexus-admin/app.js')

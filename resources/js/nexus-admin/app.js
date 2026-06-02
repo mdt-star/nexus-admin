@@ -10,10 +10,11 @@ import router from './router/index'
 import appProvider from './providers/app'
 
 // 启动应用
-const { initMock } = await import('./mock/setup')
+;(async () => {
+  await createNexusApp({
+    router,
+    baseProviders: [nexusAdminProvider, appProvider]
+  })
+})()
 
-export default await createNexusApp({
-  router,
-  baseProviders: [nexusAdminProvider, appProvider],
-  mockInit: initMock
-})
+export { createNexusApp }

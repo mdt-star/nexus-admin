@@ -346,7 +346,7 @@ const diskColor = computed(() => {
 
 async function loadSystemInfo() {
   try {
-    const { default: systemApi } = await import('@nexus-admin/core/src/services/system.js')
+    const { default: systemApi } = await import('../../services/system.js')
     const res = await systemApi.info()
     if (res.data) {
       serverInfo.value = { ...serverInfo.value, ...res.data.server }
