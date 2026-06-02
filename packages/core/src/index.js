@@ -5,7 +5,8 @@
  *   import { nexusAdminProvider, loadAndInstallProviders, routeStore } from '@nexus-admin/core'
  */
 
-// === Provider 安装器 ===
+// === 核心工具 ===
+export { default as request } from './services/api'
 export { loadAndInstallProviders, installProvider, routeStore } from './utils/create-provider-installer'
 export { I18nCollector } from './utils/i18n-collector'
 export { createNexusApp } from './utils/create-app'
