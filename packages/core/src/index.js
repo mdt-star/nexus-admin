@@ -61,7 +61,7 @@ export { default as SidebarLayout } from './layouts/SidebarLayout.vue'
 export { useWindowDrag } from './composables/useWindowDrag'
 
 // === 指令 ===
-export { vPermission } from './directives/permission'
+export { default as vPermission } from './directives/permission'
 
 // === 语言包（需要时手动导入）===
 // import zh from '@nexus-admin/core/src/lang/zh.js'
