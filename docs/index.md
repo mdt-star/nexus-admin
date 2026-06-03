@@ -1,14 +1,14 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
 layout: home
+titleTemplate: false
 
 hero:
-  name: "Nexus Admin"
-  text: "企业级后台管理框架"
+  name: Nexus Admin
+  text: 企业级后台管理框架
   tagline: 基于 Vue 3 + Element Plus 的现代化后台管理界面基座，支持插件化扩展和双模式布局
   actions:
     - theme: brand
-      text: 快速开始
+      text: 🚀 快速开始
       link: /guide/getting-started
     - theme: alt
       text: 在 GitHub 上查看
