@@ -4,7 +4,7 @@
  * internalRoutes 为应用层业务路由，由 app-provider 通过 router.addRoute() 注册。
  * 框架级路由（catch-all + 首页）已在 createNexusRouter() 中内置。
  */
-import { createNexusRouter } from '@nexus-admin/core'
+import { createNexusRouter } from 'nexus-admin-core'
 
 import Dashboard from '../pages/demo/Dashboard.vue'
 import ContentArticle from '../pages/demo/ContentArticle.vue'

@@ -87,7 +87,7 @@
 import { ref, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Delete, Setting } from "@element-plus/icons-vue"
-import { useI18nStore } from '@nexus-admin/core'
+import { useI18nStore } from 'nexus-admin-core'
 import { Refresh } from '@element-plus/icons-vue'
 
 const { t } = useI18nStore()
