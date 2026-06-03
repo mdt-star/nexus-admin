@@ -6,7 +6,8 @@
   "main": "src/index.js",
   "module": "src/index.js",
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
     "build": "vite build",
