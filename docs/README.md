@@ -37,7 +37,7 @@ npm run test:watch
 ```
 nexus-admin/                        # Monorepo（npm workspaces）
 ├── packages/
-│   └── core/                      ← @nexus-admin/core（npm 包）
+│   └── core/                      ← nexus-admin-core（npm 包）
 │       ├── package.json            # peerDeps: vue/pinia/element-plus/vue-router
 │       ├── vite.config.js          # library mode 构建配置
 │       └── src/
