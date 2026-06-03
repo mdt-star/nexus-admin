@@ -97,17 +97,17 @@ async function main() {
     },
     dependencies: {
       'nexus-admin-core': '^0.2.0',
-      vue: '^3.4.0',
-      pinia: '^2.3.0',
-      'element-plus': '^2.9.0',
+      vue: '^3.5.34',
+      pinia: '^2.3.1',
+      'element-plus': '^2.14.0',
       'vue-router': '^4.6.4',
-      '@element-plus/icons-vue': '^2.3.0',
+      '@element-plus/icons-vue': '^2.3.2',
       axios: '^1.16.1'
     },
     devDependencies: {
-      '@vitejs/plugin-vue': '^5.2.0',
-      vite: '^6.3.0',
-      sass: '^1.86.0'
+      '@vitejs/plugin-vue': '^5.2.4',
+      vite: '^6.4.2',
+      sass: '^1.100.0'
     }
   }
   if (mockData) {
