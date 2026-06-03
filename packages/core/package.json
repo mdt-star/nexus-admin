@@ -1,12 +1,11 @@
 {
   "name": "nexus-admin-core",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Nexus Admin 核心包 —— 框架核心逻辑",
   "type": "module",
-  "main": "src/index.js",
-  "module": "src/index.js",
+  "main": "dist/index.mjs",
+  "module": "dist/index.mjs",
   "files": [
-    "src",
     "dist"
   ],
   "scripts": {
@@ -42,9 +41,8 @@
   },
   "exports": {
     ".": {
-      "import": "./src/index.js"
+      "import": "./dist/index.mjs"
     },
-    "./src/styles/*": "./src/styles/*",
     "./dist/*": "./dist/*"
   }
 }

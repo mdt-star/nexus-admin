@@ -96,7 +96,7 @@ async function main() {
       preview: 'vite preview'
     },
     dependencies: {
-      'nexus-admin-core': '^0.1.8',
+      'nexus-admin-core': '^0.2.0',
       vue: '^3.4.0',
       pinia: '^2.3.0',
       'element-plus': '^2.9.0',
@@ -149,7 +149,7 @@ export default defineConfig({
   console.log(`  ${green('✓')} .env`)
 
   // src/main.js
-  const mainContent = `import 'nexus-admin-core/src/styles/global.scss'
+  const mainContent = `import 'nexus-admin-core/dist/nexus-admin-core.css'
 import { createNexusApp, nexusAdminProvider } from 'nexus-admin-core'
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from './router/index'

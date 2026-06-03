@@ -17,7 +17,6 @@ export default defineConfig({
         'pinia',
         'element-plus',
         'vue-router',
-        '@element-plus/icons-vue',
         'axios'
       ]
     }
