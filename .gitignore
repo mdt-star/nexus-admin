@@ -34,4 +34,4 @@ coverage/
 .phpunit.result.cache
 
 # Yarn / npm
-yarn-error.log
+yarn-error.logdocs/.vitepress/dist
