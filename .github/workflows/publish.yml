@@ -15,9 +15,12 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
       - run: npm install
+        working-directory: packages/core
       - run: npm test
-      - name: Build
-        run: npx --package=@vitejs/plugin-vue@6.0.7 --package=vite@8.0.16 -c "cd packages/core && vite build"
-      - run: npm publish -w nexus-admin-core
+        working-directory: packages/core
+      - run: npm run build
+        working-directory: packages/core
+      - run: npm publish
+        working-directory: packages/core
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

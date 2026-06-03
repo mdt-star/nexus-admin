@@ -34,6 +34,11 @@
 ### 已知问题
 - 无
 
+### 最新修复（2026-06-03）
+- [x] 修复 `publish.yml` 工作流：将 Build 步骤从 `npx --package` 隔离环境改为 `working-directory: packages/core` 方式
+  - **根因**：原写法 `npx --package="@vitejs/plugin-vue@6.0.7" --package="vite@8.0.16" -c "cd packages/core && vite build"` 创建了隔离环境，找不到 sass 等根目录依赖，导致构建失败
+  - **修复**：统一使用 `working-directory: packages/core` 让所有步骤（install/test/build/publish）都在 core 包目录下执行，依赖直接可用
+
 ### 目录结构
 ```
 nexus-admin/
