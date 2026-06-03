@@ -1,27 +1,47 @@
 /**
- * Nexus Admin Docs - 自定义主题
- * 基于项目主色调 #14b8a6（青绿色）
+ * Nexus Admin Docs - 品牌主题
  */
 
 :root {
-  /* Nexus Admin 品牌色 */
   --vp-c-brand-1: #14b8a6;
   --vp-c-brand-2: #0d9488;
   --vp-c-brand-3: #0f766e;
-  --vp-c-brand-soft: rgba(20, 184, 166, 0.14);
+  --vp-c-brand-soft: rgba(20, 184, 166, 0.12);
 }
 
-/* ========== 内容页样式 ========== */
+/* 首页名称 - 品牌色渐变 */
+:root {
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #14b8a6, #0d9488);
+}
 
-/* 链接 */
+/* 特性卡片 - 悬停效果 */
+.VPFeature {
+  border: 1px solid transparent;
+  transition: all 0.25s ease;
+  border-radius: 12px;
+}
+
+.VPFeature:hover {
+  border-color: var(--vp-c-brand-2);
+  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.08);
+  transform: translateY(-2px);
+}
+
+.VPFeature .icon {
+  background-color: var(--vp-c-brand-soft);
+  border-radius: 12px;
+  transition: transform 0.25s ease;
+}
+
+.VPFeature:hover .icon {
+  transform: scale(1.1);
+}
+
+/* 内容页链接 */
 .vp-doc a {
   color: var(--vp-c-brand-1);
-  text-decoration: none;
   font-weight: 500;
-}
-
-.vp-doc a:hover {
-  text-decoration: underline;
 }
 
 /* 代码块 */
@@ -33,12 +53,16 @@
 .vp-doc table {
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .vp-doc th {
   background-color: var(--vp-c-brand-soft);
-  color: var(--vp-c-brand-2);
+  color: var(--vp-c-text-2);
   font-weight: 600;
   font-size: 13px;
+}
+
+/* 页脚 */
+.VPFooter {
+  border-top: 1px solid var(--vp-c-gutter);
 }
