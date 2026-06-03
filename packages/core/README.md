@@ -119,7 +119,7 @@ export default {
 ## 导入样式
 
 ```js
-import 'nexus-admin-core/src/styles/global.scss'
+import 'nexus-admin-core/dist/nexus-admin-core.css'
 ```
 
 ## License

@@ -5,6 +5,9 @@
  *   import { nexusAdminProvider, loadAndInstallProviders, routeStore } from '@nexus-admin/core'
  */
 
+// === 全局样式（构建时打包进 dist/nexus-admin-core.css）===
+import './styles/global.scss'
+
 // === 核心工具 ===
 export { default as request } from './services/api'
 export { loadAndInstallProviders, installProvider, routeStore } from './utils/create-provider-installer'
