@@ -121,7 +121,10 @@ async function main() {
 import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
-  plugins: [vue()]
+  plugins: [vue()],
+  optimizeDeps: {
+    exclude: ['nexus-admin-core']
+  }
 })
 `)
   console.log(`  ${green('✓')} vite.config.js`)
@@ -149,7 +152,7 @@ export default defineConfig({
   console.log(`  ${green('✓')} .env`)
 
   // src/main.js
-  const mainContent = `import 'nexus-admin-core/src/styles/global.scss'
+  const mainContent = `import 'nexus-admin-core/dist/nexus-admin-core.css'
 import { createNexusApp, nexusAdminProvider } from 'nexus-admin-core'
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from './router/index'
