@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  base: '/nexus-admin/',
   title: 'Nexus Admin',
   description: '基于 Vue 3 + Element Plus 的现代化后台管理界面基座',
   lang: 'zh-CN',
