@@ -5,9 +5,20 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useWindowStore } from './windows'
 
+// 为不支持 localStorage 的测试环境提供空实现
+if (typeof localStorage === 'undefined') {
+  globalThis.localStorage = {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+    clear: () => {}
+  }
+}
+
 describe('WindowsStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    localStorage.removeItem('nexus-admin-windows')
   })
 
   it('初始状态为空', () => {
