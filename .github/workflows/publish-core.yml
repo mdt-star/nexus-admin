@@ -1,0 +1,25 @@
+name: Publish nexus-admin-core
+
+on:
+  push:
+    tags:
+      - 'v*'
+    paths:
+      - 'packages/core/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+      - working-directory: packages/core
+        run: npm install
+      - run: npm test
+      - run: npm run build -w nexus-admin-core
+      - run: npm publish -w nexus-admin-core
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

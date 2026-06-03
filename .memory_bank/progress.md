@@ -30,9 +30,12 @@
   - [x] `@element-plus/icons-vue` 打包进 dist 避免 star export
   - [x] CSS 样式覆盖问题修复（`!important` + 导入构建产物）
   - [x] 测试文件排除出 npm 包
+- [x] CI 构建修复与双包自动发布体系建立
+  - [x] 修复 publish-core.yml：npx 隔离环境、mockjs 依赖、自引用导入等问题
+  - [x] 拆分工作流：publish-core.yml + publish-create.yml，共用 v* 标签 + paths 过滤
+  - [x] 编写发布 SOP 写入 activeContext.md
 - [x] 已发布版本
-  - `nexus-admin-core`: v0.2.2
+  - `nexus-admin-core`: v0.2.5
   - `create-nexus-admin`: v0.2.0
 
 ## 待办
-- [ ] 开发新功能或修复 Bug...

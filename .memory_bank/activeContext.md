@@ -1,7 +1,7 @@
 # 当前活动上下文
 
 ## 当前工作
-已完成 CLI 脚手架工具、文档站点构建和第三方依赖管理优化。
+已完成 CLI 脚手架工具、文档站点构建和第三方依赖管理优化。已完善自动发布工作流体系。
 
 ### 已完成
 - [x] 创建 `create-nexus-admin` CLI 脚手架工具（`packages/create-nexus-admin/`）
@@ -23,21 +23,21 @@
 - [x] 已发布版本
   - `nexus-admin-core`: v0.2.2
   - `create-nexus-admin`: v0.2.0
+- [x] 修复 publish-core.yml 构建问题
+  - [x] 不再使用 `npx --package` 隔离环境
+  - [x] `packages/core/package.json` 添加 `mockjs` 到 devDependencies
+  - [x] 修复 `AppRoot.vue`、`HomePage.vue` 中 `nexus-admin-core` 自引用改为相对路径
+- [x] 建立双包自动发布工作流体系
 
 ### 已发布包版本
 
 | 包名 | 最新版本 | 说明 |
 |------|---------|------|
-| `nexus-admin-core` | 0.2.2 | 核心包，`files: ["dist"]`，含构建 CSS |
+| `nexus-admin-core` | 0.2.5 | 核心包，`files: ["dist"]`，含构建 CSS |
 | `create-nexus-admin` | 0.2.0 | CLI 脚手架，生成完整项目 |
 
 ### 已知问题
 - 无
-
-### 最新修复（2026-06-03）
-- [x] 修复 `publish.yml` 工作流：将 Build 步骤从 `npx --package` 隔离环境改为 `working-directory: packages/core` 方式
-  - **根因**：原写法 `npx --package="@vitejs/plugin-vue@6.0.7" --package="vite@8.0.16" -c "cd packages/core && vite build"` 创建了隔离环境，找不到 sass 等根目录依赖，导致构建失败
-  - **修复**：统一使用 `working-directory: packages/core` 让所有步骤（install/test/build/publish）都在 core 包目录下执行，依赖直接可用
 
 ### 目录结构
 ```
@@ -73,6 +73,62 @@ nexus-admin/
 │   ├── mock/
 │   └── router/index.js
 ├── .github/workflows/
-│   ├── publish.yml               (npm 自动发布)
-│   └── deploy-docs.yml           (GitHub Pages 自动部署)
+│   ├── publish-core.yml          ← nexus-admin-core 自动发布
+│   ├── publish-create.yml        ← create-nexus-admin 自动发布
+│   └── deploy-docs.yml           ← GitHub Pages 自动部署
 └── package.json                  (workspaces: ["packages/*"])
+```
+
+---
+
+## 📜 发布标准操作规程（SOP）
+
+### 工作流规则
+
+两个包共用 `v*` 标签触发，通过 `paths` 过滤自动区分：
+
+| 工作流文件 | 发布包 | 触发条件 |
+|-----------|-------|---------|
+| `.github/workflows/publish-core.yml` | `nexus-admin-core` | tag `v*` + `packages/core/**` 有变化 |
+| `.github/workflows/publish-create.yml` | `create-nexus-admin` | tag `v*` + `packages/create-nexus-admin/**` 有变化 |
+
+### 发布流程
+
+**两个包流程完全统一**，只需改包名和版本号：
+
+```bash
+# 1. bump 版本（patch/minor/major 按需）
+npm version patch -w <包名> --no-git-tag-version
+
+# 2. 提交 + 打标签 + 推送
+git add <包的 package.json>
+git commit -m "chore: bump <包名> to v<新版本>"
+git tag v<新版本>
+git push && git push origin v<新版本>
+```
+
+### 发布示例
+
+**发布 nexus-admin-core：**
+```bash
+npm version patch -w nexus-admin-core --no-git-tag-version
+git add packages/core/package.json
+git commit -m "chore: bump nexus-admin-core to v0.2.6"
+git tag v0.2.6
+git push && git push origin v0.2.6
+```
+
+**发布 create-nexus-admin：**
+```bash
+npm version patch -w create-nexus-admin --no-git-tag-version
+git add packages/create-nexus-admin/package.json
+git commit -m "chore: bump create-nexus-admin to v0.3.0"
+git tag v0.3.0
+git push && git push origin v0.3.0
+```
+
+### ⚠️ 注意事项
+
+1. **标签是全局命名空间**：务必 `git diff --stat` 确认只改了目标包的 `package.json`，避免标签版本号与包版本号不一致
+2. **不要一次发两个包**：不同包分开发布，各自打对应版本的标签
+3. **version 字段必须递增**：`npm version patch` 会自动处理

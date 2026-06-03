@@ -1,9 +1,11 @@
-name: Publish nexus-admin-core
+name: Publish create-nexus-admin
 
 on:
   push:
     tags:
       - 'v*'
+    paths:
+      - 'packages/create-nexus-admin/**'
 
 jobs:
   publish:
@@ -14,10 +16,7 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
-      - working-directory: packages/core
-        run: npm install
-      - run: npm test
-      - run: npm run build -w nexus-admin-core
-      - run: npm publish -w nexus-admin-core
+      - run: npm install
+      - run: npm publish -w create-nexus-admin
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
