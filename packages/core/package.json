@@ -6,13 +6,24 @@
   "main": "src/index.js",
   "module": "src/index.js",
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "scripts": {
     "build": "vite build",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest"
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.mjs",
+    "module": "dist/index.mjs",
+    "exports": {
+      ".": {
+        "import": "./dist/index.mjs"
+      },
+      "./styles/*": "./dist/styles/*"
+    }
   },
   "peerDependencies": {
     "vue": "^3.4.0",
