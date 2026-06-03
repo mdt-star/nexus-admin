@@ -3,8 +3,10 @@
 ## 总体状态
 - 测试通过率: 194/194 (100%)
 - 测试文件: 16/16 全部通过
-- Unhandled errors: 0
-- npm 包: `nexus-admin-core` v0.1.2（已发布）
+- npm 包:
+  - `nexus-admin-core` v0.2.2（已发布）
+  - `create-nexus-admin` v0.2.0（已发布）
+- VitePress 文档站点: 已配置 GitHub Actions 自动部署到 GitHub Pages
 - GitHub Actions 自动发布: 已配置并验证成功
 
 ## 已完成
@@ -14,24 +16,23 @@
 - [x] 样式迁移
 - [x] 清理旧文件
 - [x] 核心代码拆分为 npm 包 `nexus-admin-core`（npm workspace monorepo）
-  - [x] 创建 `packages/core/` 目录及构建配置
-  - [x] 核心代码迁入 `packages/core/src/`
-  - [x] 创建 public API 入口 `packages/core/src/index.js`
-  - [x] `app.js` / `AppRoot.vue` 改为导入 `nexus-admin-core`
-  - [x] 根目录 `package.json` 加入 `workspaces: ["packages/*"]`
-  - [x] 构建 194 测试用例全部通过
-- [x] npm 发布配置
-  - [x] 修复 `publishConfig`（`publishConfig` 覆盖 `main`/`module`/`exports`）
-  - [x] 创建 `packages/core/README.md`
-  - [x] 发布 `nexus-admin-core@0.1.0`→`0.1.1`→`0.1.2`
-- [x] 修复所有 `@nexus-admin/core` 引用为 `nexus-admin-core`（9 个文件）
-- [x] 修复 `windows.test.js` 测试（localStorage 在 happy-dom 中不可用）
-- [x] GitHub 集成
-  - [x] 创建远程仓库 `mdt-star/nexus-admin` 并推送
-  - [x] 创建 `.github/workflows/publish.yml`（tag 触发自动发布）
-  - [x] 验证自动发布成功（v0.1.2）
-- [x] 版本管理委托：后续由 Cline 负责版本号递增和 tag 推送
+- [x] npm 发布配置，发布 v0.1.0→v0.1.2
+- [x] GitHub 集成（远程仓库 + Actions + 自动发布）
+- [x] VitePress 文档站点搭建
+  - [x] 配置 GitHub Actions 部署到 GitHub Pages
+  - [x] 文档涵盖：入门指南、布局、路由、国际化、主题、权限、API、Provider、菜单、钩子、Stores、CLI
+  - [x] 品牌主题（渐变标题、特征卡片悬停效果等）
+- [x] CLI 脚手架工具 `create-nexus-admin` 创建并发布
+  - [x] 交互式引导（项目名称、布局、Mock、包管理器）
+  - [x] 生成完整项目，所有 peer dependencies 自动配置
+- [x] 第三方依赖兼容性优化
+  - [x] Vite 8.x 兼容（优化预构建配置）
+  - [x] `@element-plus/icons-vue` 打包进 dist 避免 star export
+  - [x] CSS 样式覆盖问题修复（`!important` + 导入构建产物）
+  - [x] 测试文件排除出 npm 包
+- [x] 已发布版本
+  - `nexus-admin-core`: v0.2.2
+  - `create-nexus-admin`: v0.2.0
 
 ## 待办
-- [ ] 配置 GitHub Actions `NPM_TOKEN` Secret（用户需手动操作）
 - [ ] 开发新功能或修复 Bug...
