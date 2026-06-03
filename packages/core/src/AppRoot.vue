@@ -7,8 +7,9 @@
 <script setup>
 import { computed } from 'vue'
 import { ElConfigProvider } from 'element-plus'
-import { useUiSizeStore, useI18nStore } from 'nexus-admin-core'
-import { MainLayout } from 'nexus-admin-core'
+import { useUiSizeStore } from './stores/size'
+import { useI18nStore } from './stores/i18n'
+import MainLayout from './layouts/MainLayout.vue'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import en from 'element-plus/dist/locale/en.mjs'
 
