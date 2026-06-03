@@ -152,7 +152,7 @@ export default defineConfig({
   console.log(`  ${green('✓')} .env`)
 
   // src/main.js
-  const mainContent = `import 'nexus-admin-core/dist/nexus-admin-core.css'
+  const mainContent = `import 'nexus-admin-core/src/styles/global.scss'
 import { createNexusApp, nexusAdminProvider } from 'nexus-admin-core'
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from './router/index'
