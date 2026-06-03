@@ -1,0 +1,24 @@
+{
+  "name": "create-nexus-admin",
+  "version": "0.1.0",
+  "description": "CLI 脚手架工具 —— 快速创建 Nexus Admin 项目",
+  "type": "module",
+  "bin": {
+    "create-nexus-admin": "index.js"
+  },
+  "files": [
+    "index.js",
+    "template"
+  ],
+  "scripts": {
+    "test": "node index.js --help"
+  },
+  "dependencies": {
+    "prompts": "^2.4.2",
+    "kolorist": "^1.8.0",
+    "minimist": "^1.2.8"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

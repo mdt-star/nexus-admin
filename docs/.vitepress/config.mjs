@@ -59,7 +59,8 @@ export default defineConfig({
             { text: 'Provider 插件开发', link: '/guide/provider-dev' },
             { text: '桌面模式开发', link: '/guide/desktop' },
             { text: 'Mock 数据', link: '/guide/mock' },
-            { text: '迁移指南', link: '/guide/migration' }
+            { text: 'CLI 脚手架', link: '/guide/cli' },
+          { text: '迁移指南', link: '/guide/migration' }
           ]
         }
       ],
