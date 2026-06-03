@@ -21,14 +21,10 @@ export default defineConfig({
         'axios'
       ],
       output: {
-        globals: {
-          vue: 'Vue',
-          pinia: 'Pinia',
-          'element-plus': 'ElementPlus',
-          'vue-router': 'VueRouter',
-          '@element-plus/icons-vue': 'ElementPlusIconsVue',
-          axios: 'axios'
-        }
+        // 禁用代码分割，所有内容打包到单一文件
+        // 避免 Vite 分割 chunk 时产生 star export 错误
+        manualChunks: undefined,
+        inlineDynamicImports: true
       }
     }
   }

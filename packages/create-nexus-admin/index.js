@@ -96,7 +96,7 @@ async function main() {
       preview: 'vite preview'
     },
     dependencies: {
-      'nexus-admin-core': '^0.1.7',
+      'nexus-admin-core': '^0.1.8',
       vue: '^3.4.0',
       pinia: '^2.3.0',
       'element-plus': '^2.9.0',
