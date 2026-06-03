@@ -1,4 +1,4 @@
-name: Publish @nexus-admin/core
+name: Publish nexus-admin-core
 
 on:
   push:
