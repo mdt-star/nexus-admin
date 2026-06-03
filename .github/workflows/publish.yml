@@ -16,7 +16,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm install --legacy-peer-deps
       - run: npm test
-      - run: npm run build -w nexus-admin-core
+      - name: Build
+        run: cd packages/core && npx vite build
       - run: npm publish -w nexus-admin-core
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
