@@ -1,1 +1,0 @@
-import{c as a,S as i,j as e,m as n}from"./chunks/framework.B01KcgC3.js";const k=JSON.parse('{"title":"Nexus Admin","description":"","frontmatter":{},"headers":[],"relativePath":"README.md","filePath":"README.md"}'),t={name:"README.md"};function l(p,s,d,h,o,r){return i(),e("div",null,[...s[0]||(s[0]=[n("",102)])])}const g=a(t,[["render",l]]);export{k as __pageData,g as default};
