@@ -116,36 +116,121 @@
 
 /* ========== 导航栏 ========== */
 .VPNav {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  background-color: rgba(255, 255, 255, 0.7) !important;
-  border-bottom: 1px solid rgba(20, 184, 166, 0.08);
+  border-bottom: none !important;
 }
 
-.dark .VPNav {
-  background-color: rgba(18, 18, 30, 0.7) !important;
-  border-bottom: 1px solid rgba(20, 184, 166, 0.05);
+.VPNav > .wrapper {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #0f766e 100%) !important;
 }
 
-/* 导航栏 Logo 和标题 */
-.VPNavBar .logo {
-  height: 28px;
+.dark .VPNav > .wrapper {
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #115e59 100%) !important;
 }
 
-.VPNavBarTitle .title {
+/* 导航栏内部内容 */
+.VPNavBar {
+  background: transparent !important;
+}
+
+.VPNavBar:not(.home) {
+  background: transparent !important;
+}
+
+/* 导航栏文字统一白色 */
+.VPNavBar .title {
+  color: #ffffff !important;
   font-weight: 700;
   font-size: 16px;
 }
 
-/* 导航链接悬停 */
+.VPNavBar .title span {
+  color: #ffffff !important;
+}
+
 .VPNavBarMenuLink {
+  color: rgba(255, 255, 255, 0.85) !important;
   border-radius: 6px !important;
   transition: all 0.2s ease !important;
 }
 
 .VPNavBarMenuLink:hover {
-  background: var(--vp-c-brand-soft) !important;
-  color: var(--vp-c-brand-1) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+.VPNavBarMenuLink.active {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 导航栏 Logo */
+.VPNavBar .logo {
+  height: 28px;
+}
+
+/* 搜索框 - 深色背景上适配 */
+.VPNavBarSearch .search {
+  --vp-input-bg-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.VPNavBarSearch .search .DocSearch-Button {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.VPNavBarSearch .search .DocSearch-Button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.VPNavBarSearch .search .DocSearch-Button-Placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.VPNavBarSearch .search .DocSearch-Search-Icon {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 社交链接图标 */
+.VPNavBarSocialLink .icon {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.VPNavBarSocialLink .icon:hover {
+  color: #ffffff !important;
+}
+
+/* 汉堡菜单按钮（移动端） */
+.VPNavBar .VPNavBarHamburger {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* 明暗切换按钮 */
+.VPNavBar .VPNavBarAppearance {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.VPNavBar .VPNavBarAppearance .VPSwitch {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 暗色模式导航栏适配 */
+.dark .VPNavBarSearch .search .DocSearch-Button {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 移动端菜单背景 */
+.VPNavScreen {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
+}
+
+.VPNavScreen .VPNavScreenMenuLink {
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.VPNavScreen .VPNavScreenMenuLink:hover {
+  color: #ffffff !important;
 }
 
 /* ========== 首页特性区域 ========== */
