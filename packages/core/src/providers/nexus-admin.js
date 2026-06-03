@@ -110,7 +110,7 @@ export default {
       if (syncing) return
       if (to.path === '/') return
       // 先尝试从已打开窗口中激活
-      const open = windowStore.items.find(item => item.path === to.path)
+      const open = windowStore.items.find(item => item.fullPath === to.path)
       if (open) {
         if (open.id !== windowStore.activeId) {
           syncing = true

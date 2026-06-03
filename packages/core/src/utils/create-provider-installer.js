@@ -70,7 +70,7 @@ export const routeStore = reactive({
     const result = []
     for (const [, routes] of sources) {
       for (const route of routes) {
-        const menu = this._routeToMenuItem(route)
+        const menu = this._routeToMenuItem(route, '')
         if (menu) {
           if (filter && !filter(route)) continue
           result.push(menu)
@@ -81,13 +81,27 @@ export const routeStore = reactive({
   },
 
   /**
-   * 递归将 RouteRecord 转为菜单项
+   * 拼接路由路径
    * @private
    */
-  _routeToMenuItem(route) {
+  _joinPaths(parentPath, childPath) {
+    if (!parentPath || childPath.startsWith('/')) return childPath
+    if (parentPath === '/') return '/' + childPath
+    return parentPath.replace(/\/$/, '') + '/' + childPath
+  },
+
+  /**
+   * 递归将 RouteRecord 转为菜单项
+   * @private
+   * @param {object} route      - 路由记录
+   * @param {string} parentPath - 父路由的完整路径（用于子路由路径拼接）
+   */
+  _routeToMenuItem(route, parentPath = '') {
     const meta = route.meta || {}
     // 无 title 或 hidden=true 的跳过
     if (!meta.title || meta.hidden) return null
+
+    const fullPath = this._joinPaths(parentPath, route.path)
 
     const item = {
       id: route.name,
@@ -96,6 +110,7 @@ export const routeStore = reactive({
       permission: meta.permission || null,
       sort: meta.sort ?? 0,
       path: route.path,
+      fullPath: fullPath,
       component: (route.components?.default || route.component)
         ? route.name // 用路由 name 作为组件标识
         : null,
@@ -112,7 +127,7 @@ export const routeStore = reactive({
     // 递归处理 children
     if (route.children && route.children.length > 0) {
       const children = route.children
-        .map(child => this._routeToMenuItem(child))
+        .map(child => this._routeToMenuItem(child, fullPath))
         .filter(Boolean)
       if (children.length > 0) {
         item.children = children
