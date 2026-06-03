@@ -121,7 +121,10 @@ async function main() {
 import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
-  plugins: [vue()]
+  plugins: [vue()],
+  optimizeDeps: {
+    exclude: ['nexus-admin-core']
+  }
 })
 `)
   console.log(`  ${green('✓')} vite.config.js`)

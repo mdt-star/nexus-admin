@@ -1,6 +1,6 @@
 {
   "name": "create-nexus-admin",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "CLI 脚手架工具 —— 快速创建 Nexus Admin 项目",
   "type": "module",
   "bin": {
