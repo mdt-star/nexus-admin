@@ -58,7 +58,7 @@ nexus-admin/                        # Monorepo（npm workspaces）
 │           ├── directives/        # v-permission 权限指令
 │           └── composables/       # useWindowDrag 窗口拖拽
 ├── resources/js/nexus-admin/      ← 应用层（入口 + 业务页面）
-│   ├── app.js                     # 启动入口（import @nexus-admin/core）
+│   ├── app.js                     # 启动入口（import nexus-admin-core）
 │   ├── router/index.js            # 路由定义（internalRoutes + createRouter）
 │   ├── pages/                     # 业务页面（demo + system）
 │   └── mock/                      # Mock 数据
@@ -99,7 +99,7 @@ nexus-admin/                        # Monorepo（npm workspaces）
 ### 使用示例
 
 ```js
-import { hookManager } from '@nexus-admin/core'
+import { hookManager } from 'nexus-admin-core'
 
 // 注册
 hookManager.on('theme:changed', ({ theme, primaryColor }) => {
@@ -127,7 +127,7 @@ await hookManager.emit('theme:changed', { theme: 'dark', primaryColor: '#409EFF'
 Provider 文件使用 `createProviderInstaller` 创建，在 install 中自由注册组件、指令、路由：
 
 ```js
-import { createProviderInstaller } from '@nexus-admin/core'
+import { createProviderInstaller } from 'nexus-admin-core'
 
 export default createProviderInstaller('nexus-blog', ({ app, router }) => {
   router.addRoute({
@@ -275,7 +275,7 @@ authApi.currentUser({ _silentError: true })
 插件监听事件示例：
 
 ```js
-import { hookManager } from '@nexus-admin/core'
+import { hookManager } from 'nexus-admin-core'
 
 hookManager.on('auth:unauthorized', (payload) => {
   console.log('未登录事件:', payload)
