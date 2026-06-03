@@ -1,15 +1,13 @@
 {
   "name": "nexus-admin-core",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Nexus Admin 核心包 —— 框架核心逻辑",
   "type": "module",
-  "main": "src/index.js",
-  "module": "src/index.js",
+  "main": "dist/index.mjs",
+  "module": "dist/index.mjs",
   "files": [
     "dist",
-    "src",
-    "!src/**/*.test.js",
-    "!src/**/*.test.vue"
+    "src/styles"
   ],
   "scripts": {
     "build": "vite build",
@@ -18,15 +16,7 @@
     "test:watch": "vitest"
   },
   "publishConfig": {
-    "access": "public",
-    "main": "dist/index.mjs",
-    "module": "dist/index.mjs",
-    "exports": {
-      ".": {
-        "import": "./dist/index.mjs"
-      },
-      "./styles/*": "./dist/styles/*"
-    }
+    "access": "public"
   },
   "peerDependencies": {
     "vue": "^3.4.0",
@@ -52,9 +42,8 @@
   },
   "exports": {
     ".": {
-      "import": "./src/index.js"
+      "import": "./dist/index.mjs"
     },
-    "./src/*": "./src/*",
-    "./styles/*": "./src/styles/*"
+    "./src/styles/*": "./src/styles/*"
   }
 }
