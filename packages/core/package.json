@@ -1,6 +1,6 @@
 {
   "name": "nexus-admin-core",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Nexus Admin 核心包 —— 框架核心逻辑",
   "type": "module",
   "main": "dist/index.mjs",
@@ -32,7 +32,7 @@
     "vue-router": "^4.6.4",
     "@element-plus/icons-vue": "^2.3.0",
     "axios": "^1.16.1",
-    "@vitejs/plugin-vue": "^5.2.0",
+    "@vitejs/plugin-vue": "^6.0.7",
     "@vue/test-utils": "^2.4.10",
     "happy-dom": "^20.9.0",
     "sass": "^1.86.0",
