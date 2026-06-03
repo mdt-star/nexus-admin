@@ -8,8 +8,6 @@ export default defineConfig({
   ignoreDeadLinks: true,
 
   themeConfig: {
-    logo: '/logo.png',
-
     socialLinks: [
       { icon: 'github', link: 'https://github.com/mdt-star/nexus-admin' }
     ],

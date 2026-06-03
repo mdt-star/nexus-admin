@@ -6,9 +6,6 @@ hero:
   name: "Nexus Admin"
   text: "企业级后台管理框架"
   tagline: 基于 Vue 3 + Element Plus 的现代化后台管理界面基座，支持插件化扩展和双模式布局
-  image:
-    src: /hero.png
-    alt: Nexus Admin
   actions:
     - theme: brand
       text: 快速开始
