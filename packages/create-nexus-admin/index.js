@@ -105,8 +105,8 @@ async function main() {
       axios: '^1.16.1'
     },
     devDependencies: {
-      '@vitejs/plugin-vue': '^5.2.4',
-      vite: '^6.4.2',
+      '@vitejs/plugin-vue': '^6.0.7',
+      vite: '^8.0.16',
       sass: '^1.100.0'
     }
   }
