@@ -248,12 +248,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useAppStore } from 'nexus-admin-core'
-import { useI18nStore } from 'nexus-admin-core'
-import { useConfigStore } from 'nexus-admin-core'
-import { useShortcutsStore } from 'nexus-admin-core'
-import { useWindowStore } from 'nexus-admin-core'
-import { useMenuStore } from 'nexus-admin-core'
+import { useAppStore } from '../stores/app'
+import { useI18nStore } from '../stores/i18n'
+import { useConfigStore } from '../stores/config'
+import { useShortcutsStore } from '../stores/shortcuts'
+import { useWindowStore } from '../stores/windows'
+import { useMenuStore } from '../stores/menu'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { Monitor, InfoFilled, Connection, Link, Document, Star, Bell, Refresh, DataAnalysis, WarningFilled, Delete, Close } from '@element-plus/icons-vue'
 
