@@ -7,7 +7,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'resources/js/nexus-admin')
-    }
+    },
+    conditions: ['development', 'module', 'browser', 'import']
+  },
+  optimizeDeps: {
+    exclude: ["nexus-admin-core"], // 不预构建
   },
   build: {
     outDir: resolve(__dirname, 'dist'),

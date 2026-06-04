@@ -5,6 +5,7 @@
   "type": "module",
   "main": "dist/index.mjs",
   "module": "dist/index.mjs",
+  "source": "./src/index.js",
   "files": [
     "dist"
   ],
@@ -41,8 +42,10 @@
   },
   "exports": {
     ".": {
+      "development": "./src/index.js", 
       "import": "./dist/index.mjs"
     },
-    "./dist/*": "./dist/*"
+    "./dist/*": "./dist/*",
+    "./src/*": "./src/*"
   }
 }
