@@ -1,7 +1,7 @@
 # 当前活动上下文
 
 ## 当前工作
-已完成 CLI 脚手架工具、文档站点构建和第三方依赖管理优化。已完善自动发布工作流体系。
+已完成开发模式源码别名配置与 SCSS 直连优化。提交并同步到 dev/main 分支。
 
 ### 已完成
 - [x] 创建 `create-nexus-admin` CLI 脚手架工具（`packages/create-nexus-admin/`）

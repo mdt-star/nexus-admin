@@ -39,3 +39,11 @@
   - `create-nexus-admin`: v0.2.0
 
 ## 待办
+
+---
+
+### 最近变更
+- [x] 新增开发模式源码别名配置（`resolve.conditions` + `optimizeDeps.exclude`）
+- [x] SCSS 导入从 dist 产物改为 `src/styles/global.scss` 直连
+- [x] 提交并合并到 `dev` 分支 → push `origin/dev`
+- [x] 同步 `main` 分支 → push `origin/main`
